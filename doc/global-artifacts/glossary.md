@@ -1,7 +1,7 @@
 # Glossary
 
 
-| TEA (EN) | Description (EN)                                                                                                                                          |
+| TEA (EN) | Description (EN) |
 |:-----------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | AC                                             | Acceptance Criteria                                                                                                                                       |
 | Acceptance Criteria                            | A set of predefined conditions or requirements that a software product must meet to be accepted by the client or stakeholders.                            

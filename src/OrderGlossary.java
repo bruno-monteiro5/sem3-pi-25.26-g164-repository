@@ -46,7 +46,6 @@ public class OrderGlossary {
 
         List<String> out = new ArrayList<>();
         out.addAll(preface);
-        if (!out.isEmpty() && !out.get(out.size()-1).isBlank()) out.add("");
         out.add(headerRow);
         out.add(separatorRow);
         out.addAll(dataRows);
