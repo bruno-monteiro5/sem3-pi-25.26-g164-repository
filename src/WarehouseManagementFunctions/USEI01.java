@@ -1,17 +1,17 @@
 package WarehouseManagementFunctions;
 
-import Classes.Aisle;
-import Classes.Bay;
-import Classes.Warehouse;
+import Classes.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class USEI01 {
 
     public static Warehouse warehouse;
+    public static List<Products> products;
+    public static Map<String, Box> perishable;
+    public static Map<Integer, Box> nonPerishable;
 
     public static Warehouse beginWarehouse() throws FileNotFoundException {
         String fileNameWarehouse = "warehouseMngt/train_station_dataset/bays.csv";
@@ -31,6 +31,55 @@ public class USEI01 {
         }
         sc.close();
         return warehouse;
+    }
+
+    public static void beginProducts() throws FileNotFoundException {
+        products = new ArrayList<Products>();
+
+        String fileNameProducts = "warehouseMngt/train_station_dataset/items.csv";
+
+        Scanner sc = new Scanner(new File(fileNameProducts));
+        String line = sc.nextLine();
+        while(sc.hasNextLine()){
+            line = sc.nextLine();
+            String[] lineSplit = line.split(",");
+            products.add(new Products(lineSplit[0], lineSplit[1], lineSplit[2], lineSplit[3], Float.parseFloat(lineSplit[4]), Float.parseFloat(lineSplit[5])));
+        }
+    }
+
+    public static void removeCargoFromWagon(Warehouse warehouse, List<Products> productsP) throws FileNotFoundException {
+        beginProducts();
+        productsP = products;
+        perishable = new HashMap<>();
+        nonPerishable = new HashMap<>();
+
+        String fileNameWagons = "warehouseMngt/train_station_dataset/wagons.csv";
+        int index = 0;
+        Scanner sc = new Scanner(new File(fileNameWagons));
+        String line = sc.nextLine();
+        while(sc.hasNextLine()){
+            line = sc.nextLine();
+            String[] lineSplit = line.split(",");
+            Products product = null;
+            for(Products p : products){
+                if(lineSplit[2].equals(p.getSkuID())){
+                    product = p;
+                    break;
+                }
+            }
+            if(lineSplit[4].equals(null) || lineSplit[4].equals("") || lineSplit[4].isBlank()){
+                index ++;
+                nonPerishable.put(index, new Box(product, Integer.parseInt(lineSplit[3])));
+            }else{
+                perishable.put(lineSplit[4], new Box(product, Integer.parseInt(lineSplit[3])));
+            }
+        }
+        sc.close();
+        System.out.println("######NON PERISHABLE####");
+        nonPerishable.forEach((k,v) -> System.out.printf("Index: %d, %s\n", k, v.toString()));
+        System.out.println("######PERISHABLE####");
+        perishable.forEach((k,v) -> System.out.printf("Expiry date: %s, %s\n", k, v.toString()));
+
     }
 
 
