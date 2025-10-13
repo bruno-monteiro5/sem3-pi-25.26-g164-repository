@@ -17,8 +17,8 @@ class RailLine {
 
 class LineSegment {
     length
-    isEletrified
-    width
+    isElectrified
+    gaugeWidth
     maxWeight
     speedLimit
 }
@@ -34,7 +34,7 @@ class Siding {
   location
 }
 
-class Endpoint {
+abstract class Endpoint {
     name
     location
 }
@@ -61,6 +61,66 @@ class RefrigeratedArea {
 class GrainSilo {
 }
 
+abstract class RollingStock {
+   id
+   make
+   model
+   gauge
+
+}
+class Locomotive extends RollingStock {
+    entryYear
+    power
+    acceleration
+    weight
+    bogieCount
+}
+
+class Diesel extends Locomotive {
+    fuelCapacity
+}
+
+class Electric extends Locomotive {
+}
+
+class Wagon extends RollingStock {
+    payload
+    volCapacity
+    tare
+}
+
+class Train extends RollingStock {
+}
+
+class Boxcar extends Wagon {
+ }
+class Flatcar extends Wagon {
+}
+class TankCar extends Wagon {
+ }
+class HopperCar extends Wagon {
+}
+class RefrigeratedCar extends Wagon {
+}
+
+class ChemicalTankCar extends TankCar {
+ }
+class MineralOilCar   extends TankCar {
+ }
+class PressureGasCar  extends TankCar {
+ }
+
+ class Container {
+    size
+    height
+}
+
+class Dimension {
+    length
+    width
+    height
+}
+
 
 
 
@@ -70,6 +130,8 @@ RailLine "1" --> "*" LineSegment : composed of
 SingleTrackSegment "0..*" ---> "0..*" Siding : has crossing areas
 RailLine "1" --> "1" Endpoint : from
 RailLine "1" --> "1" Endpoint : to
+LineSegment "1" --> "1" Endpoint : from
+LineSegment "1" --> "1" Endpoint : to
 RailLine "1" --> "1" Owner : has
 RailLine "1" --> "*" Operator : used by of
 Terminal "1" ---> "*" Warehouse : may include
@@ -78,8 +140,13 @@ Terminal "1" ---> "*" RefrigeratedArea : may include
 Station "1" ---> "*" RefrigeratedArea : may include
 Terminal "1" ---> "*" GrainSilo : may include
 Station "1" ---> "*" GrainSilo : may include
-
-
+Operator "1" --- "0..*" RollingStock : owns >
+Train "1" -- "1..*" Locomotive : is composed of >
+Train "1" -- "0..*" Wagon : is composed of >
+Train "*" ---> "*" RailLine : run on >
+Flatcar "1" o-- "*" Container : carries >
+Locomotive "1" o-- "0..1" Dimension : has >
+Wagon "1" o-- "0..1" Dimension : has >
 
 
 @enduml
