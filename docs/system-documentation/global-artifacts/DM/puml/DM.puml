@@ -1,15 +1,85 @@
 @startuml
-'https://plantuml.com/sequence-diagram
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
 
-autonumber
+class RailwayInfrastructure {
 
-== Initialization ==
+}
 
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
+class RailLine {
+    id
+    name
+}
 
-== Repetition ==
+class LineSegment {
+    length
+    isEletrified
+    width
+    maxWeight
+    speedLimit
+}
 
-Alice -> Bob: Another authentication Request
-Alice <-- Bob: another authentication Response
+class SingleTrackSegment extends LineSegment {
+}
+
+class DoubleTrackSegment extends LineSegment {
+}
+
+class Siding {
+  name
+  location
+}
+
+class Endpoint {
+    name
+    location
+}
+
+class Owner {
+    name
+}
+
+class Operator {
+    name
+}
+
+class Station extends Endpoint{
+}
+class Terminal extends Endpoint{
+}
+
+class Warehouse {
+}
+
+class RefrigeratedArea {
+}
+
+class GrainSilo {
+}
+
+
+
+
+
+RailwayInfrastructure "1" -> "*" RailLine : includes
+RailLine "1" --> "*" LineSegment : composed of
+SingleTrackSegment "0..*" ---> "0..*" Siding : has crossing areas
+RailLine "1" --> "1" Endpoint : from
+RailLine "1" --> "1" Endpoint : to
+RailLine "1" --> "1" Owner : has
+RailLine "1" --> "*" Operator : used by of
+Terminal "1" ---> "*" Warehouse : may include
+Station "1" ---> "*" Warehouse : may include
+Terminal "1" ---> "*" RefrigeratedArea : may include
+Station "1" ---> "*" RefrigeratedArea : may include
+Terminal "1" ---> "*" GrainSilo : may include
+Station "1" ---> "*" GrainSilo : may include
+
+
+
+
 @enduml
