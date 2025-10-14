@@ -17,10 +17,14 @@ class RailLine {
 
 class LineSegment {
     length
-    isElectrified
     gaugeWidth
     maxWeight
     speedLimit
+}
+
+class Electrification {
+    id
+    description
 }
 
 class SingleTrackSegment extends LineSegment {
@@ -234,6 +238,7 @@ Box "1" -- "1" Item : contains >
 Order "1" -- "1..*" OrderLine : has >
 OrderLine "1" --> "1" Item : refers to >
 Return "1" --> "1" Item : returned product >
-
+LineSegment "0..*" --> "0..1" Electrification : electrified by >
+Electric     "1"    --> "1..*" Electrification : compatible with >
 
 @enduml
