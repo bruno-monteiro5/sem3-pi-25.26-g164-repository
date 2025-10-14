@@ -55,6 +55,11 @@ class Station extends Endpoint{
 class Terminal extends Endpoint{
 }
 
+class FreightYard {
+    name
+    location
+}
+
 class Warehouse {
 }
 
@@ -240,6 +245,9 @@ OrderLine "1" --> "1" Item : refers to >
 Return "1" --> "1" Item : returned product >
 LineSegment "0..*" --> "0..1" Electrification : electrified by >
 Electric     "1"    --> "1..*" Electrification : compatible with >
-
+RailwayInfrastructure "1" *-- "*" Station : includes >
+RailwayInfrastructure "1" *-- "*" Terminal : includes >
+RailwayInfrastructure "1" *-- "*" FreightYard : includes >
+FreightYard "1" --- "*" Train : handles >
 
 @enduml
