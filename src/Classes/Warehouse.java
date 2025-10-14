@@ -28,6 +28,12 @@ public class Warehouse {
         this.aisles.add(new Aisle(aisleID));
     }
     public Aisle getLastAisle(){
-        return this.aisles.getLast();
+        return this.aisles.get(this.aisles.size() - 1);
+    }
+    public Aisle getFirstAvailableAisle(){
+        for(Aisle a: aisles) {
+            if (a.getFirstAvailableBay() != null) return a;
+        }
+        return null;
     }
 }
