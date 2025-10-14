@@ -160,9 +160,39 @@ class Bay {
 }
 
 class Box {
+    id
+    quantity
+    expiryDate
+    receivedAt
 }
 
+class Item {
+    sku
+    name
+    category
+    unit
+    volume
+    unitWeight
+}
 
+class Order {
+    id
+    dueDate
+    priority
+}
+
+class OrderLine {
+    lineNo
+    quantity
+}
+
+class Return {
+    id
+    quantity
+    reason
+    timestamp
+    expiryDate
+}
 
 
 
@@ -200,5 +230,10 @@ Aisle     "1" -- "1..*" Bay : has >
 Bay "1" -- "0..*" Box : stores >
 Wagon "1" -- "0..*" Box : carries >
 UnloadingDock "1..*" --> "1..*" Warehouse : access to >
+Box "1" -- "1" Item : contains >
+Order "1" -- "1..*" OrderLine : has >
+OrderLine "1" --> "1" Item : refers to >
+Return "1" --> "1" Item : returned product >
+
 
 @enduml
