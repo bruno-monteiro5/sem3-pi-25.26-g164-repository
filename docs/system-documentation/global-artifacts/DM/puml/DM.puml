@@ -121,6 +121,47 @@ class Dimension {
     height
 }
 
+class Freight {
+    id
+}
+
+class Route {
+id
+complexity
+}
+
+class Path {
+id
+}
+
+class PathStep {
+    order
+}
+
+class CirculationLine {
+    id
+}
+
+class ParkingLine {
+    id
+}
+
+class UnloadingDock {
+    id
+}
+
+class Aisle {
+    id
+}
+
+class Bay {
+    id
+    capacity
+}
+
+class Box {
+}
+
 
 
 
@@ -144,9 +185,20 @@ Operator "1" --- "0..*" RollingStock : owns >
 Train "1" -- "1..*" Locomotive : is composed of >
 Train "1" -- "0..*" Wagon : is composed of >
 Train "*" ---> "*" RailLine : run on >
-Flatcar "1" o-- "*" Container : carries >
-Locomotive "1" o-- "0..1" Dimension : has >
-Wagon "1" o-- "0..1" Dimension : has >
-
+Flatcar "1" -- "*" Container : carries >
+Locomotive "1" -- "0..1" Dimension : has >
+Wagon "1" -- "0..1" Dimension : has >
+Freight "1"--- "1..*" Wagon : consists of >
+Path "1" -- "1..*" PathStep : consists of >
+PathStep "1" --> "1" LineSegment : via >
+Route "1" -- "1..*" Freight
+Terminal "1" -- "1..*" CirculationLine : has >
+Terminal "1" -- "1..*" ParkingLine    : has >
+Terminal "1" -- "1..*" UnloadingDock  : has >
+Warehouse "1" -- "1..*" Aisle : organized in >
+Aisle     "1" -- "1..*" Bay : has >
+Bay "1" -- "0..*" Box : stores >
+Wagon "1" -- "0..*" Box : carries >
+UnloadingDock "1..*" --> "1..*" Warehouse : access to >
 
 @enduml
