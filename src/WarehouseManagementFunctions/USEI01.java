@@ -1,6 +1,7 @@
 package WarehouseManagementFunctions;
 
 import Classes.*;
+import com.sun.source.tree.NewArrayTree;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -78,7 +79,24 @@ public class USEI01 {
         System.out.println("######NON PERISHABLE####");
         nonPerishable.forEach((k,v) -> System.out.printf("Index: %d, %s\n", k, v.toString()));
         System.out.println("######PERISHABLE####");
-        perishable.forEach((k,v) -> System.out.printf("Expiry date: %s, %s\n", k, v.toString()));
+        List<Map.Entry<String, Box>> list = new ArrayList<>();
+        perishable.forEach((k, v) -> list.add(new AbstractMap.SimpleEntry<>(k, v)));
+        list.sort(Comparator.comparing(Map.Entry::getKey));
+        for(Map.Entry<String, Box> e : list){
+            System.out.printf("Key: %s, Value: %s\n", e.getKey(), e.getValue().toString());
+        }
+        System.out.println("########################");
+        for(Map.Entry<String, Box> e : perishable.entrySet()){
+            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue().getProduct(), e.getValue().getQuantity());
+        }
+        System.out.println("#####PERISHABLES FULLY STORED####");
+        System.out.println("#####CURRENT INVENTORY#####");
+        for(Aisle a : warehouse.getAisles()){
+            for(Bay b : a.getBays()){
+                System.out.println(b.toString());
+            }
+        }
+
 
     }
 

@@ -32,5 +32,14 @@ public class Aisle {
         return String.format("Aisle ID: %d, with %d bays", this.aisleID, this.bays.size());
     }
 
+    public Bay getFirstAvailableBay(){
+        for(Bay b: bays){
+            if(b.getInventory().size() < b.getCapacity()){
+                return b;
+            }
+        }
+        return null;
+    }
+
 
 }
