@@ -24,7 +24,6 @@ class LineSegment {
 
 class Electrification {
     id
-    description
 }
 
 class SingleTrackSegment extends LineSegment {
@@ -93,7 +92,8 @@ class Wagon extends RollingStock {
     tare
 }
 
-class Train extends RollingStock {
+class Train {
+  id
 }
 
 class Boxcar extends Wagon {
@@ -233,12 +233,13 @@ Warehouse "1" -- "1..*" Aisle : organized in >
 Aisle     "1" -- "1..*" Bay : has >
 Bay "1" -- "0..*" Box : stores >
 Wagon "1" -- "0..*" Box : carries >
-UnloadingDock "1..*" --> "1..*" Warehouse : access to >
+UnloadingDock "1" --> "1..*" Warehouse : connects to >
 Box "1" -- "1" Item : contains >
 Order "1" -- "1..*" OrderLine : has >
 OrderLine "1" --> "1" Item : refers to >
 Return "1" --> "1" Item : returned product >
 LineSegment "0..*" --> "0..1" Electrification : electrified by >
 Electric     "1"    --> "1..*" Electrification : compatible with >
+
 
 @enduml
