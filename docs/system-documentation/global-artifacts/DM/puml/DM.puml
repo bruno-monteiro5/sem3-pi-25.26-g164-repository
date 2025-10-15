@@ -51,8 +51,10 @@ class Operator {
 }
 
 class Station extends Endpoint{
+    name
 }
 class Terminal extends Endpoint{
+    name
 }
 
 class FreightYard {
@@ -84,11 +86,11 @@ class Locomotive extends RollingStock {
     bogieCount
 }
 
-class Diesel extends Locomotive {
+class DieselLocomotive extends Locomotive {
     fuelCapacity
 }
 
-class Electric extends Locomotive {
+class ElectricLocomotive extends Locomotive {
 }
 
 class Wagon extends RollingStock {
@@ -212,9 +214,22 @@ class WarehousePlanner {
     name
 }
 
+class Tunnel {
+}
+
+class Bridge {
+}
+
+class Trolley {
+    id
+    weightCapacity
+}
+
 
 
 RailwayInfrastructure "1" -> "*" RailLine : includes
+RailwayInfrastructure "1" ---> "*" Tunnel : includes
+RailwayInfrastructure "1" ---> "*" Bridge : includes
 RailLine "1" --> "*" LineSegment : composed of
 SingleTrackSegment "0..*" ---> "0..*" Siding : has crossing areas
 RailLine "1" --> "1" Endpoint : from
@@ -236,7 +251,9 @@ Train "*" ---> "*" RailLine : run on >
 Flatcar "1" -- "*" Container : carries >
 Locomotive "1" -- "0..1" Dimension : has >
 Wagon "1" -- "0..1" Dimension : has >
+Bay "1" -- "0..1" Dimension : has >
 Freight "1"--- "1..*" Wagon : consists of >
+Train "1"--- "1..*" Freight : transports >
 Path "1" -- "1..*" PathStep : consists of >
 PathStep "1" --> "1" LineSegment : via >
 Route "1" -- "1..*" Freight
@@ -253,7 +270,7 @@ Order "1" -- "1..*" OrderLine : has >
 OrderLine "1" --> "1" Item : refers to >
 Return "1" --> "1" Item : returned product >
 LineSegment "0..*" --> "0..1" Electrification : electrified by >
-Electric     "1"    --> "1..*" Electrification : compatible with >
+ElectricLocomotive     "1"    --> "1..*" Electrification : compatible with >
 RailwayInfrastructure "1" *-- "*" Station : includes >
 RailwayInfrastructure "1" *-- "*" Terminal : includes >
 RailwayInfrastructure "1" *-- "*" FreightYard : includes >
