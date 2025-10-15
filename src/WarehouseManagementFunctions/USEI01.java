@@ -12,7 +12,7 @@ public class USEI01 {
     public static Warehouse warehouse;
     public static List<Products> products;
     public static Map<String, Box> perishable;
-    public static Map<Integer, Box> nonPerishable;
+    public static Map<String, Box> nonPerishable;
 
     public static Warehouse beginWarehouse() throws FileNotFoundException {
         String fileNameWarehouse = "warehouseMngt/train_station_dataset/bays.csv";
@@ -69,18 +69,17 @@ public class USEI01 {
                 }
             }
             if(lineSplit[4].equals(null) || lineSplit[4].equals("") || lineSplit[4].isBlank()){
-                index ++;
-                nonPerishable.put(index, new Box(product, Integer.parseInt(lineSplit[3])));
+
+                nonPerishable.put(lineSplit[5], new Box(product, Integer.parseInt(lineSplit[3])));
             }else{
                 perishable.put(lineSplit[4], new Box(product, Integer.parseInt(lineSplit[3])));
             }
         }
         sc.close();
         System.out.println("######NON PERISHABLE####");
-        nonPerishable.forEach((k,v) -> System.out.printf("Index: %d, %s\n", k, v.toString()));
+        nonPerishable.forEach((k,v) -> System.out.printf("Arrived in: %s, %s\n", k, v.toString()));
         System.out.println("######PERISHABLE####");
-        List<Map.Entry<String, Box>> list = new ArrayList<>();
-        perishable.forEach((k, v) -> list.add(new AbstractMap.SimpleEntry<>(k, v)));
+        List<Map.Entry<String, Box>> list = new ArrayList<>(perishable.entrySet());
         list.sort(Comparator.comparing(Map.Entry::getKey));
         for(Map.Entry<String, Box> e : list){
             System.out.printf("Key: %s, Value: %s\n", e.getKey(), e.getValue().toString());
@@ -90,6 +89,31 @@ public class USEI01 {
             warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue().getProduct(), e.getValue().getQuantity());
         }
         System.out.println("#####PERISHABLES FULLY STORED####");
+        System.out.println("#####CURRENT INVENTORY#####");
+        for(Aisle a : warehouse.getAisles()){
+            for(Bay b : a.getBays()){
+                System.out.println(b.toString());
+            }
+        }
+
+        list = new ArrayList<>(nonPerishable.entrySet());
+        list.sort(Comparator.comparing(Map.Entry::getKey));
+        for(Map.Entry<String, Box> e : list){
+            System.out.printf("Key: %s, Value: %s\n", e.getKey(), e.getValue().toString());
+        }
+        System.out.println("########################");
+        for(int i = 0; i < nonPerishable.size(); i++){
+            if( i < nonPerishable.size()-1 && list.get(i).getKey().equals(list.get(i+1).getKey())){
+                if(list.get(i).getValue().getProduct().getSkuID().compareTo(list.get(i+1).getValue().getProduct().getSkuID()) >0){
+                    Map.Entry<String, Box> temp = list.get(i);
+                    list.set(i, list.get(i+1));
+                    list.set(i+1, temp);
+                }
+            }
+            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(list.get(i).getValue().getProduct(), list.get(i).getValue().getQuantity());
+
+        }
+        System.out.println("#####NON PERISHABLES FULLY STORED####");
         System.out.println("#####CURRENT INVENTORY#####");
         for(Aisle a : warehouse.getAisles()){
             for(Bay b : a.getBays()){

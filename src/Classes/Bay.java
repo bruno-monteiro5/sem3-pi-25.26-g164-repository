@@ -1,6 +1,8 @@
 package Classes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Bay {
@@ -42,6 +44,15 @@ public class Bay {
     }
 
     public String toString(){
-        return String.format("Bay ID: %d, with %d boxes, and %d capacity", this.bayID, this.inventory.size(), this.capacity);
+        if(this.inventory.size() == 0) {
+            return String.format("Bay ID: %d, with %d boxes, and %d capacity", this.bayID, this.inventory.size(), this.capacity);
+        }else{
+            String result = String.format("Bay ID: %d, with %d boxes, and %d capacity", this.bayID, this.inventory.size(), this.capacity);
+            List<Map.Entry<Products, Integer>> list = new ArrayList<Map.Entry<Products, Integer>>(this.inventory.entrySet());
+            for(Map.Entry<Products, Integer> e : list){
+                result += String.format("Product %s in quantity %d\n", e.getKey().toString(), e.getValue());
+            }
+            return result;
+        }
     }
 }
