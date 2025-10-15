@@ -182,6 +182,7 @@ class Item {
     unit
     volume
     unitWeight
+    isPerishable
 }
 
 class Order {
@@ -201,6 +202,14 @@ class Return {
     reason
     timestamp
     expiryDate
+}
+
+class TerminalOperator {
+    name
+}
+
+class WarehousePlanner {
+    name
 }
 
 
@@ -249,5 +258,12 @@ RailwayInfrastructure "1" *-- "*" Station : includes >
 RailwayInfrastructure "1" *-- "*" Terminal : includes >
 RailwayInfrastructure "1" *-- "*" FreightYard : includes >
 FreightYard "1" --- "*" Train : handles >
+TerminalOperator "1"---"1" UnloadingDock : operates at
+TerminalOperator "1"--- "1..*" Bay : relocates
+TerminalOperator "1" *--- "1..*" Order : dispatches
+WarehousePlanner "1"---"1..*" Box   : allocates >
+
+
+
 
 @enduml
