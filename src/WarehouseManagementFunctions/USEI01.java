@@ -17,19 +17,23 @@ public class USEI01 {
     public static Warehouse beginWarehouse() throws FileNotFoundException {
         String fileNameWarehouse = "warehouseMngt/train_station_dataset/bays.csv";
 
-
         Scanner sc = new Scanner(new File(fileNameWarehouse));
-        String line = sc.nextLine();
         warehouse = new Warehouse(sc.nextLine().split(";")[0]);
+        String line = "";
         int aisleID = -1;
-        while(sc.hasNextLine()){
+
+        while (sc.hasNextLine()) {
             line = sc.nextLine();
-            if(Integer.parseInt(line.split(";")[1]) != aisleID){
+            if (Integer.parseInt(line.split(";")[1]) != aisleID) {
                 aisleID = Integer.parseInt(line.split(";")[1]);
                 warehouse.addAisle(aisleID);
             }
-            warehouse.getLastAisle().addBay(new Bay(Integer.parseInt(line.split(";")[2]), Integer.parseInt(line.split(";")[3]) ));
+            warehouse.getLastAisle().addBay(
+                    new Bay(Integer.parseInt(line.split(";")[2]), Integer.parseInt(line.split(";")[3]))
+            );
+
         }
+
         sc.close();
         return warehouse;
     }
