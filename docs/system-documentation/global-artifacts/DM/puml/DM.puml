@@ -57,6 +57,9 @@ class Terminal extends Endpoint{
     name
 }
 
+class IntermodalTerminal extends Terminal {
+}
+
 class FreightYard {
     name
     location
