@@ -78,9 +78,13 @@ abstract class RollingStock {
    id
    make
    model
-   gauge
-
 }
+
+class Gauge {
+    code
+    width
+}
+
 class Locomotive extends RollingStock {
     entryYear
     power
@@ -103,12 +107,13 @@ class Wagon extends RollingStock {
 }
 
 class Train {
-  id
+    id
 }
 
 class Boxcar extends Wagon {
  }
 class Flatcar extends Wagon {
+    maxStackLevel
 }
 class TankCar extends Wagon {
  }
@@ -125,8 +130,8 @@ class PressureGasCar  extends TankCar {
  }
 
  class Container {
-    size
-    height
+    length
+    isHighCube
 }
 
 class Dimension {
@@ -217,11 +222,6 @@ class WarehousePlanner {
     name
 }
 
-class Tunnel {
-}
-
-class Bridge {
-}
 
 class Trolley {
     id
@@ -231,8 +231,6 @@ class Trolley {
 
 
 RailwayInfrastructure "1" -> "*" RailLine : includes
-RailwayInfrastructure "1" ---> "*" Tunnel : includes
-RailwayInfrastructure "1" ---> "*" Bridge : includes
 RailLine "1" --> "*" LineSegment : composed of
 SingleTrackSegment "0..*" ---> "0..*" Siding : has crossing areas
 RailLine "1" --> "1" Endpoint : from
@@ -248,8 +246,7 @@ Station "1" ---> "*" RefrigeratedArea : may include
 Terminal "1" ---> "*" GrainSilo : may include
 Station "1" ---> "*" GrainSilo : may include
 Operator "1" --- "0..*" RollingStock : owns >
-Train "1" -- "1..*" Locomotive : is composed of >
-Train "1" -- "0..*" Wagon : is composed of >
+Train "1" -- "1..*" RollingStock : is composed of >
 Train "*" ---> "*" RailLine : run on >
 Flatcar "1" -- "*" Container : carries >
 Locomotive "1" -- "0..1" Dimension : has >
@@ -282,7 +279,8 @@ TerminalOperator "1"---"1" UnloadingDock : operates at
 TerminalOperator "1"--- "1..*" Bay : relocates
 TerminalOperator "1" *--- "1..*" Order : dispatches
 WarehousePlanner "1"---"1..*" Box   : allocates >
-
+RollingStock "1" -- "1..*" Gauge : supports >
+LineSegment "0..*" --> "1" Gauge : has >
 
 
 
