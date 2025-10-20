@@ -51,10 +51,10 @@ class Operator {
 }
 
 class Station extends Endpoint{
-    name
+
 }
 class Terminal extends Endpoint{
-    name
+
 }
 
 class IntermodalTerminal extends Terminal {
@@ -252,10 +252,13 @@ Flatcar "1" -- "*" Container : carries >
 Locomotive "1" -- "0..1" Dimension : has >
 Wagon "1" -- "0..1" Dimension : has >
 Bay "1" -- "0..1" Dimension : has >
-Freight "1"--- "1..*" Wagon : consists of >
+Freight "1"--- "1..*" Wagon : consists of
+Freight "1" --> "1" Station : from >
+Freight "1" --> "1" Station : to   >
 Train "1"--- "1..*" Freight : transports >
 Path "1" -- "1..*" PathStep : consists of >
 PathStep "1" --> "1" LineSegment : via >
+PathStep "1" --> "1" Station : passes >
 Route "1" -- "1..*" Freight
 Terminal "1" -- "1..*" CirculationLine : has >
 Terminal "1" -- "1..*" ParkingLine    : has >
