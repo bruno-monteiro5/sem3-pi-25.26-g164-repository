@@ -113,7 +113,7 @@ public class WagonUnloading implements Runnable{
         }
         System.out.println("########################");
         for(Map.Entry<String, Box> e : perishable.entrySet()){
-            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue().getProduct(), e.getValue().getQuantity());
+            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue());
         }
         System.out.println("#####PERISHABLES FULLY STORED####");
         System.out.println("#####CURRENT INVENTORY#####");
@@ -137,7 +137,7 @@ public class WagonUnloading implements Runnable{
                     list.set(i+1, temp);
                 }
             }
-            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(list.get(i).getValue().getProduct(), list.get(i).getValue().getQuantity());
+            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(list.get(i).getValue());
 
         }
         System.out.println("#####NON PERISHABLES FULLY STORED####");
@@ -149,6 +149,8 @@ public class WagonUnloading implements Runnable{
         }
 
         WarehouseRepository.setCurrentWarehouse(warehouse);
+
+        System.out.println("############WAGON UNLOADING COMPLETE############");
 
 
     }
