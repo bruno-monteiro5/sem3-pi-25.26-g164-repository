@@ -11,7 +11,7 @@ import java.util.*;
 public class WagonUnloading implements Runnable{
 
     public static Warehouse warehouse;
-    public static List<Products> products;
+    public static List<Items> products;
     public static Map<String, Box> perishable;
     public static Map<String, Box> nonPerishable;
 
@@ -62,7 +62,7 @@ public class WagonUnloading implements Runnable{
     }
 
     public static void beginProducts() throws FileNotFoundException {
-        products = new ArrayList<Products>();
+        products = new ArrayList<Items>();
 
         String fileNameProducts = "warehouseMngt/train_station_dataset/items.csv";
 
@@ -71,11 +71,11 @@ public class WagonUnloading implements Runnable{
         while(sc.hasNextLine()){
             line = sc.nextLine();
             String[] lineSplit = line.split(",");
-            products.add(new Products(lineSplit[0], lineSplit[1], lineSplit[2], lineSplit[3], Float.parseFloat(lineSplit[4]), Float.parseFloat(lineSplit[5])));
+            products.add(new Items(lineSplit[0], lineSplit[1], lineSplit[2], lineSplit[3], Float.parseFloat(lineSplit[4]), Float.parseFloat(lineSplit[5])));
         }
     }
 
-    public static void removeCargoFromWagon(Warehouse warehouse, List<Products> productsP) throws FileNotFoundException {
+    public static void removeCargoFromWagon(Warehouse warehouse, List<Items> itemsP) throws FileNotFoundException {
         beginProducts();
         perishable = new HashMap<>();
         nonPerishable = new HashMap<>();
@@ -140,8 +140,8 @@ public class WagonUnloading implements Runnable{
         while(sc.hasNextLine()){
             line = sc.nextLine();
             String[] lineSplit = line.split(",");
-            Products product = null;
-            for(Products p : products){
+            Items product = null;
+            for(Items p : products){
                 if(lineSplit[2].equals(p.getSkuID())){
                     product = p;
                     break;

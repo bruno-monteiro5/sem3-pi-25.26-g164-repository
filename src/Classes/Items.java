@@ -1,6 +1,6 @@
 package Classes;
 
-public class Products {
+public class Items {
     private String skuID;
     private String name;
     private String category;
@@ -8,7 +8,7 @@ public class Products {
     private float volume;
     private float weight;
 
-    public Products(String skuID, String name, String category, String pack, float volume, float weight) {
+    public Items(String skuID, String name, String category, String pack, float volume, float weight) {
         this.skuID = skuID;
         this.name = name;
         this.category = category;

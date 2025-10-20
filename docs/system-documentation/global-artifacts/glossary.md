@@ -44,7 +44,7 @@
 | First-In-First-Out                            | An inventory management principle where the oldest received items are dispatched first to ensure fair stock rotation.          |
 | Flatcar                                       | A type of freight wagon with a flat deck, used to carry containers, vehicles, or machinery.                                    |
 | Freight Manager                               | The role responsible for supervising freight operations, ensuring goods are transported efficiently and safely.                |
-| Freight Wagon                                 | A non-powered rail vehicle designed to carry goods, such as containers, liquids, bulk materials, or perishable products.       |
+| Freight Wagon                                 | A non-powered rail vehicle designed to carry goods, such as containers, liquids, bulk materials, or perishable items.       |
 | Functional Requirement                        | Specification that define what a system should do, describing the features, functions, and behaviors it must provide to meet user needs. |
 | Gauge                                         | The distance between the two rails of a railway track, determining the type of trains that can run on it.                      |
 | Git                                           | Version control system designed to track changes in source code during software development                                    |
@@ -73,17 +73,17 @@
 | Parking line                                  | siding Where wagons wait temporarily before being sent to another destination.                                                 |
 | Passenger                                     | A person who travels on a train or other transport service.                                                                    |
 | Perishable Good                               | A product with a limited shelf life, such as food, that must be consumed or dispatched before its expiry date.                 |
-| Picker                                        | A warehouse worker responsible for collecting products from storage locations to fulfill orders.                               |
+| Picker                                        | A warehouse worker responsible for collecting items from storage locations to fulfill orders.                               |
 | PL/SQL                                        | A procedural extension of SQL used in Oracle databases to write complex queries and manage data.                               |
 | Plant Floor                                   | The physical area in an industrial facility where machines, equipment, and workers carry out production operations.            |
 | PlantUML                                      | A tool that allows the creation of UML diagrams using a simple text-based language.                                            |
 | Port                                          | A facility near the sea or river where cargo can be transferred between ships, trains, and trucks.                             |
 | Pressure Gas Car                              | A tank wagon used to transport liquefied gases under pressure, such as propane or butane.                                      |
 | Preventive Maintenance                        | Regular maintenance activities performed on equipment to prevent breakdowns and ensure reliability.                            |
-| Product Engineering                           | The discipline of designing and developing products, including their specifications, features, and manufacturing requirements. |
+| Product Engineering                           | The discipline of designing and developing items, including their specifications, features, and manufacturing requirements. |
 | Production Control                            | The monitoring and regulation of manufacturing processes to ensure that production goals, quality, and schedules are met.      |
 | Production Management                         | The process of planning, organizing, and controlling manufacturing operations to ensure efficient production of goods.         |
-| Production Order                              | An internal instruction within a factory to produce a specific quantity of products according to a defined plan.               |
+| Production Order                              | An internal instruction within a factory to produce a specific quantity of items according to a defined plan.               |
 | Production Planning                           | The process of scheduling and organizing production activities, resources, and materials to meet demand efficiently.           |
 | Project Board                                 | A digital or physical board used to organize and monitor tasks, user stories, and progress in a project.                       |
 | Project Management                            | The discipline of planning, organizing, and overseeing tasks and resources to achieve specific project goals.                  |
@@ -108,7 +108,7 @@
 | Scrum Board                                   | A visual tool used in SCRUM to track tasks and progress, typically divided into columns representing stages of work.           |
 | SCRUM Master                                  | A team role in the SCRUM framework responsible for facilitating the process, removing obstacles, and helping the team follow Agile practices effectively. |
 | Ship                                          | A large vessel used for transporting goods or passengers by sea.                                                               |
-| Short-run Production                          | A type of manufacturing focused on producing small batches of products in a limited timeframe.                                 |
+| Short-run Production                          | A type of manufacturing focused on producing small batches of items in a limited timeframe.                                 |
 | Siding                                        | A section of railway track where trains can pass, wait, or be stored temporarily.                                              |
 | Simulation Tool                               | A software application used to model and test production scenarios to improve decision-making and efficiency.                  |
 | SKU                                           | Stock Keeping Unit                                                                                                             |

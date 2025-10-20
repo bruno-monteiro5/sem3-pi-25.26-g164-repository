@@ -1,27 +1,27 @@
 package Classes;
 
 public class Box {
-    private Products products;
+    private Items items;
     private int quantity;
     private String expDate;
 
-    public Box(Products products, int quantity, String expDate){
-        this.products = products;
+    public Box(Items items, int quantity, String expDate){
+        this.items = items;
         this.quantity = quantity;
         this.expDate = expDate;
     }
 
-    public Box(Products products, int quantity){
-        this.products = products;
+    public Box(Items items, int quantity){
+        this.items = items;
         this.quantity = quantity;
         this.expDate = null;
     }
 
-    public Products getProduct() {
-        return products;
+    public Items getProduct() {
+        return items;
     }
-    public void setProduct(Products products) {
-        this.products = products;
+    public void setProduct(Items items) {
+        this.items = items;
     }
     public int getQuantity() {
         return quantity;
@@ -38,9 +38,9 @@ public class Box {
 
     public String toString(){
         if(expDate != null){
-            return String.format("Box of %d units of %s, expires on %s", this.quantity, this.products.toString(), this.expDate);
+            return String.format("Box of %d units of %s, expires on %s", this.quantity, this.items.toString(), this.expDate);
         }
-        return String.format("Box of %d units of %s", this.quantity, this.products.toString());
+        return String.format("Box of %d units of %s", this.quantity, this.items.toString());
     }
 
 }
