@@ -2,6 +2,7 @@ package Menu;
 
 import Classes.Option;
 import Classes.Utils;
+import WarehouseManagementFunctions.OrderEligibilityNdAllocation;
 import WarehouseManagementFunctions.WagonUnloading;
 
 import java.sql.SQLOutput;
@@ -20,11 +21,13 @@ public class WarehouseManagementMenu implements Runnable{
 
         System.out.println("####WAREHOUSE MANAGEMENT MENU####");
 
-        Option[] options = new Option[2];
+        Option[] options = new Option[3];
         Runnable unl = new WagonUnloading();
+        Runnable all = new OrderEligibilityNdAllocation();
         Runnable main = new MainMenu();
         options[0] = new Option("Unload Wagons into warehouse", unl);
-        options[1] = new Option("Go Back", main);
+        options[1] = new Option("Elect products and allocate them for current orders", all);
+        options[2] = new Option("Go Back", main);
         Utils.listAndSelect(options);
     }
 }
