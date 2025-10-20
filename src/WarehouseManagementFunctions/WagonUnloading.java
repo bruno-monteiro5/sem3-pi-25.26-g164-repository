@@ -77,32 +77,11 @@ public class WagonUnloading implements Runnable{
 
     public static void removeCargoFromWagon(Warehouse warehouse, List<Products> productsP) throws FileNotFoundException {
         beginProducts();
-        productsP = products;
         perishable = new HashMap<>();
         nonPerishable = new HashMap<>();
 
         String fileNameWagons = "warehouseMngt/train_station_dataset/wagons.csv";
-        int index = 0;
-        Scanner sc = new Scanner(new File(fileNameWagons));
-        String line = sc.nextLine();
-        while(sc.hasNextLine()){
-            line = sc.nextLine();
-            String[] lineSplit = line.split(",");
-            Products product = null;
-            for(Products p : products){
-                if(lineSplit[2].equals(p.getSkuID())){
-                    product = p;
-                    break;
-                }
-            }
-            if(lineSplit[4].equals(null) || lineSplit[4].equals("") || lineSplit[4].isBlank()){
-
-                nonPerishable.put(lineSplit[5], new Box(product, Integer.parseInt(lineSplit[3])));
-            }else{
-                perishable.put(lineSplit[4], new Box(product, Integer.parseInt(lineSplit[3])));
-            }
-        }
-        sc.close();
+        fillMap(fileNameWagons);
         System.out.println("######NON PERISHABLE####");
         nonPerishable.forEach((k,v) -> System.out.printf("Arrived in: %s, %s\n", k, v.toString()));
         System.out.println("######PERISHABLE####");
@@ -155,8 +134,27 @@ public class WagonUnloading implements Runnable{
 
     }
 
-
-
+    public static void fillMap(String filename) throws FileNotFoundException {
+        Scanner sc = new Scanner(new File(filename));
+        String line = sc.nextLine();
+        while(sc.hasNextLine()){
+            line = sc.nextLine();
+            String[] lineSplit = line.split(",");
+            Products product = null;
+            for(Products p : products){
+                if(lineSplit[2].equals(p.getSkuID())){
+                    product = p;
+                    break;
+                }
+            }
+            if(lineSplit[4].equals(null) || lineSplit[4].equals("") || lineSplit[4].isBlank()){
+                nonPerishable.put(lineSplit[5], new Box(product, Integer.parseInt(lineSplit[3])));
+            }else{
+                perishable.put(lineSplit[4], new Box(product, Integer.parseInt(lineSplit[3]), lineSplit[4]));
+            }
+        }
+        sc.close();
+    }
 
 
 }
