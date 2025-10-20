@@ -228,6 +228,10 @@ class Trolley {
     weightCapacity
 }
 
+class PickPlan {
+    status
+}
+
 
 
 RailwayInfrastructure "1" -> "*" RailLine : includes
@@ -284,7 +288,11 @@ TerminalOperator "1" *--- "1..*" Order : dispatches
 WarehousePlanner "1"---"1..*" Box   : allocates >
 RollingStock "1" -- "1..*" Gauge : supports >
 LineSegment "0..*" --> "1" Gauge : has >
-
+PickPlan "1" --> "1" Trolley     : is loaded onto >
+PickPlan "1" --> "1" OrderLine   : fulfills >
+PickPlan "1" --> "1" Item        : picks >
+OrderLine "1" -- "*" PickPlan    : is split into >
+Trolley   "1" -- "*" PickPlan    : aggregates picks from >
 
 
 @enduml
