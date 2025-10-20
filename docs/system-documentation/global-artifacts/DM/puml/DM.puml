@@ -171,11 +171,13 @@ class UnloadingDock {
 
 class Aisle {
     id
+    aisleNo
 }
 
 class Bay {
     id
     capacity
+    bayNo
 }
 
 class Box {
@@ -212,6 +214,21 @@ class Return {
     reason
     timestamp
     expiryDate
+}
+
+class Quarantine {
+    id
+    startDate
+}
+
+class InspectionLog {
+    timestamp
+    returnId
+    sku
+    action
+    qty
+    qtyRestocked
+    qtyDiscarded
 }
 
 class TerminalOperator {
@@ -293,6 +310,13 @@ PickPlan "1" --> "1" OrderLine   : fulfills >
 PickPlan "1" --> "1" Item        : picks >
 OrderLine "1" -- "*" PickPlan    : is split into >
 Trolley   "1" -- "*" PickPlan    : aggregates picks from >
+Quarantine "1" -- "1..*" Return : contains >
+Return "1" -- "1..*" InspectionLog : recorded in >
+TerminalOperator "1" -- "0..*" InspectionLog : performs >
+Return "1" --> "1" Item : refers to >
+
+
+
 
 
 @enduml
