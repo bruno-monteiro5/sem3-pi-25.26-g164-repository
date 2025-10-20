@@ -1,20 +1,44 @@
 package WarehouseManagementFunctions;
 
 import Classes.*;
-import com.sun.source.tree.NewArrayTree;
+import Menu.WarehouseManagementMenu;
+import Repository.WarehouseRepository;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class USEI01 {
+public class WagonUnloading implements Runnable{
 
     public static Warehouse warehouse;
     public static List<Products> products;
     public static Map<String, Box> perishable;
     public static Map<String, Box> nonPerishable;
 
-    public static Warehouse beginWarehouse() throws FileNotFoundException {
+
+    public void run() {
+        try{
+            beginWarehouse();
+        }catch(FileNotFoundException e){
+            e.printStackTrace();
+        }
+
+        try{
+            beginProducts();
+        }catch (FileNotFoundException e){
+            e.printStackTrace();
+        }
+
+        try{
+            removeCargoFromWagon(warehouse, products);
+        }catch (FileNotFoundException e){
+            e.printStackTrace();
+        }
+        Runnable menu = new WarehouseManagementMenu();
+        menu.run();
+    }
+
+    public static void beginWarehouse() throws FileNotFoundException {
         String fileNameWarehouse = "warehouseMngt/train_station_dataset/bays.csv";
 
         Scanner sc = new Scanner(new File(fileNameWarehouse));
@@ -35,7 +59,6 @@ public class USEI01 {
         }
 
         sc.close();
-        return warehouse;
     }
 
     public static void beginProducts() throws FileNotFoundException {
@@ -90,7 +113,7 @@ public class USEI01 {
         }
         System.out.println("########################");
         for(Map.Entry<String, Box> e : perishable.entrySet()){
-            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue().getProduct(), e.getValue().getQuantity());
+            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue());
         }
         System.out.println("#####PERISHABLES FULLY STORED####");
         System.out.println("#####CURRENT INVENTORY#####");
@@ -114,7 +137,7 @@ public class USEI01 {
                     list.set(i+1, temp);
                 }
             }
-            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(list.get(i).getValue().getProduct(), list.get(i).getValue().getQuantity());
+            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(list.get(i).getValue());
 
         }
         System.out.println("#####NON PERISHABLES FULLY STORED####");
@@ -124,6 +147,10 @@ public class USEI01 {
                 System.out.println(b.toString());
             }
         }
+
+        WarehouseRepository.setCurrentWarehouse(warehouse);
+
+        System.out.println("############WAGON UNLOADING COMPLETE############");
 
 
     }
