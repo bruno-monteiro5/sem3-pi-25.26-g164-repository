@@ -94,7 +94,7 @@ public class OrderEligibilityNdAllocation implements Runnable{
                     for (Aisle a : warehouse.getAisles()) {
                         for (Bay b : a.getBays()) {
                             for (Box bo : b.getInventory()) {
-                                if (bo.getProduct().getSkuID().equals(ol.getSku())) {
+                                if (bo.getProduct().getSkuID().equals(ol.getSku()) && (bo.getExpDate() == null || o.getDueDate().compareTo(bo.getExpDate()) < 0)) {
                                     System.out.println(bo.toString() + " - PARTIAL");
                                     if(quant > bo.getQuantity() && bo.getQuantity() > 0) {
                                         boxt.add(new Box(bo.getProduct(), bo.getQuantity()));
