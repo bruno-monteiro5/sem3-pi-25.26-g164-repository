@@ -1,13 +1,15 @@
 package Classes;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-public class PickingPlanner {
+public class PickingPlan {
     private final PackingMode mode;
     private final List<Trolley> trolleys;
 
-    public PickingPlanner(PackingMode mode, List<Trolley> trolleys) {
+    public PickingPlan(PackingMode mode, List<Trolley> trolleys) {
         this.mode = mode;
         this.trolleys = trolleys;
     }
@@ -48,6 +50,11 @@ public class PickingPlanner {
         return trolleys;
     }
 
+    public List<Trolley> planFirstFitDecreasing(List<Allocation> allocations, double trolleyCapacity) {
+        List<Allocation> sorted = new ArrayList<>(allocations);
+        Collections.sort(sorted);
 
+        return planFirstFit(sorted, trolleyCapacity);
+    }
 
 }

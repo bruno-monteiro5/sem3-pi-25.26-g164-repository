@@ -1,6 +1,6 @@
 package Classes;
 
-public class Allocation {
+public class Allocation implements Comparable<Allocation> {
     private final String orderId;
     private final int lineNo;
     private final String sku;
@@ -45,6 +45,16 @@ public class Allocation {
     }
     public double getUnitWeight() {
         return unitWeight;
+    }
+
+    public double totalWeight() {
+        return quantity * unitWeight; }        // [24]
+
+
+    @Override
+    public int compareTo(Allocation other) {
+        return Double.compare(other.totalWeight(), this.totalWeight()); // [27]
+
     }
 
 
