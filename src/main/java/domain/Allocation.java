@@ -1,4 +1,4 @@
-package Classes;
+package domain;
 
 public class Allocation implements Comparable<Allocation> {
     private  String orderId;
