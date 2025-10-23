@@ -1,4 +1,4 @@
-package Classes;
+package domain;
 
 public class LineSegment {
     private final Endpoint startPoint; //ainda para ver, deve ser no railLine

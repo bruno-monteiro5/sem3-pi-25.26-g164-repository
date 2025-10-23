@@ -1,6 +1,6 @@
-package Repository;
+package repository;
 
-import Classes.Warehouse;
+import domain.Warehouse;
 
 public class WarehouseRepository {
     public static Warehouse currentWarehouse = null;

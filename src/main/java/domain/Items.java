@@ -1,4 +1,4 @@
-package Classes;
+package domain;
 
 public class Items implements Comparable<Items> {
     private String skuID;

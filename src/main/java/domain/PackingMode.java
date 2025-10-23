@@ -1,4 +1,4 @@
-package Classes;
+package domain;
 
 public enum PackingMode {
     FF,    //First Fit

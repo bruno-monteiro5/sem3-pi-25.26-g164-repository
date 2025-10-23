@@ -1,8 +1,8 @@
 package WarehouseManagementFunctions;
 
-import Classes.*;
-import Menu.WarehouseManagementMenu;
-import Repository.WarehouseRepository;
+import domain.*;
+import ui.WarehouseManagementMenu;
+import repository.WarehouseRepository;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -1,7 +1,7 @@
-package Menu;
+package ui;
 
-import Classes.Option;
-import Classes.Utils;
+import domain.Option;
+import domain.Utils;
 
 public class MainMenu implements Runnable{
 

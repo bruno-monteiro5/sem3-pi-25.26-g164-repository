@@ -1,4 +1,4 @@
-package Classes;
+package domain;
 
 public abstract class Endpoint {
     private final String name;

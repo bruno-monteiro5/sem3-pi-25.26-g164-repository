@@ -1,11 +1,9 @@
-package Menu;
+package ui;
 
-import Classes.Option;
-import Classes.Utils;
+import domain.Option;
+import domain.Utils;
 import WarehouseManagementFunctions.OrderEligibilityNdAllocation;
 import WarehouseManagementFunctions.WagonUnloading;
-
-import java.sql.SQLOutput;
 
 public class WarehouseManagementMenu implements Runnable{
 

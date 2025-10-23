@@ -1,4 +1,4 @@
-package Classes;
+package domain;
 
 public class Terminal extends Endpoint {
 

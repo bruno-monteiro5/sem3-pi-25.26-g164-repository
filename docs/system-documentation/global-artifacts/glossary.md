@@ -98,7 +98,7 @@
 | Refrigerated Car                              | A freight wagon equipped with cooling systems to transport perishable goods.                                                   |
 | Relational Model                              | A database model that organizes data into structured tables with rows and columns linked by relationships.                     |
 | Relocation                                    | The process of moving a box or product from one warehouse location (aisle/bay) to another, updating its position in the system. |
-| Repository                                    | A class responsible for storing, accessing, and manipulating domain objects, typically following the Repository design pattern |
+| repository                                    | A class responsible for storing, accessing, and manipulating domain objects, typically following the repository design pattern |
 | Rolling Stock                                 | All vehicles that move on a railway system, including locomotives, passenger coaches, and freight wagons.                      |
 | Route                                         | A defined path that a train follows between stations or terminals.                                                             |
 | Scalable Vector Graphics                      | An XML-based image format used to describe two-dimensional graphics with support for interactivity and scalability.            |
