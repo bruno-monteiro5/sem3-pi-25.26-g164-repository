@@ -1,16 +1,12 @@
 package Classes;
 
-public class Items implements Comparable<Items> {
+public class Items {
     private String skuID;
     private String name;
     private String category;
     private String pack;
     private float volume;
     private float weight;
-
-    private  double quantity;
-    private double unitWeight;
-
 
     public Items(String skuID, String name, String category, String pack, float volume, float weight) {
         this.skuID = skuID;
@@ -64,22 +60,7 @@ public class Items implements Comparable<Items> {
         this.weight = weight;
     }
 
-    public double getQuantity() {
-        return quantity;
-    }
-    public double getUnitWeight() {
-        return unitWeight;
-    }
-
-    public double totalWeight() {
-        return quantity * unitWeight; }        // [24]
-
     public String toString(){
         return String.format("Product %s, SKU: %s, Category: %s, Pack: %s, Volume: %.2f, Weight: %.2f", this.name, this.skuID, this.category, this.pack, this.volume, this.weight);
-    }
-
-    @Override
-    public int compareTo(Items other) {
-        return Double.compare(other.totalWeight(), this.totalWeight());
     }
 }
