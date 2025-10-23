@@ -1,8 +1,8 @@
 package Classes;
 
 public class PathStep {
-    private final int order;
-    private final LineSegment lineSegment;
+    private  int order;
+    private  LineSegment lineSegment;
 
     public PathStep(int order, LineSegment lineSegment) {
         this.order = order;

@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Trolley {
-    private final int id;
-    private final double weightCapacity;
+    private  int id;
+    private  double weightCapacity;
     private double usedKg;
-    private final List<Allocation> items;
+    private List<Items> items;
 
     public Trolley(int id, double weightCapacity) {
         this.id = id;
@@ -28,7 +28,7 @@ public class Trolley {
         return usedKg;
     }
 
-    public List<Allocation> getItems() {
+    public List<Items> getItems() {
         return items;
     }
 
@@ -36,9 +36,9 @@ public class Trolley {
         return (usedKg + weight) <= weightCapacity;
     }
 
-    public void addItem(Allocation allocation) {
-        double weightItem = allocation.getQuantity() * allocation.getUnitWeight();
-        items.add(allocation);
+    public void addItem(Items item) {
+        double weightItem = item.getQuantity() * item.getUnitWeight();
+        items.add(item);
         usedKg += weightItem;
     }
 
@@ -50,6 +50,9 @@ public class Trolley {
         }
     }
 
+    public double remainingCapacity() {
+        return weightCapacity - usedKg;
+    }
 
 
 }

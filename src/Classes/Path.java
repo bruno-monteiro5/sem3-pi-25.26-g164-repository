@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Path {
-    private final String id;
-    private final List<PathStep> steps = new ArrayList<>();
+    private  String id;
+    private  List<PathStep> steps = new ArrayList<>();
 
     public Path(String id) {
         this.id = id;

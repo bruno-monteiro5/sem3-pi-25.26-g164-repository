@@ -3,10 +3,10 @@ package Classes;
 public class LineSegment {
     private final Endpoint startPoint; //ainda para ver, deve ser no railLine
     private final Endpoint endPoint; //ainda para ver, deve ser no RailLine
-    private final double length;
-    private final double gaugeWidth;
-    private final double maxWeight;
-    private final double speedLimit;
+    private  double length;
+    private  double gaugeWidth;
+    private  double maxWeight;
+    private  double speedLimit;
 
 
     public LineSegment(Endpoint startPoint, Endpoint endPoint, double length, double gaugeWidth, double maxWeight, double speedLimit) {
