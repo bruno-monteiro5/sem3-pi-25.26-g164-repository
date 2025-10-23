@@ -1,96 +1,94 @@
-# Estudo de Complexidade - WagonUnloading.java
+# Complexity Study - WagonUnloading.java
 
-## 1. Identificação
-**Ficheiro:** `WagonUnloading.java`  
-**Descrição:** Classe responsável pela criação e armazenamento de uma instância da classe "Warehouse" e todos os espaços que a compõem, uma lista com todos os possíveis produtos que poderão ser adicionados, e a leitura do processo de descarga de vagões (wagons) e o preenchimento do espaço livre dentro da instância Warehouse. Toda a informação destas funções é retirada de um ficheiro .csv.  
-
----
-
-## 2. Estrutura Geral do Código
-A classe `WagonUnloading` contém:
-- Um método que cria a instância da classe "Warehouse"
-- Um método que cria uma lista com todos os produtos retirados de um ficheiro .csv
-- Um método que lê um ficheiro .csv que contém todos os produtos chegados ao armazém e preenche os espaços da instância da classe "Warehouse"
-
-O código segue uma estrutura **iterativa**, sem recursão explícita.
+## 1. Identification
+**File:** `WagonUnloading.java`  
+**Description:** Class responsible for creating and storing an instance of the `Warehouse` class and all its internal spaces, a list containing all possible products that can be added, and reading the wagon unloading process from a `.csv` file to fill the available space within the `Warehouse` instance. All data used by these functions is retrieved from a CSV file.
 
 ---
 
-## 3. Análise de Complexidade Temporal
+## 2. General Code Structure
+The `WagonUnloading` class includes:
+- A method that creates an instance of the `Warehouse` class;
+- A method that creates a list of all products retrieved from a `.csv` file;
+- A method that reads a `.csv` file containing all products arriving at the warehouse and fills the spaces of the `Warehouse` instance accordingly.
 
-### 3.1 Estrutura Principal (Simulação)
-**Complexidade:**
-
-A criação da instância "Warehouse":
-- Criar todos os Aisles, e Bays;
-- Perceber quando se passa de um Aisle para o outro.
-
-Cada iteração depende da leitura de um ficheiro csv de `n` linhas.
-
-**Complexidade:**
-- Melhor caso: O(n) - Se o ficheiro estiver bem organizado.
-- Pior caso: O(n²) - O ficheiro não está bem formatado, nem organizado, correr o ficheiro, se possível, será demorado.
-- Médio caso: O(n log n) - O ficheiro não está bem organizado, mas está formatado.
-
-A lógica da leitura de wagons.csv envolve percorrer cada uma das linhas dos vagões uma vez, e:
-- Verificar quantos produtos estão dentro dos vagões, e armazená-los de forma temporária;
-- Verificar quais produtos têm data de expiração, e quais não a têm;
-
-Cada iteração depende linearmente do número de vagões `n`.
-
-**Complexidade:**
-- Melhor caso: O(n) — se a sequência já estiver na ordem correta.
-- Pior caso: O(n²) — quando há necessidade de múltiplas operações internas por elemento (e.g. inserções e remoções em pilhas).
-- Médio caso: O(n log n) — comportamento típico se parte das operações são otimizadas.
-
-
-
-A organização dos produtos envolve ler pelo menos 1 vez cada um dos produtos armazenados:
-- Realizando uma organização FEFO primeiro caso 1 ou mais produtos tenham data de expiração, e FIFO depois, organizando só de forma FIFO de caso contrário
-- Armazenando os produtos ao verificando cada uma das entradas de diferentes tipos de organização pelo menos uma vez
-
-Cada iteração depende linearmente do número de produtos em organização FEFO `n`, e o número de produtos em organização FIFO `n`
-
-**Complexidade:**
-- Melhor caso: O(n) - todos os produtos estão organizados só em FEFO ou FIFO, e têm uma quantidade moderadamente baixa 
-- Pior caso: O(n) - ambos os produtos estão igualmente organizados em FEFO ou FIFO, e ambos têm uma quantidade moderadamente alta
-- Médio caso: O(n log n) - a maioria dos produtos está organizados em FEFO ou FIFO, o resto estando organizado em uma quantidade menor no outro método de organização
-
-### 3.2 Operações sobre Estruturas de Dados
-|   | Estrutura                        | Operação  | Complexidade          | Observações |
-|:--|----------------------------------|-----------|-----------------------|-------------|
-|   | `List.contains()`                | O(n)      | Linear                |
-|   | `List.add()` / `List.remove()`   | O(1)–O(n) | Dependente da posição |
-
-### 3.3 Método de Verificação ou Ordenação
-Se o método realizar comparações entre elementos ou validações em ciclos aninhados, a complexidade global pode atingir O(n²).
+The code follows an **iterative** structure, with no explicit recursion.
 
 ---
 
-## 4. Análise de Complexidade Espacial
-O programa utiliza:
-- Estruturas auxiliares para armazenar temporariamente os vagões.
-- Variáveis de controlo e contadores.
+## 3. Time Complexity Analysis
 
-**Complexidade Espacial:**
-- Estruturas auxiliares com no máximo `n` elementos: O(n)
-- Variáveis simples (contadores, índices): O(1)  
-  Total: O(n)
+### 3.1 Main Structure (Simulation)
+**Complexity:**
+
+Creation of the `Warehouse` instance:
+- Creates all aisles and bays;
+- Determines when to move from one aisle to another.
+
+Each iteration depends on reading a CSV file of `n` lines.
+
+**Complexity:**
+- Best case: O(n) — when the file is well organized.
+- Worst case: O(n²) — when the file is poorly formatted or disorganized, requiring multiple passes through the file.
+- Average case: O(n log n) — when the file is formatted but not perfectly organized.
+
+The logic for reading `wagons.csv` involves iterating through each wagon record once, and:
+- Checking how many products are in each wagon and storing them temporarily;
+- Verifying which products have expiration dates and which do not.
+
+Each iteration depends linearly on the number of wagons `n`.
+
+**Complexity:**
+- Best case: O(n) — if the sequence is already in the correct order.
+- Worst case: O(n²) — when multiple internal operations per element are needed (e.g., insertions/removals in stacks).
+- Average case: O(n log n) — typical behavior when partial optimizations exist.
+
+The organization of products involves reading each stored product at least once:
+- Performing FEFO organization first when one or more products have expiration dates, and FIFO afterwards, or FIFO only if no product has expiration dates;
+- Storing products while checking each organizational entry at least once.
+
+Each iteration depends linearly on the number of products in FEFO organization `n` and the number of products in FIFO organization `n`.
+
+**Complexity:**
+- Best case: O(n) — all products are organized either by FEFO or FIFO, with a moderate quantity.
+- Worst case: O(n) — both FEFO and FIFO groups have similar sizes and relatively high quantities.
+- Average case: O(n log n) — most products are organized under one system (FEFO or FIFO), with a smaller portion under the other.
+
+### 3.2 Operations on Data Structures
+|   | Structure                      | Operation | Complexity          |
+|---|--------------------------------|-----------|---------------------|
+|   | `List.contains()`              | O(n)      | Linear              |
+|   | `List.add()` / `List.remove()` | O(1)–O(n) | Depends on position |
+
+### 3.3 Verification or Sorting Method
+If the method performs element comparisons or validations within nested loops, the global complexity may reach O(n²).
 
 ---
 
-## 5. Análise de Casos
-| Caso            | Descrição                                             | Complexidade |
-|-----------------|-------------------------------------------------------|--------------|
-| **Melhor caso** | Sequência já ordenada (mínimas operações)             | O(n)         |
-| **Médio caso**  | Parte da sequência requer reorganização               | O(n log n)   |
-| **Pior caso**   | Sequência totalmente invertida / operações duplicadas | O(n²)        |
+## 4. Space Complexity Analysis
+The program uses:
+- Auxiliary structures to temporarily store wagons;
+- Control variables and counters.
+
+**Space Complexity:**
+- Auxiliary structures with up to `n` elements: O(n)
+- Simple variables (counters, indexes): O(1)  
+  **Total:** O(n)
 
 ---
 
-## 6. Conclusão
-O ficheiro `WagonUnloading.java` apresenta complexidade temporal entre O(n) e O(n²) dependendo do caso e da estrutura usada.  
-A complexidade espacial é O(n), proporcional ao número de vagões processados.
+## 5. Case Analysis
+| Case             | Description                                   | Complexity |
+|------------------|-----------------------------------------------|------------|
+| **Best case**    | Sequence already ordered (minimal operations) | O(n)       |
+| **Average case** | Part of the sequence requires reorganization  | O(n log n) |
+| **Worst case**   | Fully inverted sequence / repeated operations | O(n²)      |
 
-O algoritmo é eficiente para conjuntos pequenos/médios e aceitável em contexto de simulação discreta**.  
-Para grandes volumes de dados, recomenda-se otimização na forma de acesso e verificação de elementos (ex.: uso de `HashSet` para acesso O(1)).
+---
+
+## 6. Conclusion
+The `WagonUnloading.java` file presents a **time complexity ranging from O(n) to O(n²)** depending on the case and data structure used.  
+The **space complexity** is O(n), proportional to the number of wagons processed.
+
+The algorithm is **efficient for small to medium datasets** and acceptable in a **discrete simulation context**.  
+For large data volumes, optimization is recommended in data access and verification (e.g., using a `HashSet` for O(1) access).
