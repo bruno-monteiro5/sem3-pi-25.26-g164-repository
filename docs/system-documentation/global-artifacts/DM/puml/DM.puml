@@ -17,7 +17,6 @@ class RailLine {
 
 class LineSegment {
     length
-    gaugeWidth
     maxWeight
     speedLimit
 }
@@ -231,13 +230,9 @@ class InspectionLog {
     qtyDiscarded
 }
 
-class TerminalOperator {
-    name
-}
 
-class WarehousePlanner {
-    name
-}
+
+
 
 
 class Trolley {
@@ -247,6 +242,7 @@ class Trolley {
 
 class PickPlan {
     status
+    quantity
 }
 
 
@@ -267,7 +263,8 @@ Station "1" ---> "*" RefrigeratedArea : may include
 Terminal "1" ---> "*" GrainSilo : may include
 Station "1" ---> "*" GrainSilo : may include
 Operator "1" --- "0..*" RollingStock : owns >
-Train "1" -- "1..*" RollingStock : is composed of >
+Train "1" -- "1..*" Locomotive : is composed of >
+Train "1" -- "0..*" Wagon      : is composed of >
 Train "*" ---> "*" RailLine : run on >
 Flatcar "1" -- "*" Container : carries >
 Locomotive "1" -- "0..1" Dimension : has >
@@ -299,10 +296,6 @@ RailwayInfrastructure "1" *-- "*" Station : includes >
 RailwayInfrastructure "1" *-- "*" Terminal : includes >
 RailwayInfrastructure "1" *-- "*" FreightYard : includes >
 FreightYard "1" --- "*" Train : handles >
-TerminalOperator "1"---"1" UnloadingDock : operates at
-TerminalOperator "1"--- "1..*" Bay : relocates
-TerminalOperator "1" *--- "1..*" Order : dispatches
-WarehousePlanner "1"---"1..*" Box   : allocates >
 RollingStock "1" -- "1..*" Gauge : supports >
 LineSegment "0..*" --> "1" Gauge : has >
 PickPlan "1" --> "1" Trolley     : is loaded onto >
@@ -312,7 +305,6 @@ OrderLine "1" -- "*" PickPlan    : is split into >
 Trolley   "1" -- "*" PickPlan    : aggregates picks from >
 Quarantine "1" -- "1..*" Return : contains >
 Return "1" -- "1..*" InspectionLog : recorded in >
-TerminalOperator "1" -- "0..*" InspectionLog : performs >
 Return "1" --> "1" Item : refers to >
 
 
