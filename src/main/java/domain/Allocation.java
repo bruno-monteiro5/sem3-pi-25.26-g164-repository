@@ -11,10 +11,10 @@ package domain;
 public class Allocation implements Comparable<Allocation> {
 
     /** The unique identifier of the order. */
-    private  String orderId;
+    private  Order orderId;
 
     /** The line number of the order. */
-    private  int lineNo;
+    private  OrderLine lineNo;
 
     /** The SKU (product code) of the allocated item. */
     private  String sku;
@@ -23,10 +23,10 @@ public class Allocation implements Comparable<Allocation> {
     private  Box boxId;
 
     /** The aisle number in the warehouse. */
-    private  int aisle;
+    private  Aisle aisle;
 
     /** The bay number in the aisle. */
-    private  int bay;
+    private  Bay bay;
 
     /** The quantity of items allocated. */
     private  double quantity;
@@ -48,7 +48,7 @@ public class Allocation implements Comparable<Allocation> {
      * @param unitWeight the weight of a single unit (kg)
      */
 
-    public Allocation (String orderId, int lineNo, String sku, Box boxId, int aisle, int bay, double quantity, double unitWeight) {
+    public Allocation (Order orderId, OrderLine lineNo, String sku, Box boxId, Aisle aisle, Bay bay, double quantity, double unitWeight) {
         this.orderId = orderId;
         this.lineNo = lineNo;
         this.sku = sku;
@@ -60,12 +60,12 @@ public class Allocation implements Comparable<Allocation> {
     }
 
     /** @return the order identifier */
-    public String getOrderId() {
+    public Order getOrderId() {
         return orderId;
     }
 
     /** @return the line number of the order */
-    public int getLineNo() {
+    public OrderLine getLineNo() {
         return lineNo;
     }
 
@@ -78,10 +78,10 @@ public class Allocation implements Comparable<Allocation> {
     public Box getBoxId() { return boxId; }
 
     /** @return the aisle number */
-    public int getAisle() { return aisle; }
+    public Aisle getAisle() { return aisle; }
 
     /** @return the bay number */
-    public int getBay() { return bay; }
+    public Bay getBay() { return bay; }
 
     /** @return the quantity of allocated units */
     public double getQuantity() { return quantity; }
@@ -108,6 +108,10 @@ public class Allocation implements Comparable<Allocation> {
     public int compareTo(Allocation other) {
         return Double.compare(other.totalWeight(), this.totalWeight());
 
+    }
+
+    public String toString(){
+        return String.format("Allocation of box %s for the line order %d of quantity %d, for the order %s, stored in Aisle %s and Bay %s\n", this.boxId.toString(), this.lineNo.getLineNo(), this.boxId.getQuantity(), this.orderId.toString(), this.aisle.getAisleID(), this.bay.getBayID());
     }
 
 
