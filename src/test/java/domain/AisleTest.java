@@ -185,18 +185,16 @@ class AisleTest {
     void getFirstAvailableBay_handlesAvailableAndAllFull() {
         Aisle aisle = new Aisle(5);
 
-        Bay fullBay = new Bay(500, 0);   // capacity 0 => full by definition
+        Bay fullBay = new Bay(500, 0);
         Bay availableBay = new Bay(501, 1);
 
         aisle.addBay(fullBay);
         aisle.addBay(availableBay);
 
-        // 1) should find the second bay
         Bay firstFree = aisle.getFirstAvailableBay();
         assertNotNull(firstFree);
         assertSame(availableBay, firstFree);
 
-        // 2) make it full and try again
         availableBay.setCapacity(0);
         Bay none = aisle.getFirstAvailableBay();
         assertNull(none);
