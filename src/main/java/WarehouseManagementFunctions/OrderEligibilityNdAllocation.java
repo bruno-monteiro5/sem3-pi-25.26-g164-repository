@@ -102,19 +102,36 @@ public class OrderEligibilityNdAllocation implements Runnable{
                     for (Aisle a : warehouse.getAisles()) {
                         for (Bay b : a.getBays()) {
                             for (Box bo : b.getInventory()) {
-                                if (bo.getProduct().getSkuID().equals(ol.getSku())
-                                        && (bo.getExpDate() == null || o.getDueDate().compareTo(bo.getExpDate()) < 0)
-                                        && quant != 0) {
+                                if (bo.getProduct().getSkuID().equals(ol.getSku()) && (bo.getExpDate() == null || o.getDueDate().compareTo(bo.getExpDate()) < 0) && quant != 0) {
                                     System.out.println(bo.toString() + " - PARTIAL");
-                                    if (quant > bo.getQuantity() && bo.getQuantity() != 0) {
-                                        allocation.add(new Allocation(o, ol, ol.getSku(), bo, a, b, bo.getQuantity(), bo.getProduct().getWeight()));
-                                        quant = quant - bo.getQuantity();
-                                    } else if (quant <= bo.getQuantity() && bo.getQuantity() != 0) {
-                                        int tempe = bo.getQuantity();
-                                        bo.setQuantity(bo.getQuantity() - quant);
-                                        tempe = tempe - bo.getQuantity();
-                                        quant = 0;
-                                        allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), tempe), a, b, bo.getQuantity(), bo.getProduct().getWeight()));
+                                    int quantl = bo.getQuantity();
+                                    float weight = bo.getProduct().getWeight();
+                                    float totweight = 0;
+                                    int i = 0;
+                                    while(totweight <= 200 || i < quantl){
+                                        totweight += weight;
+                                        i += 1;
+                                    }
+                                    if(i == quantl) {
+                                        if (quant > bo.getQuantity() && bo.getQuantity() != 0) {
+                                            allocation.add(new Allocation(o, ol, ol.getSku(), bo, a, b, bo.getQuantity(), bo.getProduct().getWeight()));
+                                            quant = quant - bo.getQuantity();
+                                        } else if (quant <= bo.getQuantity() && bo.getQuantity() != 0) {
+                                            int tempe = bo.getQuantity();
+                                            bo.setQuantity(bo.getQuantity() - quant);
+                                            tempe = tempe - bo.getQuantity();
+                                            quant = 0;
+                                            allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), tempe), a, b, bo.getQuantity(), bo.getProduct().getWeight()));
+                                        }
+                                    }else{
+                                        if(quant > i && i != 0){
+                                            allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), i, bo.getExpDate()), a, b, i, bo.getProduct().getWeight()));
+                                            bo.setQuantity(bo.getQuantity()-i);
+                                        }else if(quant <= i && i != 0){
+                                            allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), quant, bo.getExpDate()), a, b, quant, bo.getProduct().getWeigjt()));
+                                            bo.setQuantity(bo.getQuantity()-quant);
+
+                                        }
                                     }
                                 } else if (bo.getExpDate() != null && bo.getExpDate().compareTo(o.getDueDate()) < 0) {
                                     System.out.println(bo.toString() + " - UNDISPATCHBLE");
