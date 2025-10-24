@@ -1,24 +1,35 @@
 package domain;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
- * Unit tests for {@link Bay}.
+ * Test suite for {@link Bay}.
  * <p>
- * One test per public method. Tests use the real domain classes
- * {@link Items} and {@link Box} to validate behavior exactly as specified.
+ * Each test method targets exactly one public member of {@code Bay}
+ * and documents the scenario, preconditions, and expected outcome.
  */
 class BayTest {
 
     /**
-     * Verifies that the constructor sets ID, capacity and starts with an empty inventory.
+     * Verifies that the constructor initializes the bay ID, capacity,
+     * and creates an empty inventory list.
+     *
+     * Preconditions:
+     *  - Valid integer ID and capacity supplied.
+     *
+     * Expected:
+     *  - {@link Bay#getBayID()} returns the supplied ID;
+     *  - {@link Bay#getCapacity()} returns the supplied capacity;
+     *  - {@link Bay#getInventory()} is empty.
      *
      * @see Bay#Bay(int, int)
+     * @see Bay#getBayID()
+     * @see Bay#getCapacity()
+     * @see Bay#getInventory()
      */
     @Test
     void constructor_initializesFields() {
@@ -29,7 +40,13 @@ class BayTest {
     }
 
     /**
-     * Verifies {@link Bay#getBayID()} returns the current ID.
+     * Tests the getter for the bay identifier.
+     *
+     * Scenario:
+     *  - Create a bay with a known ID and read it back.
+     *
+     * Expected:
+     *  - Returned ID matches the constructor value.
      *
      * @see Bay#getBayID()
      */
@@ -40,53 +57,84 @@ class BayTest {
     }
 
     /**
-     * Verifies {@link Bay#setBayID(int)} persists the new value.
+     * Tests the setter for the bay identifier.
+     *
+     * Scenario:
+     *  - Start with one ID, change it, and read again.
+     *
+     * Expected:
+     *  - The new ID is persisted and returned by the getter.
      *
      * @see Bay#setBayID(int)
+     * @see Bay#getBayID()
      */
     @Test
     void setBayID_updatesValue() {
         Bay bay = new Bay(3, 5);
-        bay.setBayID(7);
-        assertEquals(7, bay.getBayID());
+        bay.setBayID(9);
+        assertEquals(9, bay.getBayID());
     }
 
     /**
-     * Verifies {@link Bay#getInventory()} returns a live (mutable) list and is initially empty.
+     * Tests the inventory getter.
+     *
+     * Scenario:
+     *  - A newly created bay should start with an empty list.
+     *  - Add one {@link Box} directly to verify that the returned list is live.
+     *
+     * Expected:
+     *  - Inventory is initially empty;
+     *  - Adding to the returned list affects the internal inventory.
      *
      * @see Bay#getInventory()
      */
     @Test
-    void getInventory_initiallyEmptyAndMutable() {
+    void getInventory_returnsLiveList() {
         Bay bay = new Bay(4, 2);
         assertTrue(bay.getInventory().isEmpty());
 
-        // Mutate the returned list to ensure we have a live reference
-        Items items = new Items("SKU1", "Prod1", "Cat", "Pack", 1.0f, 2.0f);
-        bay.getInventory().add(new Box(items, 1));
+        Items product = new Items("S1", "Item1", "Food", "Pack1", 1.2f, 0.8f);
+        bay.getInventory().add(new Box(product, 1));
+
         assertEquals(1, bay.getInventory().size());
     }
 
     /**
-     * Verifies {@link Bay#setInventory(List)} replaces the internal reference and preserves content.
+     * Tests the inventory setter.
+     *
+     * Scenario:
+     *  - Replace the initial list with a new predefined list.
+     *
+     * Expected:
+     *  - The new list is stored and visible through the getter;
+     *  - The reference equality is preserved.
      *
      * @see Bay#setInventory(List)
+     * @see Bay#getInventory()
      */
     @Test
-    void setInventory_replacesReference() {
+    void setInventory_replacesCollection() {
         Bay bay = new Bay(5, 3);
-        List<Box> custom = new ArrayList<>();
-        custom.add(new Box(new Items("S1", "N1", "C1", "P1", 1.0f, 1.0f), 2));
-        custom.add(new Box(new Items("S2", "N2", "C2", "P2", 2.0f, 3.0f), 4, "2030-12-31"));
+        List<Box> boxes = new ArrayList<>();
 
-        bay.setInventory(custom);
+        Items items = new Items("S2", "Item2", "Tools", "Pack2", 1.0f, 2.5f);
+        boxes.add(new Box(items, 2, "2030-01-01"));
+        boxes.add(new Box(items, 1));
 
-        assertSame(custom, bay.getInventory());
+        bay.setInventory(boxes);
+
+        assertSame(boxes, bay.getInventory());
         assertEquals(2, bay.getInventory().size());
     }
 
     /**
-     * Verifies {@link Bay#getCapacity()} returns the current capacity.
+     * Tests the getter for the bay capacity.
+     *
+     * Scenario:
+     *  - Create a bay and query its capacity.
+     *
+     * Expected:
+     *  - Returned capacity matches the constructor value.
      *
      * @see Bay#getCapacity()
      */
@@ -97,21 +145,34 @@ class BayTest {
     }
 
     /**
-     * Verifies {@link Bay#setCapacity(int)} persists the new capacity.
+     * Tests the setter for the bay capacity.
+     *
+     * Scenario:
+     *  - Change the capacity and query it again.
+     *
+     * Expected:
+     *  - The new capacity value is stored and returned correctly.
      *
      * @see Bay#setCapacity(int)
+     * @see Bay#getCapacity()
      */
     @Test
     void setCapacity_updatesValue() {
         Bay bay = new Bay(7, 1);
-        bay.setCapacity(4);
-        assertEquals(4, bay.getCapacity());
+        bay.setCapacity(5);
+        assertEquals(5, bay.getCapacity());
     }
 
     /**
-     * Verifies {@link Bay#addProductBox(Box)} behavior for both states:
-     * success when there is free capacity and failure once the bay is full.
-     * (Both branches covered within this single test method.)
+     * Tests adding product boxes to the bay.
+     *
+     * Scenario:
+     *  1) Add boxes while capacity allows it (should succeed);
+     *  2) Attempt to add one more when full (should fail).
+     *
+     * Expected:
+     *  - Step 1: {@link Bay#addProductBox(Box)} returns true and adds the box;
+     *  - Step 2: returns false when capacity is exceeded.
      *
      * @see Bay#addProductBox(Box)
      */
@@ -119,51 +180,52 @@ class BayTest {
     void addProductBox_handlesAvailableAndFull() {
         Bay bay = new Bay(8, 2);
 
-        Items itemsA = new Items("A", "NameA", "CatA", "PackA", 0.5f, 0.2f);
-        Items itemsB = new Items("B", "NameB", "CatB", "PackB", 0.7f, 0.3f);
-        Items itemsC = new Items("C", "NameC", "CatC", "PackC", 0.9f, 0.4f);
+        Items i1 = new Items("A", "ItemA", "CatA", "PackA", 0.5f, 0.2f);
+        Items i2 = new Items("B", "ItemB", "CatB", "PackB", 0.7f, 0.3f);
+        Items i3 = new Items("C", "ItemC", "CatC", "PackC", 0.9f, 0.4f);
 
-        // 1) Success while capacity not reached
-        assertTrue(bay.addProductBox(new Box(itemsA, 1)));
-        assertTrue(bay.addProductBox(new Box(itemsB, 2)));
-        assertEquals(2, bay.getInventory().size());
+        assertTrue(bay.addProductBox(new Box(i1, 1)));
+        assertTrue(bay.addProductBox(new Box(i2, 2)));
+        assertFalse(bay.addProductBox(new Box(i3, 3)));
 
-        // 2) Failure when full
-        assertFalse(bay.addProductBox(new Box(itemsC, 3)));
         assertEquals(2, bay.getInventory().size());
     }
 
     /**
-     * Verifies {@link Bay#toString()}:
-     * - on empty inventory it prints only the header;
-     * - on non-empty inventory it prints the header plus each box line.
-     * (Both branches covered within this single test method.)
+     * Tests the string representation of a bay.
+     *
+     * Scenario (covers both branches of the method):
+     *  1) Empty inventory → should display only the header;
+     *  2) Non-empty inventory → should list each box on a new line.
+     *
+     * Expected:
+     *  - Step 1: correct format with zero boxes;
+     *  - Step 2: header includes correct ID/count, followed by each box line.
      *
      * @see Bay#toString()
      */
     @Test
     void toString_formatsEmptyAndNonEmptyInventory() {
-        // Empty case
+        // Step 1: empty inventory
         Bay empty = new Bay(9, 3);
         String expectedEmpty = "Bay ID: 9, with 0 boxes, and 3 capacity";
         assertEquals(expectedEmpty, empty.toString());
 
-        // Non-empty case
+        // Step 2: non-empty inventory
         Bay nonEmpty = new Bay(10, 5);
-        Items i1 = new Items("X1", "NameX1", "CatX", "PackX", 1.23f, 4.56f);
-        Items i2 = new Items("X2", "NameX2", "CatY", "PackY", 2.34f, 5.67f);
+        Items i1 = new Items("X1", "ProdX1", "CatX", "PackX", 1.23f, 4.56f);
+        Items i2 = new Items("X2", "ProdX2", "CatY", "PackY", 2.34f, 5.67f);
 
-        // One box without expiry, one with expiry to reflect both Box.toString() variants
         Box b1 = new Box(i1, 2);
-        Box b2 = new Box(i2, 3, "2029-01-01");
+        Box b2 = new Box(i2, 3, "2029-12-31");
+
         nonEmpty.addProductBox(b1);
         nonEmpty.addProductBox(b2);
 
-        String s = nonEmpty.toString();
+        String result = nonEmpty.toString();
 
-        assertTrue(s.startsWith("Bay ID: 10, with 2 boxes, and 5 capacity"));
-        // It should contain each Box.toString() on its own line
-        assertTrue(s.contains(b1.toString() + "\n"));
-        assertTrue(s.contains(b2.toString() + "\n"));
+        assertTrue(result.startsWith("Bay ID: 10, with 2 boxes, and 5 capacity"));
+        assertTrue(result.contains(b1.toString() + "\n"));
+        assertTrue(result.contains(b2.toString() + "\n"));
     }
 }

@@ -92,8 +92,8 @@ public class OrderEligibilityNdAllocation implements Runnable{
 
     }
 
-    public void allocateBoxes(boolean strict){
-        if(!strict) {
+    public void allocateBoxes(boolean strict) {
+        if (!strict) {
             for (Order o : orders) {
                 System.out.println("###########ORDER: " + o.toString());
                 for (OrderLine ol : o.getLines()) {
@@ -102,20 +102,21 @@ public class OrderEligibilityNdAllocation implements Runnable{
                     for (Aisle a : warehouse.getAisles()) {
                         for (Bay b : a.getBays()) {
                             for (Box bo : b.getInventory()) {
-                                if (bo.getProduct().getSkuID().equals(ol.getSku()) && (bo.getExpDate() == null || o.getDueDate().compareTo(bo.getExpDate()) < 0)) {
+                                if (bo.getProduct().getSkuID().equals(ol.getSku())
+                                        && (bo.getExpDate() == null || o.getDueDate().compareTo(bo.getExpDate()) < 0)
+                                        && quant != 0) {
                                     System.out.println(bo.toString() + " - PARTIAL");
-                                    if(quant > bo.getQuantity() && bo.getQuantity() > 0) {
+                                    if (quant > bo.getQuantity() && bo.getQuantity() != 0) {
                                         allocation.add(new Allocation(o, ol, ol.getSku(), bo, a, b, bo.getQuantity(), bo.getProduct().getWeight()));
                                         quant = quant - bo.getQuantity();
-                                        bo.setQuantity(0);
-                                    }else {
+                                    } else if (quant <= bo.getQuantity() && bo.getQuantity() != 0) {
                                         int tempe = bo.getQuantity();
                                         bo.setQuantity(bo.getQuantity() - quant);
-                                        tempe = tempe-bo.getQuantity();
+                                        tempe = tempe - bo.getQuantity();
                                         quant = 0;
                                         allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), tempe), a, b, bo.getQuantity(), bo.getProduct().getWeight()));
                                     }
-                                }else if ((bo.getExpDate() != null && bo.getExpDate().compareTo(o.getDueDate()) > 0)) {
+                                } else if (bo.getExpDate() != null && bo.getExpDate().compareTo(o.getDueDate()) < 0) {
                                     System.out.println(bo.toString() + " - UNDISPATCHBLE");
                                 } else if (quant == 0) {
                                     System.out.println(bo.toString() + " - UNDISPATCHBLE");
@@ -129,18 +130,21 @@ public class OrderEligibilityNdAllocation implements Runnable{
                 }
                 System.out.println("###########ORDER FINISHED: " + o.toString());
             }
-        }else{
+        }
+        else {
             for (Order o : orders) {
                 System.out.println("###########ORDER: " + o.toString());
                 for (OrderLine ol : o.getLines()) {
                     System.out.println("###########ORDERLINE: " + ol.toString());
-                    for(Aisle a : warehouse.getAisles()){
-                        for(Bay b : a.getBays()){
-                            for(Box bo : b.getInventory()){
-                                if((bo.getExpDate() == null || bo.getExpDate().compareTo(o.getDueDate()) > 0) && bo.getProduct().getSkuID().equals(ol.getSku()) && bo.getQuantity() == ol.getQuantity()){
+                    for (Aisle a : warehouse.getAisles()) {
+                        for (Bay b : a.getBays()) {
+                            for (Box bo : b.getInventory()) {
+                                if ((bo.getExpDate() == null || bo.getExpDate().compareTo(o.getDueDate()) > 0)
+                                        && bo.getProduct().getSkuID().equals(ol.getSku())
+                                        && bo.getQuantity() == ol.getQuantity()) {
                                     System.out.println(bo.toString() + " - ELIGIBLE");
                                     allocation.add(new Allocation(o, ol, ol.getSku(), bo, a, b, bo.getQuantity(), bo.getProduct().getWeight()));
-                                }else{
+                                } else {
                                     System.out.println(bo.toString() + " - UNDISPATCHBLE");
                                 }
                             }
