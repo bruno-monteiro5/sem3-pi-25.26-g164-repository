@@ -4,6 +4,7 @@ import controller.PickPathController;
 import controller.PickPathController.PickPathResult;
 import domain.*;
 import repository.WarehouseRepository;
+import ui.WarehouseManagementMenu;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,9 @@ public class PickPathUI implements Runnable {
 
         System.out.println("\nStrategy B (Nearest-Neighbour):");
         printPath(B);
+
+        Runnable war = new WarehouseManagementMenu();
+        war.run();
     }
 
     private void printPath(PickPathResult res) {
