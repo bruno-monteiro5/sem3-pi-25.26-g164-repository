@@ -1,6 +1,7 @@
 package ui;
 
 import WarehouseManagementFunctions.PickPathUI;
+import WarehouseManagementFunctions.PickingPlanUI;
 import domain.Option;
 import domain.Utils;
 import WarehouseManagementFunctions.OrderEligibilityNdAllocation;
@@ -20,15 +21,17 @@ public class WarehouseManagementMenu implements Runnable{
 
         System.out.println("####WAREHOUSE MANAGEMENT MENU####");
 
-        Option[] options = new Option[4];
+        Option[] options = new Option[5];
         Runnable unl = new WagonUnloading();
         Runnable all = new OrderEligibilityNdAllocation();
+        Runnable picking = new PickingPlanUI();
         Runnable pick = new PickPathUI();
         Runnable main = new MainMenu();
         options[0] = new Option("Unload Wagons into warehouse", unl);
         options[1] = new Option("Elect products and allocate them for current orders", all);
-        options[2] = new Option("Generate Picking Plan", pick);
-        options[3] = new Option("Go Back", main);
+        options[2] = new Option("Generate Picking Plan", picking);
+        options[3] = new Option("Pick Path", pick);
+        options[4] = new Option("Go Back", main);
         Utils.listAndSelect(options);
     }
 }
