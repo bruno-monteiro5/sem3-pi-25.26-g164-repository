@@ -128,7 +128,7 @@ public class OrderEligibilityNdAllocation implements Runnable{
                                             allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), i, bo.getExpDate()), a, b, i, bo.getProduct().getWeight()));
                                             bo.setQuantity(bo.getQuantity()-i);
                                         }else if(quant <= i && i != 0){
-                                            allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), quant, bo.getExpDate()), a, b, quant, bo.getProduct().getWeigjt()));
+                                            allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), quant, bo.getExpDate()), a, b, quant, bo.getProduct().getWeight()));
                                             bo.setQuantity(bo.getQuantity()-quant);
 
                                         }
