@@ -17,19 +17,23 @@ public class OrderEligibilityNdAllocation implements Runnable{
 
     public void run(){
         try {
+            // tenta preencher a lista de ordens com os dados do arquivo
             fillOrders();
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
+        // escreve todos os conteúdos da lista se a mesma for preenchida com sucesso
         System.out.println("############ORDERS LIST############");
         for(Order o: orders){
             System.out.println(o.toString());
         }
         System.out.println("############ORDER LIST FINISHED############");
 
+        // verifica quais caixas podem ser alocadas para os pedidos
         allocateBoxesChoice();
 
 
+        // escreve todas as alocações feitas para os pedidos
         for(Allocation a : allocation){
             System.out.println("############ALLOCATION RESULT############");
             System.out.println(a.toString());
