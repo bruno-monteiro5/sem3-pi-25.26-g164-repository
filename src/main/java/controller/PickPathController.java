@@ -30,37 +30,52 @@ public class PickPathController {
         }
     }
 
-    /** Estratégia A — varrimento determinístico. */
+    //strategy A
     public PickPathResult sequenceStrategyA(List<PickStop> stops) {
-        // Assunção: ordenar por aisle ASC, depois bay ASC
         List<PickStop> ordered = new ArrayList<>(stops);
-        ordered.sort(Comparator.<PickStop>comparingInt(PickStop::getAisle)
-                .thenComparingInt(PickStop::getBay));
+        Collections.sort(ordered, new Comparator<PickStop>() {
+            @Override
+            public int compare(PickStop p1, PickStop p2) {
+                if (p1.getAisle() != p2.getAisle()) {
+                    return p1.getAisle() - p2.getAisle();
+                }
+                return p1.getBay() - p2.getBay();
+            }
+        });
         int total = totalDistance(ordered);
         return new PickPathResult(ordered, total);
     }
 
-    /** Estratégia B — vizinho mais próximo (greedy) a partir de (0,0). */
+    //strategy B
     public PickPathResult sequenceStrategyB(List<PickStop> stops) {
         List<PickStop> remaining = new ArrayList<>(stops);
-        List<PickStop> route = new ArrayList<>();
-        int ca = 0, cb = 0; // começa no (0,0)
+        List<PickStop> route = new ArrayList<PickStop>();
+        int ca = 0, cb = 0; // start at (0,0)
 
         while (!remaining.isEmpty()) {
             PickStop best = null;
             int bestD = Integer.MAX_VALUE;
+
             for (PickStop s : remaining) {
                 int d = distance(ca, cb, s.getAisle(), s.getBay());
-                if (d < bestD) { bestD = d; best = s; }
+                if (best == null || d < bestD ||
+                        (d == bestD && (s.getAisle() < best.getAisle() ||
+                                (s.getAisle() == best.getAisle() && s.getBay() < best.getBay())))) {
+                    bestD = d;
+                    best = s;
+                }
             }
+
             route.add(best);
             ca = best.getAisle();
             cb = best.getBay();
             remaining.remove(best);
         }
+
         int total = totalDistance(route);
         return new PickPathResult(route, total);
     }
+
 
     /** Distância total desde (0,0) seguindo a sequência fornecida (sem regresso). */
     public int totalDistance(List<PickStop> ordered) {
