@@ -46,7 +46,7 @@ CREATE TABLE Locomotive (
   max_speed         number(10, 1) NOT NULL, 
   op_speed          number(10) NOT NULL, 
   traction          number(10) NOT NULL, 
-  bogie_arrangement number(10), 
+  bogie_arrangement varchar2(255) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Operator (
   vat        varchar2(255) NOT NULL, 
