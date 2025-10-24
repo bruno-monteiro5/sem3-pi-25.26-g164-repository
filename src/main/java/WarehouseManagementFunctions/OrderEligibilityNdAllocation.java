@@ -13,7 +13,7 @@ public class OrderEligibilityNdAllocation implements Runnable{
     List<Order> orders = new ArrayList<>();
     String filenameorders = "warehouseMngt/train_station_dataset/orders.csv";
     String filenameorderlines = "warehouseMngt/train_station_dataset/order_lines.csv";
-    Map<Order, Map<OrderLine, List<Box>>> allocation = new HashMap<>();
+    List<Allocation> allocation = new ArrayList<>();
 
     public void run(){
         try {
@@ -30,7 +30,13 @@ public class OrderEligibilityNdAllocation implements Runnable{
         allocateBoxesChoice();
 
 
-        allocation.forEach((k,v) -> System.out.println(k.toString() + " - " + v.toString()));
+        for(Allocation a : allocation){
+            System.out.println("############ALLOCATION RESULT############");
+            System.out.println(a.toString());
+            System.out.println("############ALLOCATION RESULT FINISHED############");
+        }
+
+        WarehouseRepository.setAllocation(allocation);
 
         Runnable WarehouseManagementMenu = new WarehouseManagementMenu();
         WarehouseManagementMenu.run();
@@ -86,18 +92,16 @@ public class OrderEligibilityNdAllocation implements Runnable{
         if(!strict) {
             for (Order o : orders) {
                 System.out.println("###########ORDER: " + o.toString());
-                Map<OrderLine, List<Box>> temp = new HashMap<>();
                 for (OrderLine ol : o.getLines()) {
                     System.out.println("###########ORDERLINE: " + ol.toString());
                     int quant = ol.getQuantity();
-                    List<Box> boxt = new ArrayList<>();
                     for (Aisle a : warehouse.getAisles()) {
                         for (Bay b : a.getBays()) {
                             for (Box bo : b.getInventory()) {
                                 if (bo.getProduct().getSkuID().equals(ol.getSku()) && (bo.getExpDate() == null || o.getDueDate().compareTo(bo.getExpDate()) < 0)) {
                                     System.out.println(bo.toString() + " - PARTIAL");
                                     if(quant > bo.getQuantity() && bo.getQuantity() > 0) {
-                                        boxt.add(new Box(bo.getProduct(), bo.getQuantity()));
+                                        allocation.add(new Allocation(o.getOrderID(), ol.getLineNo(), ol.getSku(), bo, a.getAisleID(), b.getBayID(), bo.getQuantity(), bo.getProduct().getWeight()));
                                         quant = quant - bo.getQuantity();
                                         bo.setQuantity(0);
                                     }else {
@@ -105,7 +109,7 @@ public class OrderEligibilityNdAllocation implements Runnable{
                                         bo.setQuantity(bo.getQuantity() - quant);
                                         tempe = tempe-bo.getQuantity();
                                         quant = 0;
-                                        boxt.add(new Box(bo.getProduct(), tempe));
+                                        allocation.add(new Allocation(o.getOrderID(), ol.getLineNo(), ol.getSku(), new Box(bo.getProduct(), tempe), a.getAisleID(), b.getBayID(), bo.getQuantity(), bo.getProduct().getWeight()));
                                     }
                                 }else if ((bo.getExpDate() != null && bo.getExpDate().compareTo(o.getDueDate()) > 0)) {
                                     System.out.println(bo.toString() + " - UNDISPATCHBLE");
@@ -118,24 +122,20 @@ public class OrderEligibilityNdAllocation implements Runnable{
                         }
                     }
                     System.out.println("ORDER LINE FINISHED###############");
-                    temp.put(ol, boxt);
                 }
                 System.out.println("###########ORDER FINISHED: " + o.toString());
-                allocation.put(o, temp);
             }
         }else{
             for (Order o : orders) {
                 System.out.println("###########ORDER: " + o.toString());
-                Map<OrderLine, List<Box>> temp = new HashMap<>();
                 for (OrderLine ol : o.getLines()) {
                     System.out.println("###########ORDERLINE: " + ol.toString());
-                    List<Box> boxt = new ArrayList<>();
                     for(Aisle a : warehouse.getAisles()){
                         for(Bay b : a.getBays()){
                             for(Box bo : b.getInventory()){
                                 if((bo.getExpDate() == null || bo.getExpDate().compareTo(o.getDueDate()) > 0) && bo.getProduct().getSkuID().equals(ol.getSku()) && bo.getQuantity() == ol.getQuantity()){
                                     System.out.println(bo.toString() + " - ELIGIBLE");
-                                    boxt.add(bo);
+                                    allocation.add(new Allocation(o.getOrderID(), ol.getLineNo(), ol.getSku(), bo, a.getAisleID(), b.getBayID(), bo.getQuantity(), bo.getProduct().getWeight()));
                                 }else{
                                     System.out.println(bo.toString() + " - UNDISPATCHBLE");
                                 }
@@ -143,10 +143,8 @@ public class OrderEligibilityNdAllocation implements Runnable{
                         }
                     }
                     System.out.println("ORDER LINE FINISHED###############");
-                    temp.put(ol, boxt);
                 }
                 System.out.println("###########ORDER FINISHED: " + o.toString());
-                allocation.put(o, temp);
             }
         }
     }
