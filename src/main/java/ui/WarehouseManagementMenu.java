@@ -1,5 +1,6 @@
 package ui;
 
+import WarehouseManagementFunctions.PickPathUI;
 import domain.Option;
 import domain.Utils;
 import WarehouseManagementFunctions.OrderEligibilityNdAllocation;
@@ -22,7 +23,7 @@ public class WarehouseManagementMenu implements Runnable{
         Option[] options = new Option[4];
         Runnable unl = new WagonUnloading();
         Runnable all = new OrderEligibilityNdAllocation();
-        Runnable pick = new OrderEligibilityNdAllocation();
+        Runnable pick = new PickPathUI();
         Runnable main = new MainMenu();
         options[0] = new Option("Unload Wagons into warehouse", unl);
         options[1] = new Option("Elect products and allocate them for current orders", all);

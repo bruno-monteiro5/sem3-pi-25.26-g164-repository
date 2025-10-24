@@ -3,20 +3,19 @@ package WarehouseManagementFunctions;
 import controller.PickPathController;
 import controller.PickPathController.PickPathResult;
 import domain.*;
+import repository.WarehouseRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PickPathUI implements Runnable {
 
-    private final List<Allocation> allocations;
-
-    public PickPathUI(List<Allocation> allocations) {
-        this.allocations = allocations;
-    }
+    private List<Allocation> allocations = null;
 
     @Override
     public void run() {
+        allocations = WarehouseRepository.getAllocation();
+
         System.out.println("\n=== PICK PATH SEQUENCING (USEI04) ===");
 
         PickPathController controller = new PickPathController();
@@ -46,14 +45,5 @@ public class PickPathUI implements Runnable {
         System.out.println("\nTotal distance = " + res.getTotalDistance());
     }
 
-    // Exemplo standalone (podes remover e integrar no teu menu principal)
-    public static void main(String[] args) {
-        List<Allocation> allocations = new ArrayList<>();
-        // Exemplo do enunciado: bays (1,8), (2,2), (3,4)
-        allocations.add(new Allocation("ORD", 1, "SKU", "B1", 1, 8, 1, 1.0));
-        allocations.add(new Allocation("ORD", 2, "SKU", "B2", 2, 2, 1, 1.0));
-        allocations.add(new Allocation("ORD", 3, "SKU", "B3", 3, 4, 1, 1.0));
-
-        new PickPathUI(allocations).run();
-    }
+    // Exemplo standalone (podes remover e integrar no teu menu principal
 }

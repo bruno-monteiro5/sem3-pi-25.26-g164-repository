@@ -2,6 +2,7 @@ package WarehouseManagementFunctions;
 
 import controller.PickingPlanController;
 import domain.*;
+import repository.WarehouseRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +14,8 @@ public class PickingPlanUI implements Runnable {
         System.out.println("\n=== GENERATE PICKING PLAN (USEI03) ===");
 
         List<Allocation> allocations = new ArrayList<>();
-        allocations.add(new Allocation("ORD001", 1, "SKU123", "BOX01", 2, 4, 10, 2.5));
-        allocations.add(new Allocation("ORD001", 2, "SKU999", "BOX02", 3, 1, 20, 1.0));
-        allocations.add(new Allocation("ORD002", 1, "SKU555", "BOX03", 1, 3, 50, 0.8));
-        allocations.add(new Allocation("ORD003", 1, "SKU888", "BOX05", 5, 2, 40, 3.0));
+
+        allocations = WarehouseRepository.getAllocation();
 
         PackingMode mode = PackingMode.BFD;               // ou FF / FFD
         AllocationPolicy policy = AllocationPolicy.SPLIT_LINE;  // ou DEFER_LINE

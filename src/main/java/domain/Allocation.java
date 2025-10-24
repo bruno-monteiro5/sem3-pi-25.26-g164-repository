@@ -20,7 +20,7 @@ public class Allocation implements Comparable<Allocation> {
     private  String sku;
 
     /** The box identifier where the item is stored. */
-    private  String boxId;
+    private  Box boxId;
 
     /** The aisle number in the warehouse. */
     private  int aisle;
@@ -48,7 +48,7 @@ public class Allocation implements Comparable<Allocation> {
      * @param unitWeight the weight of a single unit (kg)
      */
 
-    public Allocation (String orderId, int lineNo, String sku, String boxId, int aisle, int bay, double quantity, double unitWeight) {
+    public Allocation (String orderId, int lineNo, String sku, Box boxId, int aisle, int bay, double quantity, double unitWeight) {
         this.orderId = orderId;
         this.lineNo = lineNo;
         this.sku = sku;
@@ -75,7 +75,7 @@ public class Allocation implements Comparable<Allocation> {
     }
 
     /** @return the box identifier */
-    public String getBoxId() { return boxId; }
+    public Box getBoxId() { return boxId; }
 
     /** @return the aisle number */
     public int getAisle() { return aisle; }
