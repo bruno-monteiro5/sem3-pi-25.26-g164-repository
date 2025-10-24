@@ -13,7 +13,7 @@ public class PickPathController {
         for (Allocation a : allocations) {
             String key = a.getAisle() + ":" + a.getBay();
             map.compute(key, (k, old) -> {
-                if (old == null) return new PickStop(a.getAisle(), a.getBay(), a.getQuantity());
+                if (old == null) return new PickStop(a.getAisle().getAisleID(), a.getBay().getBayID(), a.getQuantity());
                 old.addQty(a.getQuantity());
                 return old;
             });
