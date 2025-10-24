@@ -3,6 +3,7 @@ package WarehouseManagementFunctions;
 import controller.PickingPlanController;
 import domain.*;
 import repository.WarehouseRepository;
+import ui.WarehouseManagementMenu;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,9 @@ public class PickingPlanUI implements Runnable {
         PickingPlan plan = controller.generatePlan(allocations, mode, capacity, policy);
 
         printPickingPlan(plan);
+
+        Runnable war = new WarehouseManagementMenu();
+        war.run();
     }
 
 
@@ -38,7 +42,7 @@ public class PickingPlanUI implements Runnable {
                     t.getId(), t.getUsedKg(), t.getWeightCapacity(), t.percUtilization());
             for (Allocation a : t.getItems()) {
                 System.out.printf("  order=%s line=%d aisle=%d bay=%d box=%s sku=%s qty=%.0f\n",
-                        a.getOrderId(), a.getLineNo(), a.getAisle(), a.getBay(),
+                        a.getOrderId(), a.getLineNo().getLineNo(), a.getAisle().getAisleID(), a.getBay().getBayID(),
                         a.getBoxId(), a.getSku(), a.getQuantity());
             }
         }

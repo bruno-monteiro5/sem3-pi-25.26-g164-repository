@@ -130,7 +130,7 @@ public class PickingPlanController {
                                 quantityLefts,
                                 unitWeight
                             );
-                            partial.add(new PartialAllocationLog(allocation.getOrderId(), allocation.getLineNo(),allocation.getSku(), quantityFits, quantityLefts));
+                            partial.add(new PartialAllocationLog(allocation.getOrderId().getOrderID(), allocation.getLineNo().getLineNo(),allocation.getSku(), quantityFits, quantityLefts));
 
                             Trolley next = new Trolley(nextTrolleyId++, trolleyCapacity);
                             next.addItem(lefts);
@@ -259,7 +259,7 @@ public class PickingPlanController {
                                 quantityLefts,
                                 unitWeight
                             );
-                            partial.add(new PartialAllocationLog(allocation.getOrderId(), allocation.getLineNo(),allocation.getSku(), quantityFits, quantityLefts));
+                            partial.add(new PartialAllocationLog(allocation.getOrderId().getOrderID(),allocation.getLineNo().getLineNo() ,allocation.getSku(), quantityFits, quantityLefts));
 
                             Trolley next = new Trolley(nextTrolleyId++, trolleyCapacity);
                             next.addItem(lefts);
