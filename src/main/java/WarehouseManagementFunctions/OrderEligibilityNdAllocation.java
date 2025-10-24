@@ -91,85 +91,115 @@ public class OrderEligibilityNdAllocation implements Runnable{
         }
 
     }
+    private static final double MAX_ALLOCATION_KG = 200.0;
+
+    private int maxUnitsPerAllocation(double unitWeight) {
+        if (unitWeight <= 0.0) return 0;
+        return (int) Math.floor(MAX_ALLOCATION_KG / unitWeight);
+    }
+
+    private void addSlicedAllocations(Order o, OrderLine ol, Aisle a, Bay b, Box sourceBox, int takeQty, List<Allocation> out) {
+        double unitW = sourceBox.getProduct().getWeight();
+        int maxPerAlloc = maxUnitsPerAllocation(unitW);
+        if (maxPerAlloc <= 0) {
+            System.out.println(sourceBox + " - UNDISPATCHBLE (invalid unit weight)");
+            return;
+        }
+
+        int remaining = takeQty;
+        while (remaining > 0) {
+            int chunk = Math.min(remaining, maxPerAlloc);
+            Allocation part = new Allocation(
+                    o, ol, ol.getSku(),
+                    new Box(sourceBox.getProduct(), chunk, sourceBox.getExpDate()),
+                    a, b,
+                    chunk,
+                    unitW
+            );
+            out.add(part);
+            remaining -= chunk;
+        }
+    }
+
 
     public void allocateBoxes(boolean strict) {
         if (!strict) {
             for (Order o : orders) {
-                System.out.println("###########ORDER: " + o.toString());
+                System.out.println("###########ORDER: " + o);
                 for (OrderLine ol : o.getLines()) {
-                    System.out.println("###########ORDERLINE: " + ol.toString());
-                    int quant = ol.getQuantity();
-                    for (Aisle a : warehouse.getAisles()) {
-                        for (Bay b : a.getBays()) {
-                            for (Box bo : b.getInventory()) {
-                                if (bo.getProduct().getSkuID().equals(ol.getSku()) && (bo.getExpDate() == null || o.getDueDate().compareTo(bo.getExpDate()) < 0) && quant != 0) {
-                                    System.out.println(bo.toString() + " - PARTIAL");
-                                    int quantl = bo.getQuantity();
-                                    float weight = bo.getProduct().getWeight();
-                                    float totweight = 0;
-                                    int i = 0;
-                                    while(totweight <= 200 || i < quantl){
-                                        totweight += weight;
-                                        i += 1;
-                                    }
-                                    if(i == quantl) {
-                                        if (quant > bo.getQuantity() && bo.getQuantity() != 0) {
-                                            allocation.add(new Allocation(o, ol, ol.getSku(), bo, a, b, bo.getQuantity(), bo.getProduct().getWeight()));
-                                            quant = quant - bo.getQuantity();
-                                        } else if (quant <= bo.getQuantity() && bo.getQuantity() != 0) {
-                                            int tempe = bo.getQuantity();
-                                            bo.setQuantity(bo.getQuantity() - quant);
-                                            tempe = tempe - bo.getQuantity();
-                                            quant = 0;
-                                            allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), tempe), a, b, bo.getQuantity(), bo.getProduct().getWeight()));
-                                        }
-                                    }else{
-                                        if(quant > i && i != 0){
-                                            allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), i, bo.getExpDate()), a, b, i, bo.getProduct().getWeight()));
-                                            bo.setQuantity(bo.getQuantity()-i);
-                                        }else if(quant <= i && i != 0){
-                                            allocation.add(new Allocation(o, ol, ol.getSku(), new Box(bo.getProduct(), quant, bo.getExpDate()), a, b, quant, bo.getProduct().getWeight()));
-                                            bo.setQuantity(bo.getQuantity()-quant);
+                    System.out.println("###########ORDERLINE: " + ol);
+                    int toAllocate = ol.getQuantity();
 
-                                        }
-                                    }
-                                } else if (bo.getExpDate() != null && bo.getExpDate().compareTo(o.getDueDate()) < 0) {
-                                    System.out.println(bo.toString() + " - UNDISPATCHBLE");
-                                } else if (quant == 0) {
-                                    System.out.println(bo.toString() + " - UNDISPATCHBLE");
-                                } else {
-                                    System.out.println(bo.toString() + " - UNDISPATCHBLE");
+                    for (Aisle a : warehouse.getAisles()) {
+                        if (toAllocate == 0) break;
+                        for (Bay b : a.getBays()) {
+                            if (toAllocate == 0) break;
+                            for (Box bo : b.getInventory()) {
+                                if (toAllocate == 0) break;
+
+                                boolean skuOk = bo.getProduct().getSkuID().equals(ol.getSku());
+                                boolean dateOk = (bo.getExpDate() == null) || (o.getDueDate().compareTo(bo.getExpDate()) < 0);
+                                boolean hasQty = bo.getQuantity() > 0;
+
+                                if (!skuOk || !dateOk || !hasQty) {
+                                    System.out.println(bo + " - UNDISPATCHBLE");
+                                    continue;
                                 }
+
+                                System.out.println(bo + " - PARTIAL");
+
+                                int canTake = Math.min(toAllocate, bo.getQuantity());
+                                if (canTake <= 0) continue;
+
+                                addSlicedAllocations(o, ol, a, b, bo, canTake, allocation);
+
+                                bo.setQuantity(bo.getQuantity() - canTake);
+                                toAllocate -= canTake;
                             }
                         }
                     }
                     System.out.println("ORDER LINE FINISHED###############");
                 }
-                System.out.println("###########ORDER FINISHED: " + o.toString());
+                System.out.println("###########ORDER FINISHED: " + o);
             }
-        }
-        else {
+        } else {
             for (Order o : orders) {
-                System.out.println("###########ORDER: " + o.toString());
+                System.out.println("###########ORDER: " + o);
                 for (OrderLine ol : o.getLines()) {
-                    System.out.println("###########ORDERLINE: " + ol.toString());
+                    System.out.println("###########ORDERLINE: " + ol);
+
+                    boolean allocated = false;
+
+                    outer:
                     for (Aisle a : warehouse.getAisles()) {
                         for (Bay b : a.getBays()) {
                             for (Box bo : b.getInventory()) {
-                                if ((bo.getExpDate() == null || bo.getExpDate().compareTo(o.getDueDate()) > 0)
-                                        && bo.getProduct().getSkuID().equals(ol.getSku())
-                                        && bo.getQuantity() == ol.getQuantity()) {
-                                    System.out.println(bo.toString() + " - ELIGIBLE");
-                                    allocation.add(new Allocation(o, ol, ol.getSku(), bo, a, b, bo.getQuantity(), bo.getProduct().getWeight()));
+                                boolean skuOk = bo.getProduct().getSkuID().equals(ol.getSku());
+                                boolean dateOk = (bo.getExpDate() == null) || (bo.getExpDate().compareTo(o.getDueDate()) > 0);
+                                boolean exactQty = bo.getQuantity() == ol.getQuantity();
+
+                                if (skuOk && dateOk && exactQty) {
+                                    System.out.println(bo + " - ELIGIBLE");
+
+                                    addSlicedAllocations(o, ol, a, b, bo, bo.getQuantity(), allocation);
+
+                                    bo.setQuantity(0);
+                                    allocated = true;
+                                    break outer;
                                 } else {
-                                    System.out.println(bo.toString() + " - UNDISPATCHBLE");
+                                    System.out.println(bo + " - UNDISPATCHBLE");
                                 }
                             }
                         }
                     }
+
+                    if (!allocated) {
+                        System.out.println("No exact box found for STRICT allocation of " + ol);
+                    }
+
                     System.out.println("ORDER LINE FINISHED###############");
                 }
-                System.out.println("###########ORDER FINISHED: " + o.toString());
+                System.out.println("###########ORDER FINISHED: " + o);
             }
         }
     }
