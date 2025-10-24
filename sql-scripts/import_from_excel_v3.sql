@@ -184,45 +184,4 @@ INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, l
 INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (26, 'Y', 120, 8000, 4264, 7, (SELECT id FROM TrackType WHERE name='Double'));
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- === LINE SEGMENT (no gauge)  ESTÁ MAL POR AGORA MAS ACHO QUE DEVE ESTAR CORRETO===
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (1, 'Y', 120, 8000, 2618, 1, (SELECT gauge FROM Line WHERE id=1), (SELECT id FROM TrackType WHERE name='Quadruple'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (10, 'Y', 120, 8000, 29003, 2, (SELECT gauge FROM Line WHERE id=2), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (11, 'Y', 120, 8000, 10000, 2, (SELECT gauge FROM Line WHERE id=2), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (15, 'Y', 120, 8000, 5286, 3, (SELECT gauge FROM Line WHERE id=3), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (16, 'Y', 120, 8000, 6000, 3, (SELECT gauge FROM Line WHERE id=3), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (14, 'Y', 120, 8000, 10387, 4, (SELECT gauge FROM Line WHERE id=4), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (12, 'Y', 120, 8000, 12000, 4, (SELECT gauge FROM Line WHERE id=4), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (13, 'Y', 120, 6400, 8000, 4, (SELECT gauge FROM Line WHERE id=4), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (20, 'Y', 120, 8000, 6000, 5, (SELECT gauge FROM Line WHERE id=5), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (21, 'Y', 120, 8000, 3000, 5, (SELECT gauge FROM Line WHERE id=5), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (22, 'Y', 120, 8000, 15000, 5, (SELECT gauge FROM Line WHERE id=5), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (25, 'Y', 120, 8000, 20829, 6, (SELECT gauge FROM Line WHERE id=6), (SELECT id FROM TrackType WHERE name='Double'));
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, gauge, track_type) VALUES (26, 'Y', 120, 8000, 4264, 7, (SELECT gauge FROM Line WHERE id=7), (SELECT id FROM TrackType WHERE name='Double'));
-
-
-
-
-
-
-
-
 COMMIT;
