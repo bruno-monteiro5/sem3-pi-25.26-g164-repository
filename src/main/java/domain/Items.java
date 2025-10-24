@@ -59,8 +59,13 @@ public class Items {
     public void setWeight(float weight) {
         this.weight = weight;
     }
-
-    public String toString(){
-        return String.format("Product %s, SKU: %s, Category: %s, Pack: %s, Volume: %.2f, Weight: %.2f", this.name, this.skuID, this.category, this.pack, this.volume, this.weight);
+    @Override
+    public String toString() {
+        return String.format(
+                java.util.Locale.US,
+                "Product %s, SKU: %s, Category: %s, Pack: %s, Volume: %.2f, Weight: %.2f",
+                this.name, this.skuID, this.category, this.pack, this.volume, this.weight
+        );
     }
+
 }
