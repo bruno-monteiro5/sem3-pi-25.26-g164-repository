@@ -76,6 +76,6 @@ The program uses:
 ---
 
 ## 6. Conclusion
-The `WagonUnloading.java` file presents a **time complexity set in O(n^3)**, although the actual time needed to fully run may depend on the case and data structure used.  
+The `OrderEligibilityNdAllocation.java` file presents a **time complexity set in O(n^3)**, although the actual time needed to fully run may depend on the case and data structure used.  
 The **space complexity** is O(n^3), proportional to the number of Products, Orders, and OrderLines processed. 
 
