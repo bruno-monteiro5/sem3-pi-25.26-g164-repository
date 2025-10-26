@@ -62,7 +62,4 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ---
 
-> **Note:** Each `.svg` diagram should be placed in the folder `svg/` and linked accordingly.  
-> Each US folder (e.g., `USBD01`, `USEI03`, `USLP02`) must contain its development artefacts:  
-> `01.requirements-engineering`, `02.analysis`, `03.design`, `04.tests`, and `05.code`.
 
