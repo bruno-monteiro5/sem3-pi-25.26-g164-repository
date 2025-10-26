@@ -1,8 +1,11 @@
 package domain;
 
 import java.util.Scanner;
+import java.util.Stack;
 
 public class Utils {
+
+    private static final Stack<Runnable> runnableStack = new Stack<>();
 
     public static void listAndSelect(Option[] options) {
         Scanner sc = new Scanner(System.in);
@@ -28,5 +31,29 @@ public class Utils {
 
         options[choice].executeOption();
     }
+
+    public static Runnable pushRunnable(Runnable runnable) {
+        return () -> {
+            Utils.pushRunnable(runnable);
+            runnable.run();
+        };
+    }
+
+    public static void finishCurrentAndRunPrevious() {
+        if (!runnableStack.isEmpty()) {
+            runnableStack.pop(); // Remove o atual
+        }
+        if (!runnableStack.isEmpty()) {
+            runnableStack.peek().run(); // Executa o anterior, se existir
+        } else {
+            System.out.println("Não há processos restantes na pilha.");
+        }
+    }
+
+    public static void start(Runnable initialRunnable) {
+        runnableStack.push(initialRunnable);
+        initialRunnable.run();
+    }
+
 
 }

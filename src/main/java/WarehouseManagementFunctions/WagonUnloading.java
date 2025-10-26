@@ -6,34 +6,39 @@ import repository.WarehouseRepository;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
-public class WagonUnloading implements Runnable{
+public class WagonUnloading implements Runnable {
 
     public static Warehouse warehouse;
     public static List<Items> products;
     public static Map<String, Box> perishable;
     public static Map<String, Box> nonPerishable;
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public void run() {
-        try{
+        try {
             beginWarehouse();
-        }catch(FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
-        try{
+        try {
             beginProducts();
-        }catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
-        try{
+        try {
             removeCargoFromWagon(warehouse, products);
-        }catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
         Runnable menu = new WarehouseManagementMenu();
         menu.run();
     }
@@ -53,25 +58,35 @@ public class WagonUnloading implements Runnable{
                 warehouse.addAisle(aisleID);
             }
             warehouse.getLastAisle().addBay(
-                    new Bay(Integer.parseInt(line.split(";")[2]), Integer.parseInt(line.split(";")[3]))
+                    new Bay(
+                            Integer.parseInt(line.split(";")[2]),
+                            Integer.parseInt(line.split(";")[3])
+                    )
             );
-
         }
 
         sc.close();
     }
 
     public static void beginProducts() throws FileNotFoundException {
-        products = new ArrayList<Items>();
+        products = new ArrayList<>();
 
         String fileNameProducts = "warehouseMngt/train_station_dataset/items.csv";
 
         Scanner sc = new Scanner(new File(fileNameProducts));
+        // Skip header
         String line = sc.nextLine();
-        while(sc.hasNextLine()){
+        while (sc.hasNextLine()) {
             line = sc.nextLine();
             String[] lineSplit = line.split(",");
-            products.add(new Items(lineSplit[0], lineSplit[1], lineSplit[2], lineSplit[3], Float.parseFloat(lineSplit[4]), Float.parseFloat(lineSplit[5])));
+            products.add(new Items(
+                    lineSplit[0],
+                    lineSplit[1],
+                    lineSplit[2],
+                    lineSplit[3],
+                    Float.parseFloat(lineSplit[4]),
+                    Float.parseFloat(lineSplit[5])
+            ));
         }
     }
 
@@ -82,47 +97,24 @@ public class WagonUnloading implements Runnable{
 
         String fileNameWagons = "warehouseMngt/train_station_dataset/wagons.csv";
         fillMap(fileNameWagons);
-        System.out.println("######NON PERISHABLE####");
-        nonPerishable.forEach((k,v) -> System.out.printf("Arrived in: %s, %s\n", k, v.toString()));
-        System.out.println("######PERISHABLE####");
+
+        // Process perishable items
         List<Map.Entry<String, Box>> list = new ArrayList<>(perishable.entrySet());
-        list.sort(Comparator.comparing(Map.Entry::getKey));
-        for(Map.Entry<String, Box> e : list){
-            System.out.printf("Key: %s, Value: %s\n", e.getKey(), e.getValue().toString());
-        }
-        System.out.println("########################");
-        for(Map.Entry<String, Box> e : perishable.entrySet()){
+        list.sort(Comparator.comparing(entry -> LocalDate.parse(entry.getKey(), DATE_FORMATTER))); // Sort by expiry date
+        for (Map.Entry<String, Box> e : list) {
             warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue());
         }
-        System.out.println("#####PERISHABLES FULLY STORED####");
-        System.out.println("#####CURRENT INVENTORY#####");
-        for(Aisle a : warehouse.getAisles()){
-            for(Bay b : a.getBays()){
-                System.out.println(b.toString());
-            }
+
+        // Process non-perishable items
+        List<Map.Entry<String, Box>> nonList = new ArrayList<>(nonPerishable.entrySet());
+        nonList.sort(Comparator.comparing(Map.Entry::getKey)); // Sort by receivedAt
+        for (Map.Entry<String, Box> e : nonList) {
+            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue());
         }
 
-        list = new ArrayList<>(nonPerishable.entrySet());
-        list.sort(Comparator.comparing(Map.Entry::getKey));
-        for(Map.Entry<String, Box> e : list){
-            System.out.printf("Key: %s, Value: %s\n", e.getKey(), e.getValue().toString());
-        }
-        System.out.println("########################");
-        for(int i = 0; i < nonPerishable.size(); i++){
-            if( i < nonPerishable.size()-1 && list.get(i).getKey().equals(list.get(i+1).getKey())){
-                if(list.get(i).getValue().getProduct().getSkuID().compareTo(list.get(i+1).getValue().getProduct().getSkuID()) >0){
-                    Map.Entry<String, Box> temp = list.get(i);
-                    list.set(i, list.get(i+1));
-                    list.set(i+1, temp);
-                }
-            }
-            warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(list.get(i).getValue());
-
-        }
-        System.out.println("#####NON PERISHABLES FULLY STORED####");
         System.out.println("#####CURRENT INVENTORY#####");
-        for(Aisle a : warehouse.getAisles()){
-            for(Bay b : a.getBays()){
+        for (Aisle a : warehouse.getAisles()) {
+            for (Bay b : a.getBays()) {
                 System.out.println(b.toString());
             }
         }
@@ -130,31 +122,54 @@ public class WagonUnloading implements Runnable{
         WarehouseRepository.setCurrentWarehouse(warehouse);
 
         System.out.println("############WAGON UNLOADING COMPLETE############");
-
-
     }
 
     public static void fillMap(String filename) throws FileNotFoundException {
         Scanner sc = new Scanner(new File(filename));
+        // Skip header
         String line = sc.nextLine();
-        while(sc.hasNextLine()){
+        while (sc.hasNextLine()) {
             line = sc.nextLine();
             String[] lineSplit = line.split(",");
+
+            // Handle product lookup
             Items product = null;
-            for(Items p : products){
-                if(lineSplit[2].equals(p.getSkuID())){
+            for (Items p : products) {
+                if (lineSplit[2].equals(p.getSkuID())) {
                     product = p;
                     break;
                 }
             }
-            if(lineSplit[4].equals(null) || lineSplit[4].equals("") || lineSplit[4].isBlank()){
-                nonPerishable.put(lineSplit[5], new Box(product, Integer.parseInt(lineSplit[3])));
-            }else{
-                perishable.put(lineSplit[4], new Box(product, Integer.parseInt(lineSplit[3]), lineSplit[4]));
+
+            // Skip this entry if the SKU is invalid
+            if (product == null) {
+                System.err.println("Product with SKU " + lineSplit[2] + " not found.");
+                continue;
+            }
+
+            // Parse expiry date (if exists)
+            String expiryDate = lineSplit[4];
+            if (expiryDate == null || expiryDate.isBlank()) {
+                // Non-perishable item
+                String receivedAt = lineSplit[5];
+                nonPerishable.put(receivedAt, new Box(
+                        product,
+                        Integer.parseInt(lineSplit[3])
+                ));
+            } else {
+                try {
+                    // Validate date format
+                    LocalDate.parse(expiryDate, DATE_FORMATTER);
+                    perishable.put(expiryDate, new Box(
+                            product,
+                            Integer.parseInt(lineSplit[3]),
+                            expiryDate
+                    ));
+                } catch (DateTimeParseException e) {
+                    System.out.println("Invalid expiry date for box ID " + lineSplit[1] + ": " + expiryDate);
+                }
             }
         }
         sc.close();
     }
-
-
 }
