@@ -38,9 +38,7 @@ public final class ReturnsCsvLoader {
      */
     public static List<ReturnEntry> loadFromFile(String csvPath)
             throws FileNotFoundException {
-
         List<ReturnEntry> entries = new ArrayList<>();
-
         try (Scanner sc = new Scanner(new File(csvPath))) {
             if (sc.hasNextLine()) sc.nextLine(); // skip header
 
@@ -66,7 +64,6 @@ public final class ReturnsCsvLoader {
                 entries.add(new ReturnEntry(returnId, sku, quantity, reason, ts, expiry));
             }
         }
-
         return entries;
     }
 }
