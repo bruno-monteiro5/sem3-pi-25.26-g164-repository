@@ -42,11 +42,11 @@ public final class ReturnEntry implements Comparable<ReturnEntry> {
     /**
      * Creates a new immutable {@code ReturnEntry}.
      *
-     * @param returnId  unique return identifier (non-blank)
-     * @param sku       product SKU (non-blank)
-     * @param quantity  returned quantity (must be {@code > 0})
-     * @param reason    parsed {@link ReturnReason} (non-null)
-     * @param timestamp return timestamp (non-null)
+     * @param returnId   unique return identifier (non-blank)
+     * @param sku        product SKU (non-blank)
+     * @param quantity   returned quantity (must be {@code > 0})
+     * @param reason     parsed {@link ReturnReason} (non-null)
+     * @param timestamp  return timestamp (non-null)
      * @param expiryDate optional expiry date string (may be null or blank; blank will be normalized to {@code null})
      * @throws IllegalArgumentException if any required argument is invalid
      */
@@ -115,7 +115,7 @@ public final class ReturnEntry implements Comparable<ReturnEntry> {
     public int compareTo(ReturnEntry other) {
         int byTimeDesc = other.timestamp.compareTo(this.timestamp); // newer first
         if (byTimeDesc != 0) return byTimeDesc;
-        return this.returnId.compareTo(other.returnId);              // tie-breaker: id ascending
+        return this.returnId.compareTo(other.returnId);            // tie-breaker: id ascending
     }
 
     @Override

@@ -11,9 +11,11 @@ import java.time.format.DateTimeFormatter;
 /**
  * Appends one human-readable audit line per USEI05 inspection to a text file.
  * <p>
- * Log format (single line per decision):
+ * Log format (single line per decision), for example:
  * <pre>
- *   2025-10-24T12:34:56 | returnId=R001 | sku=SKU-A | action=Restocked|Discarded|Partial | qty=10 | qtyRestocked=... | qtyDiscarded=...
+ *   2025-10-24T12:34:56 | returnId=R001 | sku=SKU-A | action=Restocked | qty=10
+ *   2025-10-24T12:35:30 | returnId=R002 | sku=SKU-B | action=Discarded
+ *   2025-10-24T12:36:00 | returnId=R003 | sku=SKU-C | action=Partial | qty=5 | qtyRestocked=3 | qtyDiscarded=2
  * </pre>
  * The file is opened in append mode at every call; the method is safe to call repeatedly.
  */
@@ -22,7 +24,7 @@ public final class ReturnsAuditLog {
     /** Destination text file path (e.g., "warehouseMngt/returns_log.txt"). */
     private final String logPath;
 
-    /** ISO-8601 local date-time, consistent with the rest of the project. */
+    /** ISO-8601 local date-time format, consistent with the rest of the project. */
     private static final DateTimeFormatter TS = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**
@@ -44,32 +46,34 @@ public final class ReturnsAuditLog {
         if (decision == null) throw new IllegalArgumentException("decision is required.");
 
         ReturnEntry e = decision.getEntry();
-        String actionLabel = labelFor(decision.getAction());
+        ReturnAction action = decision.getAction();
+        String line;
+        if (action == ReturnAction.DISCARD_ALL) {
+            line = String.format("%s | returnId=%s | sku=%s | action=Discarded%n",
+                    decision.getDecidedAt().format(TS),
+                    e.getReturnId(),
+                    e.getSku());
+        } else if (action == ReturnAction.RESTOCK_ALL) {
+            line = String.format("%s | returnId=%s | sku=%s | action=Restocked | qty=%d%n",
+                    decision.getDecidedAt().format(TS),
+                    e.getReturnId(),
+                    e.getSku(),
+                    e.getQuantity());
+        } else {
+            // Partial action
+            line = String.format("%s | returnId=%s | sku=%s | action=Partial | qty=%d | qtyRestocked=%d | qtyDiscarded=%d%n",
+                    decision.getDecidedAt().format(TS),
+                    e.getReturnId(),
+                    e.getSku(),
+                    e.getQuantity(),
+                    decision.getQtyRestocked(),
+                    decision.getQtyDiscarded());
+        }
 
-        String line = String.format(
-                "%s | returnId=%s | sku=%s | action=%s | qty=%d | qtyRestocked=%d | qtyDiscarded=%d%n",
-                decision.getDecidedAt().format(TS),
-                e.getReturnId(),
-                e.getSku(),
-                actionLabel,
-                e.getQuantity(),
-                decision.getQtyRestocked(),
-                decision.getQtyDiscarded()
-        );
-
-        // try-with-resources ensures the handle is closed; opened in append mode
+        // try-with-resources to append line to file
         try (FileWriter fw = new FileWriter(logPath, true)) {
             fw.write(line);
         }
-    }
-
-    /** Maps {@link ReturnAction} to the human-readable token required in the log. */
-    private static String labelFor(ReturnAction action) {
-        return switch (action) {
-            case RESTOCK_ALL -> "Restocked";
-            case DISCARD_ALL -> "Discarded";
-            case PARTIAL     -> "Partial";
-        };
     }
 
     /** @return the current destination path (useful for diagnostics/tests). */

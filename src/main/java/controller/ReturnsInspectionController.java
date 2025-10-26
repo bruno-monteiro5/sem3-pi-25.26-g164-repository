@@ -7,7 +7,6 @@ import domain.ReturnReason;
 import repository.ReturnsAuditLog;
 import controller.InventoryPort;
 
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 
@@ -75,13 +74,16 @@ public class ReturnsInspectionController {
         if (e == null) return null;
 
         if (e.getReason() == ReturnReason.EXPIRED) {
-            // Expired items cannot be restocked → discard
+            // Expired items cannot be restocked → discard instead
             ReturnDecision d = new ReturnDecision(e, ReturnAction.DISCARD_ALL, 0, e.getQuantity());
             auditLog.append(d);
             return d;
         }
 
-        String boxId = "RET-" + e.getReturnId();
+        // Prepare new box ID for restock (avoid double "RET" prefix)
+        String boxId = e.getReturnId().startsWith("RET")
+                ? "RET-" + e.getReturnId().substring(3)
+                : "RET-" + e.getReturnId();
         LocalDateTime receivedAt = LocalDateTime.now();
 
         // Delegate to existing warehouse logic through InventoryPort
@@ -109,28 +111,46 @@ public class ReturnsInspectionController {
         ReturnEntry e = quarantine.pollNext();
         if (e == null) return null;
 
-        int qtyDiscarded = e.getQuantity() - qtyToRestock;
+        // If expired or no quantity to restock, discard everything
+        if (e.getReason() == ReturnReason.EXPIRED || qtyToRestock <= 0) {
+            ReturnDecision d = new ReturnDecision(e, ReturnAction.DISCARD_ALL, 0, e.getQuantity());
+            auditLog.append(d);
+            return d;
+        }
 
-        if (e.getReason() != ReturnReason.EXPIRED && qtyToRestock > 0) {
-            String boxId = "RET-" + e.getReturnId();
+        // If requested restock >= available, treat as full restock
+        if (qtyToRestock >= e.getQuantity()) {
+            String boxId = e.getReturnId().startsWith("RET")
+                    ? "RET-" + e.getReturnId().substring(3)
+                    : "RET-" + e.getReturnId();
             LocalDateTime receivedAt = LocalDateTime.now();
-
             inventory.restockReturnedBox(
                     boxId,
                     e.getSku(),
-                    qtyToRestock,
+                    e.getQuantity(),
                     e.getExpiryDate(),
                     receivedAt
             );
-        } else {
-            // if expired, everything is discarded
-            qtyDiscarded = e.getQuantity();
-            qtyToRestock = 0;
+            ReturnDecision d = new ReturnDecision(e, ReturnAction.RESTOCK_ALL, e.getQuantity(), 0);
+            auditLog.append(d);
+            return d;
         }
 
+        // Otherwise, do a partial restock
+        int qtyDiscarded = e.getQuantity() - qtyToRestock;
+        String boxId = e.getReturnId().startsWith("RET")
+                ? "RET-" + e.getReturnId().substring(3)
+                : "RET-" + e.getReturnId();
+        LocalDateTime receivedAt = LocalDateTime.now();
+        inventory.restockReturnedBox(
+                boxId,
+                e.getSku(),
+                qtyToRestock,
+                e.getExpiryDate(),
+                receivedAt
+        );
         ReturnDecision d = new ReturnDecision(e, ReturnAction.PARTIAL, qtyToRestock, qtyDiscarded);
         auditLog.append(d);
         return d;
     }
-
 }

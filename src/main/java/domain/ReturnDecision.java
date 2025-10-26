@@ -16,8 +16,6 @@ import java.util.Objects;
  */
 public final class ReturnDecision {
 
-
-
     private final ReturnEntry entry;
     private final ReturnAction action;
     private final int qtyRestocked;
@@ -31,8 +29,7 @@ public final class ReturnDecision {
      * @param action        chosen action (non-null)
      * @param qtyRestocked  non-negative restocked quantity
      * @param qtyDiscarded  non-negative discarded quantity
-     * @throws IllegalArgumentException if quantities do not add up to entry quantity,
-     *                                  or if any parameter is invalid
+     * @throws IllegalArgumentException if arguments are invalid (e.g., negative quantities or inconsistent sum)
      */
     public ReturnDecision(ReturnEntry entry, ReturnAction action, int qtyRestocked, int qtyDiscarded) {
         if (entry == null) throw new IllegalArgumentException("entry is required.");
@@ -50,11 +47,11 @@ public final class ReturnDecision {
         this.decidedAt = LocalDateTime.now();
     }
 
-    public ReturnEntry getEntry()      { return entry; }
-    public ReturnAction getAction()          { return action; }
-    public int getQtyRestocked()       { return qtyRestocked; }
-    public int getQtyDiscarded()       { return qtyDiscarded; }
-    public LocalDateTime getDecidedAt(){ return decidedAt; }
+    public ReturnEntry getEntry()       { return entry; }
+    public ReturnAction getAction()     { return action; }
+    public int getQtyRestocked()        { return qtyRestocked; }
+    public int getQtyDiscarded()        { return qtyDiscarded; }
+    public LocalDateTime getDecidedAt() { return decidedAt; }
 
     @Override
     public String toString() {
