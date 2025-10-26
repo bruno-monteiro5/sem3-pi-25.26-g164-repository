@@ -1,0 +1,26 @@
+@startuml
+skinparam packageStyle rectangle
+left to right direction
+
+title Use Case Diagram — BDAD
+
+actor "Product Owner" as PO
+actor "Planner" as PL
+
+usecase "USBD01 - Create Data Glossary" as UC1
+usecase "USBD02 - Create Relational Model" as UC2
+usecase "USBD03 - Instantiate Relational Model" as UC3
+usecase "USBD04 - Insert Data" as UC4
+usecase "USBD08 - List Locomotives by Type" as UC5
+usecase "USBD13 - List Locomotives by Type and Gauge" as UC6
+usecase "USBD19 - Count Segments by Track Type" as UC7
+
+PO --> UC1
+PO --> UC2
+PO --> UC3
+PO --> UC4
+PL --> UC5
+PL --> UC6
+PL --> UC7
+
+@enduml
