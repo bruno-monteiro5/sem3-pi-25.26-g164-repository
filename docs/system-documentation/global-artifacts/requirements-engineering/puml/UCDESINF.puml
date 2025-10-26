@@ -1,0 +1,25 @@
+@startuml
+skinparam packageStyle rectangle
+left to right direction
+
+title Use Case Diagram — ESINF
+
+actor "Terminal\nOperator" as TO
+actor "Warehouse\nPlanner" as WP
+actor "Planner" as PL
+actor "Picker" as PK
+actor "Quality\nOperator" as QO
+
+usecase "USEI01 - Wagons Unloading\n(Inventory Replenishment)" as UC1
+usecase "USEI02 - Order Eligibility & Allocation" as UC2
+usecase "USEI03 - Picking Plans" as UC3
+usecase "USEI04 - Pick Path Sequencing" as UC4
+usecase "USEI05 - Returns & Quarantine" as UC5
+
+TO --> UC1
+WP --> UC2
+PL --> UC3
+PK --> UC4
+QO --> UC5
+
+@enduml
