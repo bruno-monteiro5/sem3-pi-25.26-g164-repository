@@ -7,14 +7,17 @@ SELECT
     loc.name AS locomotive_name,
     COUNT(ls.id) AS total_segments,
     ROUND(SUM(ls.length) / 1000.0, 2) AS total_distance_km,
-    ROUND(SUM((ls.length / 1000.0) / loc.op_speed ) * 60, 2) AS total_time_minutes
+    ROUND(
+            SUM( ((ls.length / 1000.0) / LEAST(loc.op_speed, ls.speed_limit)) * 60 )
+        , 2) AS total_time_minutes
 FROM Line l
-         JOIN Endpoint e1 ON l.endpoint_a = e1.id
-         JOIN Endpoint e2 ON l.endpoint_b = e2.id
+         JOIN Endpoint e1 ON e1.id = l.endpoint_a
+         JOIN Endpoint e2 ON e2.id = l.endpoint_b
          JOIN Line_Segment ls ON ls.line = l.id
          JOIN Locomotive loc ON loc.id = 5621
-         JOIN Locomotive_Gauge lg ON lg.locomotive = loc.id
+         JOIN Locomotive_Gauge lg ON lg.locomotive = loc.id AND lg.gauge = l.gauge
+         LEFT JOIN Electric_Locomotive el ON el.locomotive = loc.id
 WHERE l.endpoint_a = 21
   AND l.endpoint_b = 16
-  AND l.gauge = lg.gauge
+  AND (el.locomotive IS NULL OR ls.is_electrified = 'Y')
 GROUP BY l.id, l.name, e1.name, e2.name, loc.id, loc.name;
