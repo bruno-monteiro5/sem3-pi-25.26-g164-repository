@@ -15,9 +15,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class PickingPlanTest {
 
-    // ---------------------------------------------------------------------
-    // Helpers to build real domain objects (no stubs).
-    // ---------------------------------------------------------------------
 
     private Allocation allocation(String orderId, int lineNo, String sku,
                                   int aisleId, int bayId,
@@ -36,10 +33,6 @@ class PickingPlanTest {
         for (Allocation a : allocations) t.addItem(a);
         return t;
     }
-
-    // ---------------------------------------------------------------------
-    // Tests
-    // ---------------------------------------------------------------------
 
     /**
      * Verifies that the constructor initializes mode, defensively copies the trolleys list,

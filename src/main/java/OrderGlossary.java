@@ -5,8 +5,8 @@ import java.io.IOException;
 public class OrderGlossary {
 
     public static void main(String[] args) throws IOException {
-        String entryFile = "docs/system-documentation/global-artifacts/glossary.md";
-        String outFile   = "docs/system-documentation/global-artifacts/glossary.md";
+        String entryFile = "docs/system-documentation/global-artifacts/requirements-engineering/glossary.md";
+        String outFile   = "docs/system-documentation/global-artifacts/requirements-engineering/glossary.md";
 
         List<String> lines = Files.readAllLines(Path.of(entryFile));
 

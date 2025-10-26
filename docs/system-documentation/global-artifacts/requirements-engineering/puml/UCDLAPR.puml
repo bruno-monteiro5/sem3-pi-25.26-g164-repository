@@ -1,0 +1,19 @@
+@startuml
+skinparam packageStyle rectangle
+left to right direction
+
+title Use Case Diagram — LAPR3
+
+actor "Product Owner" as PO
+actor "Station Storage\nManager" as SSM
+actor "Traffic\nDispatcher" as TD
+
+usecase "USLP01 - Create Domain Model" as UC1
+usecase "USLP02 - Access Cargo Handling" as UC2
+usecase "USLP03 - Calculate Travel Time" as UC3
+
+PO --> UC1
+SSM --> UC2
+TD --> UC3
+
+@enduml
