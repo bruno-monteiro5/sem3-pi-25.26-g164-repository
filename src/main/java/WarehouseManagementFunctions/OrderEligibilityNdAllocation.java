@@ -16,24 +16,33 @@ public class OrderEligibilityNdAllocation implements Runnable{
     List<Allocation> allocation = new ArrayList<>();
 
     public void run(){
+
+        //fills the warehouse if it senses it is null
+        if(warehouse == null){
+            System.out.println("Warehouse is null. Beginning warehouse initialization...");
+            Runnable run = new WagonUnloading();
+            run.run();
+            warehouse = WarehouseRepository.getCurrentWarehouse();
+        }
+
         try {
-            // tenta preencher a lista de ordens com os dados do arquivo
+            // tries to fill the order list with data from the csv files
             fillOrders();
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
-        // escreve todos os conteúdos da lista se a mesma for preenchida com sucesso
+        // writes the list's contents if it is filled with success
         System.out.println("############ORDERS LIST############");
         for(Order o: orders){
             System.out.println(o.toString());
         }
         System.out.println("############ORDER LIST FINISHED############");
 
-        // verifica quais caixas podem ser alocadas para os pedidos
+        // verifies which boxes can be allocated to the requests
         allocateBoxesChoice();
 
 
-        // escreve todas as alocações feitas para os pedidos
+        // writes all the allocations with the requests
         for(Allocation a : allocation){
             System.out.println("############ALLOCATION RESULT############");
             System.out.println(a.toString());
