@@ -13,7 +13,7 @@ CREATE TABLE Line (
   PRIMARY KEY (id));
 CREATE TABLE Line_Segment (
   id             number(10) NOT NULL, 
-  is_electrified char(1) NOT NULL, 
+  is_electrified char(1) NOT NULL,
   speed_limit    number(10) NOT NULL, 
   max_weight     number(10) NOT NULL, 
   length         number(10) NOT NULL, 
@@ -139,3 +139,49 @@ ALTER TABLE Wagon ADD CONSTRAINT FKWagon8744 FOREIGN KEY (operator) REFERENCES O
 ALTER TABLE Wagon_Model_Gauge ADD CONSTRAINT FKWagon_Mode599476 FOREIGN KEY (Wagon_Modelid) REFERENCES Wagon_Model (id);
 ALTER TABLE Wagon_Model_Gauge ADD CONSTRAINT FKWagon_Mode72765 FOREIGN KEY (Gaugeid) REFERENCES Gauge (id);
 ALTER TABLE Line ADD CONSTRAINT FKLine75626 FOREIGN KEY (gauge) REFERENCES Gauge (id);
+
+
+--CHECKS
+
+-- LINE_SEGMENT
+ALTER TABLE Line_Segment
+    ADD CONSTRAINT CHK_LineSegment_Electrified CHECK (is_electrified IN ('Y', 'N'));
+
+ALTER TABLE Line_Segment
+    ADD CONSTRAINT CHK_LineSegment_PositiveSpeed CHECK (speed_limit > 0);
+
+ALTER TABLE Line_Segment
+    ADD CONSTRAINT CHK_LineSegment_PositiveWeight CHECK (max_weight > 0);
+
+ALTER TABLE Line_Segment
+    ADD CONSTRAINT CHK_LineSegment_PositiveLength CHECK (length > 0);
+
+-- LOCOMOTIVE
+ALTER TABLE Locomotive
+    ADD CONSTRAINT CHK_Locomotive_PositivePower CHECK (power > 0);
+
+ALTER TABLE Locomotive
+    ADD CONSTRAINT CHK_Locomotive_PositiveWeight CHECK (total_weight > 0);
+
+ALTER TABLE Locomotive
+    ADD CONSTRAINT CHK_Locomotive_PositiveDimensions CHECK (
+        length > 0 AND width > 0 AND height > 0
+        );
+
+ALTER TABLE Locomotive
+    ADD CONSTRAINT CHK_Locomotive_OpSpeed_LE_MaxSpeed CHECK (
+        op_speed <= max_speed
+        );
+
+-- WAGON_MODEL
+ALTER TABLE Wagon_Model
+    ADD CONSTRAINT CHK_WagonModel_PositiveVolume CHECK (volume > 0);
+
+ALTER TABLE Wagon_Model
+    ADD CONSTRAINT CHK_WagonModel_PositiveWeight CHECK (weight > 0);
+
+ALTER TABLE Wagon_Model
+    ADD CONSTRAINT CHK_WagonModel_PositivePayload CHECK (payload > 0);
+
+ALTER TABLE Wagon_Model
+    ADD CONSTRAINT CHK_WagonModel_TareLessThanWeight CHECK (payload < weight);
