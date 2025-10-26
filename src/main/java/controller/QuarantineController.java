@@ -33,6 +33,7 @@ public class QuarantineController {
      * @return number of entries actually enqueued
      */
     public int enqueueAll(Collection<ReturnEntry> entries) {
+        if (entries == null || entries.isEmpty()) return 0;
         int added = 0;
         for (ReturnEntry e : entries) {
             if (queue.offer(e)) added++;
