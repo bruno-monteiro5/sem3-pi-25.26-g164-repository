@@ -190,7 +190,7 @@ public class OrderEligibilityNdAllocation implements Runnable{
             int chunk = Math.min(remaining, maxPerAlloc);
             Allocation part = new Allocation(
                     o, ol, ol.getSku(),
-                    new Box(sourceBox.getProduct(), chunk, sourceBox.getExpDate()),
+                    new Box(sourceBox.getBoxID(), sourceBox.getProduct(), chunk, sourceBox.getExpDate()),
                     a, b,
                     chunk,
                     unitW

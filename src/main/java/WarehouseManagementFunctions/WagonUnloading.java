@@ -114,9 +114,7 @@ public class WagonUnloading implements Runnable {
 
         System.out.println("#####CURRENT INVENTORY#####");
         for (Aisle a : warehouse.getAisles()) {
-            for (Bay b : a.getBays()) {
-                System.out.println(b.toString());
-            }
+            System.out.println(a.toString());
         }
 
         WarehouseRepository.setCurrentWarehouse(warehouse);
@@ -188,11 +186,11 @@ public class WagonUnloading implements Runnable {
             // Parse expiry date (optional)
             if (expiryDate == null || expiryDate.isBlank()) {
                 // Non-perishable
-                nonPerishable.put(receivedAt, new Box(product, qty));
+                nonPerishable.put(receivedAt, new Box(boxId, product, qty));
             } else {
                 try {
                     LocalDate.parse(expiryDate, DATE_FORMATTER);
-                    perishable.put(expiryDate, new Box(product, qty, expiryDate));
+                    perishable.put(expiryDate, new Box(boxId, product, qty, expiryDate));
                 } catch (DateTimeParseException e) {
                     System.err.println("[ERROR] Invalid expiry date for box ID: " + boxId + ": " + expiryDate);
                 }
