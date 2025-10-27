@@ -69,5 +69,9 @@ public class ReturnsInspectionUI implements Runnable {
             Runnable war = new WarehouseManagementMenu();
             war.run();
         }
+        System.out.println();
+        Runnable war = new WarehouseManagementMenu();
+        war.run();
+
     }
 }
