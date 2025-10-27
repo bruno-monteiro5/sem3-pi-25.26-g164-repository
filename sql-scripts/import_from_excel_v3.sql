@@ -122,23 +122,23 @@ VALUES (7, 'Ramal Torre - Valença', 'PT503933813', 16, 11,
         (SELECT id FROM Gauge WHERE width = 1668));
 
 INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge)
-VALUES (8,  'Contumil - Ermesinde',           'PT503933813', 13, 14,
+VALUES (8,  'Contumil - Ermesinde',           'PT501012435', 13, 14,
         (SELECT id FROM Gauge WHERE width=1668));
 
 INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge)
-VALUES (9,  'Ermesinde - Nine',               'PT503933813', 14, 20,
+VALUES (9,  'Ermesinde - Nine',               'PT501012435', 14, 20,
         (SELECT id FROM Gauge WHERE width=1668));
 
 INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge)
-VALUES (10, 'Contumil - São Frutuoso',        'PT503933813', 13, 15,
+VALUES (10, 'Contumil - São Frutuoso',        'PT509498700', 13, 15,
         (SELECT id FROM Gauge WHERE width=1668));
 
 INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge)
-VALUES (11, 'Viana do Castelo - Barroselas',  'PT503933813', 17, 19,
+VALUES (11, 'Viana do Castelo - Barroselas',  'PT505144939', 17, 19,
         (SELECT id FROM Gauge WHERE width=1668));
 
 INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge)
-VALUES (12, 'Darque - Viana do Castelo',      'PT503933813', 12, 17,
+VALUES (12, 'Darque - Viana do Castelo',      'PT505144939', 12, 17,
         (SELECT id FROM Gauge WHERE width=1668));
 
 
@@ -147,25 +147,32 @@ VALUES (12, 'Darque - Viana do Castelo',      'PT503933813', 12, 17,
 INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5621, 'Inês', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5621, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5621);
+
 INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5623, 'Paz', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5623, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5623);
+
 INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5630, 'Helena', 'Siemens', 'Eurosprinter', 1996, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5630, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5630);
+
 INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (1903, 'Eva', '	Sorefame - Alsthom', 'CP 1900', 1981, 1623, 0, 19.084, 3.062, 4.31, 117, 2, 'PT509017800', 100.0, 42.5, 396,'Co-Co');
 INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (1903, 4882);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 1903);
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5617, 'Marta', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 90.0, 300, 'Bo-Bo');
+
+INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5617, 'Marta', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT500000000', 220.0, 90.0, 300, 'Bo-Bo');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5617, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5617);
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5619, 'Sofia', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 100.0, 300, 'Bo-Bo');
+
+INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5619, 'Sofia', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509999999', 220.0, 100.0, 300, 'Bo-Bo');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5619, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5619);
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (1930, 'Luz', 'Sorefame - Alsthom', 'CP 1900', 1981, 1623, 0, 19.084, 3.062, 4.31, 117, 2, 'PT509017800', 100.0, 60.0, 396, 'Co-Co');
+
+INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (1930, 'Luz', 'Sorefame - Alsthom', 'CP 1900', 1981, 1623, 0, 19.084, 3.062, 4.31, 117, 2, 'PT513273171', 100.0, 60.0, 396, 'Co-Co');
 INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (1930, 4882);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 1930);
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (1405, 'Rita', 'English Electric', 'CP 1400', 1967, 1320, 0, 15.4, 2.9, 3.9, 67, 2, 'PT509017800', 105.0, 70.0, 300, 'Bo-Bo');
+
+INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (1405, 'Rita', 'English Electric', 'CP 1400', 1967, 1320, 0, 15.4, 2.9, 3.9, 67, 2, 'PT513273171', 105.0, 70.0, 300, 'Bo-Bo');
 INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (1405, 3800);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 1405);
 
@@ -233,6 +240,46 @@ INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, l
 INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (22, 'Y', 120, 8000, 15000, 5, (SELECT id FROM TrackType WHERE name='Double'));
 INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (25, 'Y', 120, 8000, 20829, 6, (SELECT id FROM TrackType WHERE name='Double'));
 INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (26, 'Y', 120, 8000, 4264, 7, (SELECT id FROM TrackType WHERE name='Double'));
+
+
+
+-- (2) LINE 8: Contumil - Ermesinde (2 troços, via dupla)
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (27, 'Y', 120, 8000, 5200, 8, (SELECT id FROM TrackType WHERE name='Double'));
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (28, 'Y', 120, 8000, 4300, 8, (SELECT id FROM TrackType WHERE name='Double'));
+
+-- (3) LINE 9: Ermesinde - Nine (3 troços; misto: dupla + única + dupla)
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (29, 'Y', 120, 8000, 9000, 9, (SELECT id FROM TrackType WHERE name='Double'));
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (30, 'Y', 120, 8000, 6500, 9, (SELECT id FROM TrackType WHERE name='Quadruple'));
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (31, 'Y', 120, 8000, 7800, 9, (SELECT id FROM TrackType WHERE name='Double'));
+
+-- (4) LINE 10: Contumil - São Frutuoso (1 troço, via dupla)
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (32, 'Y', 120, 8000, 4100, 10, (SELECT id FROM TrackType WHERE name='Double'));
+
+-- (5) LINE 11: Viana do Castelo - Barroselas (2 troços, via dupla)
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (33, 'Y', 120, 8000, 7200, 11, (SELECT id FROM TrackType WHERE name='Double'));
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (34, 'Y', 120, 8000, 5300, 11, (SELECT id FROM TrackType WHERE name='Double'));
+
+-- (6) LINE 12: Darque - Viana do Castelo (1 troço, via dupla)
+    INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type)
+    VALUES (35, 'Y', 120, 8000, 1900, 12, (SELECT id FROM TrackType WHERE name='Double'));
+
+
+
+
+
+
+
+
+
+
 
 
 -- BUILDING TYPES
