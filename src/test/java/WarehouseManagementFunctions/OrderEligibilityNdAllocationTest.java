@@ -2,20 +2,23 @@ package WarehouseManagementFunctions;
 
 import domain.Aisle;
 import domain.Bay;
+import domain.Warehouse;
 import org.junit.jupiter.api.Test;
 import repository.WarehouseRepository;
+
+import java.io.FileNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class OrderEligibilityNdAllocationTest {
 
     @Test
-    void run() {
+    void run() throws FileNotFoundException {
 
-        if(WarehouseRepository.getCurrentWarehouse() == null){
-            Runnable run = new WagonUnloading();
-            run.run();
-        }
+        WagonUnloading.beginWarehouse();
+        WagonUnloading.beginProducts();
+        Warehouse w = WagonUnloading.warehouse;
+        WagonUnloading.removeCargoFromWagon(w, WagonUnloading.products);
 
         assertEquals(4, WarehouseRepository.getCurrentWarehouse().getAisles());
         assertEquals(20, WarehouseRepository.getCurrentWarehouse().getFirstAvailableAisle().getBays().size());
