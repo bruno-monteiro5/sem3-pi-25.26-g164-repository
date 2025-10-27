@@ -109,6 +109,10 @@ public class Aisle {
      * @return a string describing the aisle
      */
     public String toString(){
-        return String.format("Aisle ID: %d, with %d bays", this.aisleID, this.bays.size());
+        String s = String.format("Aisle ID: %d, with %d bays", this.aisleID, this.bays.size());
+        for(Bay b: this.bays){
+            s += String.format("%s\n", b.toString());
+        }
+        return s;
     }
 }
