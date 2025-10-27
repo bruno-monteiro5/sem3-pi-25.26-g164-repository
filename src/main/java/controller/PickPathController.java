@@ -7,19 +7,24 @@ import java.util.*;
 
 public class PickPathController {
 
-    /** Junta allocations no mesmo (aisle,bay) somando qty. */
     public List<PickStop> mergeStops(List<Allocation> allocations) {
         Map<String, PickStop> map = new LinkedHashMap<>();
+
         for (Allocation a : allocations) {
             String key = a.getAisle() + ":" + a.getBay();
-            map.compute(key, (k, old) -> {
-                if (old == null) return new PickStop(a.getAisle().getAisleID(), a.getBay().getBayID(), a.getQuantity());
-                old.addQty(a.getQuantity());
-                return old;
-            });
+            PickStop stop = map.get(key);
+
+            if (stop == null) {
+                stop = new PickStop(a.getAisle().getAisleID(), a.getBay().getBayID(), a.getQuantity());
+                map.put(key, stop);
+            } else {
+                stop.addQty(a.getQuantity());
+            }
         }
+
         return new ArrayList<>(map.values());
     }
+
 
     /** Distância D do enunciado. */
     public int distance(int a1, int b1, int a2, int b2) {

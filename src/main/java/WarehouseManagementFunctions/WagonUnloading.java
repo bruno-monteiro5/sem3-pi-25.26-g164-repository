@@ -126,50 +126,79 @@ public class WagonUnloading implements Runnable {
 
     public static void fillMap(String filename) throws FileNotFoundException {
         Scanner sc = new Scanner(new File(filename));
+        Set<String> seenBoxIds = new HashSet<>();
+
         // Skip header
-        String line = sc.nextLine();
+        if (sc.hasNextLine()) sc.nextLine();
+
         while (sc.hasNextLine()) {
-            line = sc.nextLine();
+            String line = sc.nextLine();
             String[] lineSplit = line.split(",");
 
-            // Handle product lookup
+            if (lineSplit.length != 6) {
+                System.err.println("[ERROR] Invalid CSV format: incorrect number of columns.");
+                continue;
+            }
+
+            String wagonId = lineSplit[0];
+            String boxId = lineSplit[1];
+            String sku = lineSplit[2];
+            String qtyStr = lineSplit[3];
+            String expiryDate = lineSplit[4];
+            String receivedAt = lineSplit[5];
+
+            // Check box ID uniqueness
+            if (!seenBoxIds.add(boxId)) {
+                System.err.println("[ERROR] Duplicate box ID: " + boxId);
+                continue;
+            }
+
+            // Find matching product
             Items product = null;
             for (Items p : products) {
-                if (lineSplit[2].equals(p.getSkuID())) {
+                if (sku.equals(p.getSkuID())) {
                     product = p;
                     break;
                 }
             }
-
-            // Skip this entry if the SKU is invalid
             if (product == null) {
-                System.err.println("Product with SKU " + lineSplit[2] + " not found.");
+                System.err.println("[ERROR] Unknown SKU: " + sku);
                 continue;
             }
 
-            // Parse expiry date (if exists)
-            String expiryDate = lineSplit[4];
+            // Validate quantity
+            int qty;
+            try {
+                qty = Integer.parseInt(qtyStr);
+                if (qty <= 0) {
+                    System.err.println("[ERROR] Invalid quantity (<= 0) for box ID: " + boxId);
+                    continue;
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("[ERROR] Non-numeric quantity for box ID: " + boxId);
+                continue;
+            }
+
+            // Validate receivedAt
+            if (receivedAt == null || receivedAt.isBlank()) {
+                System.err.println("[ERROR] Missing receivedAt for box ID: " + boxId);
+                continue;
+            }
+
+            // Parse expiry date (optional)
             if (expiryDate == null || expiryDate.isBlank()) {
-                // Non-perishable item
-                String receivedAt = lineSplit[5];
-                nonPerishable.put(receivedAt, new Box(
-                        product,
-                        Integer.parseInt(lineSplit[3])
-                ));
+                // Non-perishable
+                nonPerishable.put(receivedAt, new Box(product, qty));
             } else {
                 try {
-                    // Validate date format
                     LocalDate.parse(expiryDate, DATE_FORMATTER);
-                    perishable.put(expiryDate, new Box(
-                            product,
-                            Integer.parseInt(lineSplit[3]),
-                            expiryDate
-                    ));
+                    perishable.put(expiryDate, new Box(product, qty, expiryDate));
                 } catch (DateTimeParseException e) {
-                    System.out.println("Invalid expiry date for box ID " + lineSplit[1] + ": " + expiryDate);
+                    System.err.println("[ERROR] Invalid expiry date for box ID: " + boxId + ": " + expiryDate);
                 }
             }
         }
         sc.close();
     }
+
 }
