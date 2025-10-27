@@ -59,7 +59,7 @@ public class ReturnsInspectionController {
         ReturnEntry e = quarantine.pollNext();
         if (e == null) return null;
 
-        ReturnDecision d = new ReturnDecision(e, ReturnAction.DISCARD_ALL, 0, e.getQuantity());
+        ReturnDecision d =  new ReturnDecision(e, ReturnAction.DISCARD_ALL, 0, e.getQuantity());
         auditLog.append(d);
         return d;
     }

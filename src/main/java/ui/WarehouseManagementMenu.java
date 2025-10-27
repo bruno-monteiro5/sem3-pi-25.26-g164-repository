@@ -28,7 +28,7 @@ public class WarehouseManagementMenu implements Runnable{
         Runnable all = new OrderEligibilityNdAllocation();
         Runnable picking = new PickingPlanUI();
         Runnable pick = new PickPathUI();
-        Runnable returns = new ReturnsInspectionUI(); // New line
+        Runnable returns = new ReturnsInspectionUI();
         Runnable main = new MainMenu();
 
         options[0] = new Option("Unload Wagons into warehouse", unl);
