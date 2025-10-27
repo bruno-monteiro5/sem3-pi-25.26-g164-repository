@@ -23,12 +23,13 @@ public class WarehouseManagementMenu implements Runnable{
 
         System.out.println("####WAREHOUSE MANAGEMENT MENU####");
 
-        Option[] options = new Option[6];
+        Option[] options = new Option[7];
         Runnable unl = new WagonUnloading();
         Runnable all = new OrderEligibilityNdAllocation();
         Runnable picking = new PickingPlanUI();
         Runnable pick = new PickPathUI();
-        Runnable returns = new ReturnsInspectionUI();
+        Runnable returns = new ReturnsInspectionUI(); // New line
+        Runnable stats = new StatsPrinterUI();
         Runnable main = new MainMenu();
 
         options[0] = new Option("Unload Wagons into warehouse", unl);
@@ -36,7 +37,8 @@ public class WarehouseManagementMenu implements Runnable{
         options[2] = new Option("Generate Picking Plan", picking);
         options[3] = new Option("Pick Path", pick);
         options[4] = new Option("Inspect Returned Goods", returns);
-        options[5] = new Option("Go Back", main);
+        options[5] = new Option("View Warehouse Statistics", stats);
+        options[6] = new Option("Go Back", main);
         Utils.listAndSelect(options);
     }
 }

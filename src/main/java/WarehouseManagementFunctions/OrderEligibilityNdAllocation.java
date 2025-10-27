@@ -170,7 +170,7 @@ public class OrderEligibilityNdAllocation implements Runnable{
         }
 
     }
-    private static final double MAX_ALLOCATION_KG = 200.0;
+    public static final double MAX_ALLOCATION_KG = 400.0;
 
     private int maxUnitsPerAllocation(double unitWeight) {
         if (unitWeight <= 0.0) return 0;
