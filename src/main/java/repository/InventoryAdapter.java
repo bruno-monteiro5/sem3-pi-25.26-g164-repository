@@ -35,7 +35,7 @@ public class InventoryAdapter implements InventoryPort {
         // Obtain current warehouse
         Warehouse warehouse = WarehouseRepository.getCurrentWarehouse(); // or WarehouseRepository.currentWarehouse
         if (warehouse == null) {
-            throw new IllegalStateException("Warehouse não foi inicializado.");
+            throw new IllegalStateException("Warehouse not initialized.");
         }
 
         // Try to reuse an existing Items (same SKU) already in stock
