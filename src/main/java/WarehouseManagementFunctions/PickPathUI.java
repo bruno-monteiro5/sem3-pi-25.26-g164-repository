@@ -15,9 +15,18 @@ public class PickPathUI implements Runnable {
 
     @Override
     public void run() {
+
         allocations = WarehouseRepository.getAllocation();
 
-        System.out.println("\n=== PICK PATH SEQUENCING (USEI04) ===");
+            System.out.println("\n=== PICK PATH SEQUENCING (USEI04) ===");
+
+            if (allocations == null || allocations.isEmpty()) {
+                System.out.println("\n[ERROR] Allocations not generated yet. Please generate the picking plan first.");
+                System.out.println("Going to the main menu...\n");
+
+                new WarehouseManagementMenu().run();
+                return;
+            }
 
         PickPathController controller = new PickPathController();
 
