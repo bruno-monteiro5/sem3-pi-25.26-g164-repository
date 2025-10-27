@@ -14,9 +14,13 @@ public class PickingPlanUI implements Runnable {
     public void run() {
         System.out.println("\n=== GENERATE PICKING PLAN (USEI03) ===");
 
-        List<Allocation> allocations = new ArrayList<>();
+        List<Allocation> allocations = WarehouseRepository.getAllocation();
 
-        allocations = WarehouseRepository.getAllocation();
+        if (allocations == null || allocations.isEmpty()) {
+            System.out.println("There are no allocations available.");
+            new WarehouseManagementMenu().run();
+            return;
+        }
 
         PackingMode mode = PackingMode.BFD;               // ou FF / FFD
         AllocationPolicy policy = AllocationPolicy.SPLIT_LINE;  // ou DEFER_LINE
