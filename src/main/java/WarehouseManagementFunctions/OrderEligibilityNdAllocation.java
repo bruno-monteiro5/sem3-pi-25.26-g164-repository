@@ -6,6 +6,7 @@ import repository.WarehouseRepository;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class OrderEligibilityNdAllocation implements Runnable{
@@ -56,29 +57,98 @@ public class OrderEligibilityNdAllocation implements Runnable{
     }
 
     public void fillOrders() throws FileNotFoundException {
+        validateCsvHeaders(filenameorders, new String[]{"orderId", "dueDate", "priority"});
+        validateCsvHeaders(filenameorderlines, new String[]{"orderId", "lineNo", "sku", "qty"});
+
         Scanner sc = new Scanner(new File(filenameorders));
-        String line = sc.nextLine();
-        while(sc.hasNextLine()){
+        String line = sc.nextLine(); // Skip header
+        while (sc.hasNextLine()) {
             line = sc.nextLine();
             String[] linesplit = line.split(",");
+            if (linesplit.length != 3 || !isValidOrderLine(linesplit)) {
+                System.err.println("Invalid line in orders.csv: " + line);
+                continue;
+            }
             orders.add(new Order(linesplit[0], Integer.parseInt(linesplit[2]), linesplit[1]));
         }
         sc = new Scanner(new File(filenameorderlines));
-        line = sc.nextLine();
-        while(sc.hasNextLine()){
+        line = sc.nextLine(); // Skip header
+        while (sc.hasNextLine()) {
             line = sc.nextLine();
             String[] linesplit = line.split(",");
+            if (linesplit.length != 4 || !isValidOrderLineDetails(linesplit)) {
+                System.err.println("Invalid line in order_lines.csv: " + line);
+                continue;
+            }
             Order order = null;
-            for(Order o : orders){
-                if(o.getOrderID().equals(linesplit[0])){
+            for (Order o : orders) {
+                if (o.getOrderID().equals(linesplit[0])) {
                     order = o;
                     break;
                 }
             }
-            order.addLine(new OrderLine(Integer.parseInt(linesplit[1]), linesplit[2], Integer.parseInt(linesplit[3])));
+            if (order != null) {
+                order.addLine(new OrderLine(
+                        Integer.parseInt(linesplit[1]),
+                        linesplit[2],
+                        Integer.parseInt(linesplit[3])
+                ));
+            } else {
+                System.err.println("Order ID not found for line: " + line);
+            }
         }
         sc.close();
         orders.sort(Comparator.comparing(Order::getPriority));
+    }
+
+    private void validateCsvHeaders(String filename, String[] expectedHeaders) throws FileNotFoundException {
+        Scanner sc = new Scanner(new File(filename));
+        if (!sc.hasNextLine()) {
+            throw new IllegalArgumentException("CSV file is empty: " + filename);
+        }
+        String[] headers = sc.nextLine().split(",");
+        if (!Arrays.equals(headers, expectedHeaders)) {
+            throw new IllegalArgumentException("Invalid CSV headers in file " + filename + ". Expected: " +
+                    String.join(",", expectedHeaders) + ", but got: " + String.join(",", headers));
+        }
+    }
+
+    private boolean isValidOrderLine(String[] linesplit) {
+        try {
+            // Validate orderId: should be alphanumeric
+            if (!linesplit[0].matches("^ORD\\d+$")) return false;
+
+            // Validate dueDate: should be a valid LocalDateTime
+            LocalDateTime.parse(linesplit[1]);
+
+            // Validate priority: should be an integer (e.g., 1, 2, 3)
+            int priority = Integer.parseInt(linesplit[2]);
+            return priority > 0; // Only positive priorities are valid
+        } catch (Exception e) {
+            System.err.println("Validation failed for order line: " + Arrays.toString(linesplit));
+            return false;
+        }
+    }
+
+    private boolean isValidOrderLineDetails(String[] linesplit) {
+        try {
+            // Validate orderId: should be alphanumeric
+            if (!linesplit[0].matches("^ORD\\d+$")) return false;
+
+            // Validate lineNo: should be a positive integer
+            int lineNo = Integer.parseInt(linesplit[1]);
+            if (lineNo <= 0) return false;
+
+            // Validate SKU format (alphanumeric starting with SKU)
+            if (!linesplit[2].matches("^SKU\\d+$")) return false;
+
+            // Validate quantity: should be a positive integer
+            int qty = Integer.parseInt(linesplit[3]);
+            return qty > 0;
+        } catch (Exception e) {
+            System.err.println("Validation failed for order line details: " + Arrays.toString(linesplit));
+            return false;
+        }
     }
 
     public void allocateBoxesChoice(){
