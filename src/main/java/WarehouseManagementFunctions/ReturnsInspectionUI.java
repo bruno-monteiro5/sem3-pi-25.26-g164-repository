@@ -5,7 +5,6 @@ import controller.QuarantineController;
 import controller.ReturnsInspectionController;
 import domain.ReturnDecision;
 import domain.ReturnEntry;
-import domain.ReturnReason;
 import domain.ReturnAction;
 import repository.InventoryAdapter;
 import ui.WarehouseManagementMenu;
@@ -18,6 +17,14 @@ import java.time.format.DateTimeFormatter;
  */
 public class ReturnsInspectionUI implements Runnable {
 
+    private static final boolean COLOR_ON = true;
+    private static final String RESET  = COLOR_ON ? "\u001B[0m"  : "";
+    private static final String CYAN   = COLOR_ON ? "\u001B[36m" : "";
+    private static final String GREEN  = COLOR_ON ? "\u001B[32m" : "";
+    private static final String YELLOW = COLOR_ON ? "\u001B[33m" : "";
+    private static final String RED    = COLOR_ON ? "\u001B[31m" : "";
+    private static final String SEP    = "─";
+
     @Override
     public void run() {
         QuarantineController quarantine = new QuarantineController();
@@ -25,6 +32,11 @@ public class ReturnsInspectionUI implements Runnable {
         ReturnsInspectionController controller = new ReturnsInspectionController(quarantine, inventory, null);
 
         try {
+            System.out.println();
+            System.out.println(CYAN + line(72));
+            System.out.println(center("RETURNS INSPECTION (USEI05)", 72));
+            System.out.println(line(72) + RESET);
+
             int loaded = quarantine.loadAndEnqueueFromCsv("warehouseMngt/train_station_dataset/returns.csv");
             if (loaded == 0) return;
 
@@ -64,14 +76,33 @@ public class ReturnsInspectionUI implements Runnable {
                 System.out.println(sb.toString());
             }
 
+            System.out.println(CYAN + line(72) + RESET);
+            System.out.println(GREEN + "Returns inspection finished." + RESET);
+            System.out.println(line(72));
+
         } catch (Exception e) {
-            System.out.println("\nError during inspection: " + e.getMessage());
+            System.out.println(RED + "\nError during inspection: " + e.getMessage() + RESET);
             Runnable war = new WarehouseManagementMenu();
             war.run();
+            return;
         }
+
         System.out.println();
         Runnable war = new WarehouseManagementMenu();
         war.run();
+    }
 
+    private static String line(int n) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; i++) sb.append(SEP);
+        return sb.toString();
+    }
+    private static String center(String s, int width) {
+        if (s == null) s = "";
+        if (s.length() >= width) return s;
+        int pad = (width - s.length()) / 2;
+        StringBuilder left = new StringBuilder();
+        for (int i = 0; i < pad; i++) left.append(' ');
+        return left + s;
     }
 }

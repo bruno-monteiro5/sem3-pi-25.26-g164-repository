@@ -20,6 +20,15 @@ public class WagonUnloading implements Runnable {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    // design comentado
+    private static final boolean COLOR_ON = true;
+    private static final String RESET = COLOR_ON ? "\u001B[0m" : "";
+    private static final String CYAN = COLOR_ON ? "\u001B[36m" : "";
+    private static final String GREEN = COLOR_ON ? "\u001B[32m" : "";
+    private static final String RED = COLOR_ON ? "\u001B[31m" : "";
+    private static final String SEP = "─";
+
+    @Override
     public void run() {
         try {
             beginWarehouse();
@@ -98,6 +107,11 @@ public class WagonUnloading implements Runnable {
         String fileNameWagons = "warehouseMngt/train_station_dataset/wagons.csv";
         fillMap(fileNameWagons);
 
+        System.out.println();
+        System.out.println(CYAN + line(72));
+        System.out.println("                    WAGON UNLOADING IN PROGRESS");
+        System.out.println(line(72) + RESET);
+
         // Process perishable items
         List<Map.Entry<String, Box>> list = new ArrayList<>(perishable.entrySet());
         list.sort(Comparator.comparing(entry -> LocalDate.parse(entry.getKey(), DATE_FORMATTER))); // Sort by expiry date
@@ -112,14 +126,18 @@ public class WagonUnloading implements Runnable {
             warehouse.getFirstAvailableAisle().getFirstAvailableBay().addProductBox(e.getValue());
         }
 
-        System.out.println("#####CURRENT INVENTORY#####");
+        System.out.println();
+        System.out.println(GREEN + "  CURRENT INVENTORY : " + RESET);
+
         for (Aisle a : warehouse.getAisles()) {
             System.out.println(a.toString());
         }
 
         WarehouseRepository.setCurrentWarehouse(warehouse);
 
-        System.out.println("############WAGON UNLOADING COMPLETE############");
+        System.out.println();
+        System.out.println(GREEN +"   WAGON UNLOADING COMPLETE - SUCCESS" + RESET);
+        System.out.println();
     }
 
     public static void fillMap(String filename) throws FileNotFoundException {
@@ -134,7 +152,7 @@ public class WagonUnloading implements Runnable {
             String[] lineSplit = line.split(",");
 
             if (lineSplit.length != 6) {
-                System.err.println("[ERROR] Invalid CSV format: incorrect number of columns.");
+                System.err.println(RED + "[ERROR] Invalid CSV format: incorrect number of columns." + RESET);
                 continue;
             }
 
@@ -147,7 +165,7 @@ public class WagonUnloading implements Runnable {
 
             // Check box ID uniqueness
             if (!seenBoxIds.add(boxId)) {
-                System.err.println("[ERROR] Duplicate box ID: " + boxId);
+                System.err.println(RED + "[ERROR] Duplicate box ID: " + boxId + RESET);
                 continue;
             }
 
@@ -160,7 +178,7 @@ public class WagonUnloading implements Runnable {
                 }
             }
             if (product == null) {
-                System.err.println("[ERROR] Unknown SKU: " + sku);
+                System.err.println(RED + "[ERROR] Unknown SKU: " + sku + RESET);
                 continue;
             }
 
@@ -169,17 +187,17 @@ public class WagonUnloading implements Runnable {
             try {
                 qty = Integer.parseInt(qtyStr);
                 if (qty <= 0) {
-                    System.err.println("[ERROR] Invalid quantity (<= 0) for box ID: " + boxId);
+                    System.err.println(RED + "[ERROR] Invalid quantity (<= 0) for box ID: " + boxId + RESET);
                     continue;
                 }
             } catch (NumberFormatException e) {
-                System.err.println("[ERROR] Non-numeric quantity for box ID: " + boxId);
+                System.err.println(RED + "[ERROR] Non-numeric quantity for box ID: " + boxId + RESET);
                 continue;
             }
 
             // Validate receivedAt
             if (receivedAt == null || receivedAt.isBlank()) {
-                System.err.println("[ERROR] Missing receivedAt for box ID: " + boxId);
+                System.err.println(RED + "[ERROR] Missing receivedAt for box ID: " + boxId + RESET);
                 continue;
             }
 
@@ -192,11 +210,16 @@ public class WagonUnloading implements Runnable {
                     LocalDate.parse(expiryDate, DATE_FORMATTER);
                     perishable.put(expiryDate, new Box(boxId, product, qty, expiryDate));
                 } catch (DateTimeParseException e) {
-                    System.err.println("[ERROR] Invalid expiry date for box ID: " + boxId + ": " + expiryDate);
+                    System.err.println(RED + "[ERROR] Invalid expiry date for box ID: " + boxId + ": " + expiryDate + RESET);
                 }
             }
         }
         sc.close();
     }
 
+    private static String line(int n) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; i++) sb.append(SEP);
+        return sb.toString();
+    }
 }

@@ -10,12 +10,15 @@ import java.util.*;
 
 public class StatsPrinterUI implements Runnable {
 
+    // design comentado
     private static final boolean COLOR_ENABLED = true;
-    private static final String COLOR_GREEN   = COLOR_ENABLED ? "\u001B[32m" : "";
-    private static final String COLOR_RESET   = COLOR_ENABLED ? "\u001B[0m"  : "";
-    private static final String SEP_CHAR      = "─";
-    private static final String COL_DIV       = "│";
-    private static final String BULLET        = "•";
+    private static final String COLOR_GREEN = COLOR_ENABLED ? "\u001B[32m" : "";
+    private static final String COLOR_CYAN  = COLOR_ENABLED ? "\u001B[36m" : "";
+    private static final String COLOR_RED   = COLOR_ENABLED ? "\u001B[31m" : "";
+    private static final String COLOR_RESET = COLOR_ENABLED ? "\u001B[0m"  : "";
+    private static final String SEP_CHAR    = "─";
+    private static final String COL_DIV     = "│";
+    private static final String BULLET      = "•";
 
     private final Scanner input = new Scanner(System.in);
 
@@ -23,8 +26,9 @@ public class StatsPrinterUI implements Runnable {
     public void run() {
         Warehouse warehouse = WarehouseRepository.getCurrentWarehouse();
         if (warehouse == null) {
-            System.out.println("No warehouse is loaded.");
+            System.out.println(COLOR_RED + "[ERROR] No warehouse is loaded." + COLOR_RESET);
             pauseForKey();
+            new WarehouseManagementMenu().run();
             return;
         }
         showWarehouseOverview(warehouse);
@@ -41,11 +45,12 @@ public class StatsPrinterUI implements Runnable {
             System.out.println();
             System.out.println(lineOf(78));
             System.out.printf("  Warehouse: %s%n", warehouse.getWarehouseID());
-            System.out.printf("  Aisles: %d   Boxes: %d   Units: %d%n", warehouse.getAisles().size(), totals[0], totals[1]);
+            System.out.printf("  Aisles: %d   Boxes: %d   Units: %d%n",
+                    warehouse.getAisles().size(), totals[0], totals[1]);
             System.out.println(lineOf(78));
 
             System.out.println();
-            System.out.println("Aisles");
+            System.out.println(COLOR_CYAN + "Aisles" + COLOR_RESET);
             System.out.println(lineOf(78));
             List<Aisle> aisles = warehouse.getAisles();
             for (Aisle aisle : aisles) {
@@ -60,6 +65,8 @@ public class StatsPrinterUI implements Runnable {
             choice = askInt("Select aisle number (1-" + aisles.size() + "): ", 0, aisles.size());
             if (choice > 0) showAisleBays(warehouse, aisles.get(choice - 1));
         } while (choice != 0);
+
+        new WarehouseManagementMenu().run();
     }
 
     private void showAisleBays(Warehouse warehouse, Aisle aisle) {
@@ -77,7 +84,7 @@ public class StatsPrinterUI implements Runnable {
             }
 
             System.out.println();
-            System.out.println("Bays");
+            System.out.println(COLOR_CYAN + "Bays" + COLOR_RESET);
             System.out.println(lineOf(78));
             for (Bay bay : bays) {
                 int[] bayAgg = aggregateBay(bay);
@@ -111,7 +118,7 @@ public class StatsPrinterUI implements Runnable {
         });
 
         System.out.println();
-        System.out.println("Boxes");
+        System.out.println(COLOR_CYAN + "Boxes" + COLOR_RESET);
         System.out.println("  " + lineOf(75));
         System.out.println("  " + padFixed("Box ID", 12) + padFixed("SKU", 12) + padRightFixed("Qty", 8) + padRightFixed("Expiry", 18));
         System.out.println("  " + lineOf(75));
@@ -133,7 +140,7 @@ public class StatsPrinterUI implements Runnable {
         }
 
         System.out.println();
-        System.out.println("SKU Summary");
+        System.out.println(COLOR_CYAN + "SKU Summary" + COLOR_RESET);
         System.out.println(lineOf(78));
         for (Map.Entry<String, Integer> e : perSku.entrySet()) {
             System.out.printf("  %-10s : %d%n", e.getKey(), e.getValue());
@@ -141,7 +148,7 @@ public class StatsPrinterUI implements Runnable {
         System.out.println(lineOf(78));
 
         System.out.println();
-        System.out.println("Press Enter to go back.");
+        System.out.println("  0 " + COL_DIV + " Back");
         pauseForKey();
     }
 
@@ -190,7 +197,7 @@ public class StatsPrinterUI implements Runnable {
     private String safeBoxId(Box box) {
         try {
             String id = box.getBoxID();
-            return (id == null || id.trim().length() == 0) ? "BOX?" : id;
+            return (id == null || id.trim().isEmpty()) ? "BOX?" : id;
         } catch (Exception e) {
             return "BOX?";
         }
@@ -199,7 +206,7 @@ public class StatsPrinterUI implements Runnable {
     private String safeExpiry(Box box) {
         try {
             String s = box.getExpDate();
-            return (s == null || s.trim().length() == 0) ? "N/A" : s;
+            return (s == null || s.trim().isEmpty()) ? "N/A" : s;
         } catch (Exception e) {
             return "N/A";
         }
@@ -220,7 +227,15 @@ public class StatsPrinterUI implements Runnable {
         do {
             System.out.print(prompt);
             String s = input.nextLine().trim();
-            try { val = Integer.parseInt(s); } catch (NumberFormatException e) { val = Integer.MIN_VALUE; }
+            try {
+                val = Integer.parseInt(s);
+                if (val < min || val > max) {
+                    System.out.println(COLOR_RED + "Invalid option. Please choose between " + min + " and " + max + "." + COLOR_RESET);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println(COLOR_RED + "Invalid number. Please enter digits only." + COLOR_RESET);
+                val = Integer.MIN_VALUE;
+            }
         } while (val < min || val > max);
         return val;
     }
@@ -269,10 +284,19 @@ public class StatsPrinterUI implements Runnable {
     }
 
     private void printBanner(String title) {
-        String line = lineOf(78);
+        String line = COLOR_CYAN + lineOf(78) + COLOR_RESET; // design comentado
         System.out.println(line);
-        System.out.println("  " + title);
+        System.out.println(center(title, 78));
         System.out.println(line);
+    }
+
+    private static String center(String s, int width) { // design comentado
+        if (s == null) s = "";
+        if (s.length() >= width) return s;
+        int pad = (width - s.length()) / 2;
+        StringBuilder left = new StringBuilder();
+        for (int i = 0; i < pad; i++) left.append(' ');
+        return left + s;
     }
 
     private void printBreadcrumbs(String[] crumbs) {

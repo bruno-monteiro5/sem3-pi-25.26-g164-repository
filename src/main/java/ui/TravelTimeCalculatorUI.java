@@ -12,6 +12,13 @@ public class TravelTimeCalculatorUI implements Runnable {
     private final TravelTimeController controller;
     private final Scanner scanner;
 
+    private static final boolean COLOR_ON = true;
+    private static final String RESET  = COLOR_ON ? "\u001B[0m"  : "";
+    private static final String CYAN   = COLOR_ON ? "\u001B[36m" : "";
+    private static final String GREEN  = COLOR_ON ? "\u001B[32m" : "";
+    private static final String RED    = COLOR_ON ? "\u001B[31m" : "";
+    private static final String SEP    = "─";
+
     public TravelTimeCalculatorUI() {
         this.controller = new TravelTimeController();
         this.scanner = new Scanner(System.in);
@@ -20,9 +27,10 @@ public class TravelTimeCalculatorUI implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.println("\n" + "=".repeat(80));
-            System.out.println("  TRAVEL TIME CALCULATOR (USLP03)");
-            System.out.println("=".repeat(80) + "\n");
+            System.out.println();
+            System.out.println(CYAN + line(80));
+            System.out.println(center("TRAVEL TIME CALCULATOR (USLP03)", 80));
+            System.out.println(line(80) + RESET);
 
             // 1. Selecionar linha
             Line selectedLine = selectLine();
@@ -42,10 +50,10 @@ public class TravelTimeCalculatorUI implements Runnable {
             calculateAndDisplay(selectedLine, selectedLocomotive);
 
         } catch (SQLException e) {
-            System.err.println("\n[ERROR] Database error: " + e.getMessage());
+            System.err.println(RED + "\n[DATABASE ERROR] " + e.getMessage() + RESET);
             e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("\n[ERROR] " + e.getMessage());
+            System.err.println(RED + "\n[ERROR] " + e.getMessage() + RESET);
         }
 
         System.out.println("\nPress Enter to return to main menu...");
@@ -57,11 +65,12 @@ public class TravelTimeCalculatorUI implements Runnable {
         List<Line> lines = controller.getAvailableLines();
 
         if (lines.isEmpty()) {
-            System.out.println("No lines available in the database.");
+            System.out.println(RED + "No lines available in the database." + RESET);
             return null;
         }
 
-        System.out.println("═══ AVAILABLE RAILWAY LINES ═══\n");
+        System.out.println(CYAN + "\nAVAILABLE RAILWAY LINES" + RESET);
+        System.out.println(line(80));
         for (int i = 0; i < lines.size(); i++) {
             System.out.printf("%d. %s\n", i + 1, lines.get(i));
         }
@@ -75,11 +84,12 @@ public class TravelTimeCalculatorUI implements Runnable {
         List<Locomotive> locomotives = controller.getAvailableLocomotives();
 
         if (locomotives.isEmpty()) {
-            System.out.println("No locomotives available in the database.");
+            System.out.println(RED + "No locomotives available in the database." + RESET);
             return null;
         }
 
-        System.out.println("\n═══ AVAILABLE LOCOMOTIVES ═══\n");
+        System.out.println(CYAN + "\nAVAILABLE LOCOMOTIVES" + RESET);
+        System.out.println(line(80));
         for (int i = 0; i < locomotives.size(); i++) {
             System.out.printf("%d. %s\n", i + 1, locomotives.get(i));
         }
@@ -93,19 +103,20 @@ public class TravelTimeCalculatorUI implements Runnable {
         try {
             TravelTimeResult result = controller.calculateTravelTime(line, locomotive);
 
-            System.out.println("\n" + "═".repeat(80));
-            System.out.println("  TRAVEL TIME CALCULATION RESULTS");
-            System.out.println("═".repeat(80));
+            System.out.println();
+            System.out.println(CYAN + line(80));
+            System.out.println(center("TRAVEL TIME CALCULATION RESULTS", 80));
+            System.out.println(line(80) + RESET);
 
             System.out.printf("\nRoute: %s → %s\n",
                     line.getEndpointAName(), line.getEndpointBName());
             System.out.printf("Line: %s\n", line.getName());
             System.out.printf("Locomotive: %s\n\n", locomotive.getName());
 
-            System.out.println("─".repeat(80));
+            System.out.println(line(80));
             System.out.printf("%-10s | %-12s | %-15s | %-12s | %-16s\n",
                     "Segment", "Length (m)", "Speed Limit", "Used Speed", "Time (hh:mm:ss)");
-            System.out.println("─".repeat(80));
+            System.out.println(line(80));
 
             for (TravelTimeResult.SegmentTime st : result.getSegmentTimes()) {
                 String segHms = formatHMS(st.getTimeMinutes());
@@ -118,21 +129,20 @@ public class TravelTimeCalculatorUI implements Runnable {
                 );
             }
 
-            System.out.println("─".repeat(80));
-            System.out.printf("\n✓ Total Distance: %.2f km\n", result.getTotalDistanceKm());
+            System.out.println(line(80));
+            System.out.printf("\n" + GREEN + "✓ Total Distance: %.2f km" + RESET + "%n", result.getTotalDistanceKm());
             String totalHms = formatHMS(result.getTotalTimeMinutes());
-            System.out.printf("✓Total time: %s (%.2f min)%n",
-                    totalHms, result.getTotalTimeMinutes(), result.getTotalDistanceKm());
+            System.out.printf(GREEN + "✓ Total Time: %s (%.2f min)" + RESET + "%n",
+                    totalHms, result.getTotalTimeMinutes());
 
-            System.out.println("\n" + "═".repeat(80));
+            System.out.println("\n" + line(80));
 
         } catch (IllegalArgumentException e) {
-            System.err.println("\n[VALIDATION ERROR] " + e.getMessage());
+            System.err.println(RED + "\n[VALIDATION ERROR] " + e.getMessage() + RESET);
         } catch (SQLException e) {
-            System.err.println("\n[DATABASE ERROR] " + e.getMessage());
+            System.err.println(RED + "\n[DATABASE ERROR] " + e.getMessage() + RESET);
         }
     }
-
 
     private int getValidChoice(int min, int max) {
         int choice = -1;
@@ -140,28 +150,42 @@ public class TravelTimeCalculatorUI implements Runnable {
             System.out.printf("Enter your choice (%d-%d): ", min, max);
             if (scanner.hasNextInt()) {
                 choice = scanner.nextInt();
-                scanner.nextLine(); // consume newline
+                scanner.nextLine();
                 if (choice < min || choice > max) {
-                    System.out.println("Invalid choice. Please try again.");
+                    System.out.println(RED + "Invalid choice. Please try again." + RESET);
                 }
             } else {
-                System.out.println("Invalid input. Please enter a number.");
-                scanner.nextLine(); // clear invalid input
+                System.out.println(RED + "Invalid input. Please enter a number." + RESET);
+                scanner.nextLine();
             }
         }
         return choice;
     }
 
     private static String formatHMS(double minutes) {
-        long totalSeconds = Math.round(minutes * 60.0); //
+        long totalSeconds = Math.round(minutes * 60.0);
         long hours = totalSeconds / 3600;
         long minutesPart = (totalSeconds % 3600) / 60;
         long seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutesPart, seconds);
     }
 
-
     private void returnToMainMenu() {
         new MainMenu().run();
+    }
+
+    private static String line(int n) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; i++) sb.append(SEP);
+        return sb.toString();
+    }
+
+    private static String center(String s, int width) {
+        if (s == null) s = "";
+        if (s.length() >= width) return s;
+        int pad = (width - s.length()) / 2;
+        StringBuilder left = new StringBuilder();
+        for (int i = 0; i < pad; i++) left.append(' ');
+        return left + s;
     }
 }
