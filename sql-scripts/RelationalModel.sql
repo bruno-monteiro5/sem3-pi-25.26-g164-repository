@@ -183,5 +183,3 @@ ALTER TABLE Wagon_Model
 ALTER TABLE Wagon_Model
     ADD CONSTRAINT CHK_WagonModel_PositivePayload CHECK (payload > 0);
 
-ALTER TABLE Wagon_Model
-    ADD CONSTRAINT CHK_WagonModel_TareLessThanWeight CHECK (payload < weight);
