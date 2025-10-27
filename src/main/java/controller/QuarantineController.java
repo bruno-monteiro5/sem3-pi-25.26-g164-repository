@@ -11,8 +11,8 @@ import java.util.Queue;
  * Manages the quarantine queue for returned goods (USEI05).
  * <p>
  * Internally uses a {@link PriorityQueue} with the ordering defined by
- * {@link ReturnEntry#compareTo(ReturnEntry)}:
- * newer timestamps first (descending), then returnId ascending to break ties.
+ * {@link ReturnEntry#compareTo(ReturnEntry)}: newer timestamps first (descending),
+ * then {@code returnId} ascending to break ties.
  */
 public class QuarantineController {
 
@@ -20,8 +20,10 @@ public class QuarantineController {
 
     /**
      * Enqueues a single entry into quarantine.
-     * @param entry the entry to enqueue
-     * @return true if the queue changed
+     *
+     * @param entry the entry to enqueue; must be non-null
+     * @return {@code true} if the queue changed
+     * @throws NullPointerException if {@code entry} is {@code null}
      */
     public boolean enqueue(ReturnEntry entry) {
         return queue.offer(entry);
@@ -29,7 +31,8 @@ public class QuarantineController {
 
     /**
      * Enqueues multiple entries into quarantine.
-     * @param entries entries to enqueue
+     *
+     * @param entries entries to enqueue; ignored if {@code null} or empty
      * @return number of entries actually enqueued
      */
     public int enqueueAll(Collection<ReturnEntry> entries) {
@@ -42,8 +45,7 @@ public class QuarantineController {
     }
 
     /**
-     * Convenience helper: loads from CSV using {@link ReturnsCsvLoader}
-     * and enqueues all parsed entries.
+     * Loads entries from a CSV file via {@link ReturnsCsvLoader} and enqueues them.
      *
      * @param csvPath path to {@code returns.csv}
      * @return number of entries enqueued
@@ -54,29 +56,49 @@ public class QuarantineController {
         return enqueueAll(entries);
     }
 
-    /** @return the next entry to inspect (peek, no removal), or {@code null} if empty. */
+    /**
+     * Peeks at the next entry to inspect without removing it.
+     *
+     * @return the next entry, or {@code null} if the queue is empty
+     */
     public ReturnEntry peekNext() {
         return queue.peek();
     }
 
-    /** @return and remove the next entry to inspect, or {@code null} if empty. */
+    /**
+     * Retrieves and removes the next entry to inspect.
+     *
+     * @return the next entry, or {@code null} if the queue is empty
+     */
     public ReturnEntry pollNext() {
         return queue.poll();
     }
 
-    /** @return current number of entries in quarantine. */
+    /**
+     * Returns the current number of entries in quarantine.
+     *
+     * @return the queue size
+     */
     public int size() {
         return queue.size();
     }
 
-    /** @return {@code true} if no entries are waiting. */
+    /**
+     * Indicates whether there are no entries waiting.
+     *
+     * @return {@code true} if the queue is empty; {@code false} otherwise
+     */
     public boolean isEmpty() {
         return queue.isEmpty();
     }
 
     /**
-     * Exposes a read-only view of the underlying queue for diagnostic purposes.
-     * Note: the returned {@link Queue} is still the live structure, use with care.
+     * Provides a read-only view of the underlying queue for diagnostics.
+     * <p>
+     * Note: the returned {@link Queue} references the live structure and reflects
+     * subsequent modifications; callers should not mutate it.
+     *
+     * @return the live queue reference for inspection
      */
     public Queue<ReturnEntry> viewQueue() {
         return queue;

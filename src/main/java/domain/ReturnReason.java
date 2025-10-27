@@ -3,32 +3,31 @@ package domain;
 /**
  * Enumerates the valid reasons for a product return (USEI05).
  * <p>
- * Each value corresponds exactly to one of the expected codes
- * that may appear in the {@code returns.csv} file.
+ * Each value directly maps to one of the allowed codes found in {@code returns.csv}.
+ * Used throughout quarantine processing, inspection, and decision logging.
  */
 public enum ReturnReason {
 
-    /** The customer changed their mind or refused delivery. */
+    /** The customer changed their mind or refused the delivery. */
     CUSTOMER_REMORSE,
 
-    /** The product was damaged or defective. */
+    /** The product was damaged, defective, or otherwise unsellable. */
     DAMAGED,
 
-    /** The product has reached or passed its expiry date. */
+    /** The product has reached or exceeded its expiry date. */
     EXPIRED,
 
-    /** Returned due to a stock cycle count or audit. */
+    /** Returned during a stock cycle count or audit reconciliation. */
     CYCLE_COUNT;
 
     /**
-     * Converts a text value (case-insensitive, hyphens allowed)
-     * into the corresponding {@link ReturnReason}.
+     * Parses a textual reason (case-insensitive, hyphens allowed) into the corresponding enum constant.
      * <p>
-     * For example, "customer-remorse" → {@link #CUSTOMER_REMORSE}.
+     * Example: {@code "customer-remorse"} → {@link #CUSTOMER_REMORSE}.
      *
-     * @param text raw string from CSV (not null)
-     * @return matching {@code ReturnReason}
-     * @throws IllegalArgumentException if the text does not match any constant
+     * @param text the raw string value from the CSV (non-null)
+     * @return the corresponding {@link ReturnReason}
+     * @throws IllegalArgumentException if the text does not match any valid constant
      */
     public static ReturnReason fromString(String text) {
         String normalized = text.trim().toUpperCase().replace('-', '_');

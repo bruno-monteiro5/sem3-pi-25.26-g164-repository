@@ -12,19 +12,34 @@ import java.time.LocalDateTime;
 /**
  * Concrete adapter that bridges USEI05 return inspections to the warehouse model.
  * <p>
- * Implements {@link InventoryPort} by inserting returned boxes back into the current
- * warehouse, reusing the {@link Items} instance whenever the SKU already exists in stock.
- * Falls back to creating a basic {@code Items} if none is found (so the flow does not break).
+ * Implements {@link InventoryPort} by inserting returned boxes into the current
+ * {@link Warehouse}, reusing an existing {@link Items} instance when the SKU is
+ * already present in stock. If none is found, a minimal {@link Items} is created
+ * so the flow can proceed.
  * <p>
  * Notes:
  * <ul>
- *   <li>Uses {@code WarehouseRepository.getCurrentWarehouse()} to access the active warehouse.</li>
- *   <li>Iterates aisles → bays → bay inventory (via {@link Bay#getInventory()}) to locate the SKU.</li>
- *   <li>Places the new box into the first bay that still has capacity (via {@link Bay#addProductBox(Box)}).</li>
+ *   <li>Accesses the active warehouse via {@link WarehouseRepository#getCurrentWarehouse()}.</li>
+ *   <li>Searches aisles → bays → bay inventory (see {@link Bay#getInventory()}) to locate an existing SKU.</li>
+ *   <li>Places the new box into the first bay that still has capacity (see {@link Bay#addProductBox(Box)}).</li>
  * </ul>
  */
 public class InventoryAdapter implements InventoryPort {
 
+    /**
+     * Restocks a returned box back into the warehouse.
+     * <p>
+     * Attempts to reuse an existing {@link Items} instance for the given SKU; if not available,
+     * a minimal {@link Items} is created. The returned {@link Box} is then placed into the first
+     * bay with available capacity.
+     *
+     * @param boxId      identifier of the returned box (e.g., {@code RET-000123})
+     * @param sku        product SKU
+     * @param quantity   number of units to restock
+     * @param expiryDate optional expiry date string (may be {@code null})
+     * @param receivedAt timestamp when the returned box was received
+     * @throws Exception if the warehouse is not initialized or no bay has available capacity
+     */
     @Override
     public void restockReturnedBox(String boxId,
                                    String sku,
@@ -32,17 +47,15 @@ public class InventoryAdapter implements InventoryPort {
                                    String expiryDate,
                                    LocalDateTime receivedAt) throws Exception {
 
-        // Obtain current warehouse
-        Warehouse warehouse = WarehouseRepository.getCurrentWarehouse(); // or WarehouseRepository.currentWarehouse
+        Warehouse warehouse = WarehouseRepository.getCurrentWarehouse();
         if (warehouse == null) {
             throw new IllegalStateException("Warehouse not initialized.");
         }
 
-        // Try to reuse an existing Items (same SKU) already in stock
         Items product = null;
         for (Aisle aisle : warehouse.getAisles()) {
             for (Bay bay : aisle.getBays()) {
-                for (Box box : bay.getInventory()) {        // <-- use Bay#getInventory()
+                for (Box box : bay.getInventory()) {
                     if (box.getProduct().getSkuID().equals(sku)) {
                         product = box.getProduct();
                         break;
@@ -54,17 +67,13 @@ public class InventoryAdapter implements InventoryPort {
         }
 
         if (product == null) {
-            // No existing Items found for this SKU — create a basic Items.
-            // ⚠️ If your Items constructor has a different signature, adjust the next line accordingly.
             product = new Items(sku, sku, "", "", 0.0f, 0.0f);
         }
 
-        // Build the returned box (use expiryDate variant if provided)
         Box newBox = (expiryDate != null)
                 ? new Box(boxId, product, quantity, expiryDate)
                 : new Box(boxId, product, quantity);
 
-        // Place the box into the first bay with available capacity
         boolean placed = false;
         for (Aisle aisle : warehouse.getAisles()) {
             for (Bay bay : aisle.getBays()) {
@@ -77,7 +86,7 @@ public class InventoryAdapter implements InventoryPort {
         }
 
         if (!placed) {
-            throw new Exception("Sem espaço disponível no armazém para a caixa devolvida (SKU=" + sku + ").");
+            throw new Exception("No available capacity in the warehouse for the returned box (SKU=" + sku + ").");
         }
     }
 }
