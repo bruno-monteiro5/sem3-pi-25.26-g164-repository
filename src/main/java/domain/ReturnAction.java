@@ -1,17 +1,19 @@
 package domain;
 
 /**
- * Enumerates the possible inspection actions for a returned item (USEI05).
+ * Enumerates the possible inspection outcomes for a returned item (USEI05).
  * <p>
- * Used by {@link ReturnDecision}, controllers, and audit logs.
+ * Represents the action taken after evaluating a {@link ReturnEntry}, used across
+ * {@link ReturnDecision}, controllers, and audit logs.
  */
 public enum ReturnAction {
-    /** Entire quantity is restocked into the warehouse. */
+
+    /** The entire quantity is restocked into the warehouse. */
     RESTOCK_ALL,
 
-    /** Entire quantity is discarded. */
+    /** The entire quantity is discarded due to damage, expiration, or policy. */
     DISCARD_ALL,
 
-    /** Part of the quantity is restocked, the rest is discarded. */
+    /** A portion of the quantity is restocked, and the remainder is discarded. */
     PARTIAL;
 }

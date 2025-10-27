@@ -3,10 +3,8 @@ package controller;
 import domain.ReturnEntry;
 import domain.ReturnReason;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -15,53 +13,114 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for ReturnsCsvLoader.
- * Uses the real project dataset (returns.csv) for integration coverage,
- * and @TempDir only for error/edge cases.
+ * Test suite for {@link ReturnsCsvLoader}.
+ * <p>
+ * Covers all branches of {@link ReturnsCsvLoader#loadFromFile(String)}:
+ * <ul>
+ *   <li>Valid CSV with 6 columns (expiry present);</li>
+ *   <li>Valid CSV with 5 columns (expiry absent);</li>
+ *   <li>Malformed CSV rows with fewer than 5 columns;</li>
+ *   <li>Missing file path;</li>
+ *   <li>Header-skipping behavior.</li>
+ * </ul>
  */
 class ReturnsCsvLoaderTest {
 
-    /** Path in the repository to the official dataset file. */
-    private static final String OFFICIAL_RETURNS_CSV =
-            "warehouseMngt/train_station_dataset/returns.csv";
-
-    @Test
-    void testLoadOfficialReturnsCsv() throws Exception {
-        // Ensure the file exists (so failures are meaningful)
-        assertTrue(Files.exists(Path.of(OFFICIAL_RETURNS_CSV)),
-                "Official returns.csv not found at: " + OFFICIAL_RETURNS_CSV);
-
-        List<ReturnEntry> entries = ReturnsCsvLoader.loadFromFile(OFFICIAL_RETURNS_CSV);
-        assertNotNull(entries);
-        assertTrue(entries.size() > 0, "Official returns.csv should have entries");
-
-        // Sanity-check a couple of fields of the first row
-        ReturnEntry first = entries.get(0);
-        assertNotNull(first.getReturnId());
-        assertNotNull(first.getSku());
-        assertTrue(first.getQuantity() > 0);
-        assertNotNull(first.getReason());
-        assertNotNull(first.getTimestamp());
-        // timestamp is a LocalDateTime; compare as object (not by toString formatting)
-        assertTrue(first.getTimestamp().isBefore(LocalDateTime.now().plusYears(50)));
+    /**
+     * Creates a temporary CSV file with the given content and returns its path.
+     */
+    private Path createTempCsv(String content) throws IOException {
+        Path file = Files.createTempFile("returns-", ".csv");
+        Files.writeString(file, content);
+        return file;
     }
 
+    /**
+     * Verifies that a valid CSV with expiry dates is parsed correctly.
+     */
     @Test
-    void testMalformedRowThrows(@TempDir Path tempDir) throws IOException {
-        Path csv = tempDir.resolve("bad.csv");
-        try (PrintWriter pw = new PrintWriter(csv.toFile())) {
-            pw.println("returnId,sku,quantity,reason,timestamp,expiryDate");
-            pw.println("RET-001,ABC,5"); // too few columns → should throw
+    void loadFromFile_validCsvWithExpiry_parsesAllRows() throws Exception {
+        String csv = "returnId,sku,quantity,reason,timestamp,expiry\n" +
+                "RET-01,SKU01,5,damaged,2025-10-27T10:00:00,2025-11-14\n" +
+                "RET-02,SKU02,3,customer-remorse,2025-10-27T11:00:00,2025-11-20\n";
+
+        Path path = createTempCsv(csv);
+        try {
+            List<ReturnEntry> list = ReturnsCsvLoader.loadFromFile(path.toString());
+            assertEquals(2, list.size());
+
+            ReturnEntry first = list.get(0);
+            assertEquals("RET-01", first.getReturnId());
+            assertEquals("SKU01", first.getSku());
+            assertEquals(5, first.getQuantity());
+            assertEquals(ReturnReason.DAMAGED, first.getReason());
+            assertEquals(LocalDateTime.parse("2025-10-27T10:00:00"), first.getTimestamp());
+            assertEquals("2025-11-14", first.getExpiryDate());
+        } finally {
+            try { Files.deleteIfExists(path); } catch (IOException ignored) {}
         }
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                ReturnsCsvLoader.loadFromFile(csv.toString()));
-        assertTrue(ex.getMessage().toLowerCase().contains("expected >=5"),
-                "Should mention invalid column count");
     }
 
+    /**
+     * Verifies that expiry column can be omitted (5-column CSV) and expiry is null.
+     */
     @Test
-    void testMissingFileThrows() {
+    void loadFromFile_validCsvWithoutExpiry_setsNullExpiry() throws Exception {
+        String csv = "returnId,sku,quantity,reason,timestamp\n" +
+                "RET-03,SKU03,2,cycle-count,2025-10-27T12:00:00\n";
+
+        Path path = createTempCsv(csv);
+        try {
+            List<ReturnEntry> list = ReturnsCsvLoader.loadFromFile(path.toString());
+            assertEquals(1, list.size());
+            assertNull(list.get(0).getExpiryDate());
+        } finally {
+            try { Files.deleteIfExists(path); } catch (IOException ignored) {}
+        }
+    }
+
+    /**
+     * Verifies that a malformed row (fewer than 5 columns) triggers an IllegalArgumentException.
+     */
+    @Test
+    void loadFromFile_malformedRow_throwsIllegalArgumentException() throws Exception {
+        String csv = "returnId,sku,quantity,reason,timestamp,expiry\n" +
+                "RET-BAD,SKU99,5,damaged\n"; // only 4 columns
+
+        Path path = createTempCsv(csv);
+        try {
+            assertThrows(IllegalArgumentException.class, () ->
+                    ReturnsCsvLoader.loadFromFile(path.toString()));
+        } finally {
+            try { Files.deleteIfExists(path); } catch (IOException ignored) {}
+        }
+    }
+
+    /**
+     * Verifies that a missing file triggers FileNotFoundException.
+     */
+    @Test
+    void loadFromFile_missingFile_throwsFileNotFoundException() {
         assertThrows(java.io.FileNotFoundException.class, () ->
-                ReturnsCsvLoader.loadFromFile("this/file/does/not/exist.csv"));
+                ReturnsCsvLoader.loadFromFile("no-such-file.csv"));
+    }
+
+    /**
+     * Verifies that the first line (header) is skipped and not treated as data.
+     */
+    @Test
+    void loadFromFile_ignoresHeaderLine() throws Exception {
+        String csv = "returnId,sku,quantity,reason,timestamp,expiry\n" +
+                "RET-10,SKU10,1,expired,2025-10-27T13:00:00,2025-11-14\n";
+
+        Path path = createTempCsv(csv);
+        try {
+            List<ReturnEntry> list = ReturnsCsvLoader.loadFromFile(path.toString());
+            // only 1 data line -> one entry
+            assertEquals(1, list.size());
+            assertEquals("RET-10", list.get(0).getReturnId());
+        } finally {
+            try { Files.deleteIfExists(path); } catch (IOException ignored) {}
+        }
     }
 }

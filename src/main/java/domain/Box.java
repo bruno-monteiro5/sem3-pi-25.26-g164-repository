@@ -54,6 +54,20 @@ public class Box {
         this.expDate = null;
     }
 
+    public Box(Items items, int quantity) {
+        this.items = items;
+        this.quantity = quantity;
+        this.expDate = null;
+        this.boxID = null;
+    }
+
+    public Box(Items items, int quantity, String expDate) {
+        this.items = items;
+        this.quantity = quantity;
+        this.expDate = expDate;
+        this.boxID = null;
+    }
+
     /**
      * Returns the {@link Items} instance representing the product stored in this box.
      *
