@@ -2,38 +2,70 @@ package controller;
 
 import domain.railway.*;
 import repository.RailwayRepository;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Orchestrates travel-time estimations over the railway network.
+ * <p>
+ * Delegates data access to {@link RailwayRepository} and computes the
+ * estimated travel time for a given {@link Line} with a specific {@link Locomotive},
+ * validating gauge compatibility and electrification constraints along the way.
+ */
 public class TravelTimeController {
     private final RailwayRepository repository;
 
+    /**
+     * Creates a controller backed by a new {@link RailwayRepository} instance.
+     */
     public TravelTimeController() {
         this.repository = new RailwayRepository();
     }
 
     /**
-     * Obtém todas as linhas disponíveis
+     * Retrieves all available railway lines.
+     *
+     * @return list of {@link Line} entities
+     * @throws SQLException if the repository query fails
      */
     public List<Line> getAvailableLines() throws SQLException {
         return repository.getAllLines();
     }
 
     /**
-     * Obtém todas as locomotivas disponíveis
+     * Retrieves all available locomotives.
+     *
+     * @return list of {@link Locomotive} entities
+     * @throws SQLException if the repository query fails
      */
     public List<Locomotive> getAvailableLocomotives() throws SQLException {
         return repository.getAllLocomotives();
     }
 
     /**
-     * Calcula o tempo de viagem estimado
+     * Computes the estimated travel time for the given line and locomotive.
+     * <p>
+     * The algorithm validates:
+     * <ul>
+     *   <li><b>Gauge compatibility</b>: {@link Line#getGauge()} must match {@link Locomotive#getGauge()}.</li>
+     *   <li><b>Electrification</b>: if {@link Locomotive#isElectric()} is true, all {@link LineSegment}s must be electrified.</li>
+     * </ul>
+     * Then, for each segment, the effective speed is the minimum between the segment speed limit
+     * and the locomotive operational speed. Segment time is computed as:
+     * {@code timeMinutes = (segment.length(km) / effectiveSpeed(km/h)) * 60}.
+     *
+     * @param line        the target railway line
+     * @param locomotive  the locomotive to operate on the line
+     * @return a {@link TravelTimeResult} detailing per-segment and total time
+     * @throws SQLException              if segment retrieval fails
+     * @throws IllegalArgumentException  if gauges are incompatible, the line has no segments,
+     *                                   or an electric locomotive is assigned to non-electrified segments
      */
     public TravelTimeResult calculateTravelTime(Line line, Locomotive locomotive)
             throws SQLException, IllegalArgumentException {
 
-        // 1. Validar compatibilidade de gauge
         if (line.getGauge() != locomotive.getGauge()) {
             throw new IllegalArgumentException(
                     String.format("Gauge incompatível! Linha: %dmm, Locomotiva: %dmm",
@@ -41,14 +73,12 @@ public class TravelTimeController {
             );
         }
 
-        // 2. Obter segmentos da linha
         List<LineSegment> segments = repository.getLineSegments(line.getId());
 
         if (segments.isEmpty()) {
             throw new IllegalArgumentException("Linha não possui segmentos!");
         }
 
-        // 3. Validar eletrificação (se locomotiva elétrica)
         if (locomotive.isElectric()) {
             boolean allElectrified = segments.stream()
                     .allMatch(LineSegment::isElectrified);
@@ -60,14 +90,10 @@ public class TravelTimeController {
             }
         }
 
-        // 4. Calcular tempo para cada segmento
         List<TravelTimeResult.SegmentTime> segmentTimes = new ArrayList<>();
 
         for (LineSegment segment : segments) {
-            // Velocidade efetiva = mínimo entre limite do segmento e velocidade operacional
             int effectiveSpeed = Math.min(segment.getSpeedLimit(), locomotive.getOpSpeed());
-
-            // Tempo = distância / velocidade (em horas), depois converter para minutos
             double distanceKm = segment.getLength() / 1000.0;
             double timeHours = distanceKm / effectiveSpeed;
             double timeMinutes = timeHours * 60;
