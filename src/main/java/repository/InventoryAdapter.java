@@ -35,7 +35,7 @@ public class InventoryAdapter implements InventoryPort {
         // Obtain current warehouse
         Warehouse warehouse = WarehouseRepository.getCurrentWarehouse(); // or WarehouseRepository.currentWarehouse
         if (warehouse == null) {
-            throw new IllegalStateException("Warehouse não foi inicializado.");
+            throw new IllegalStateException("Warehouse not initialized.");
         }
 
         // Try to reuse an existing Items (same SKU) already in stock
@@ -61,8 +61,8 @@ public class InventoryAdapter implements InventoryPort {
 
         // Build the returned box (use expiryDate variant if provided)
         Box newBox = (expiryDate != null)
-                ? new Box(product, quantity, expiryDate)
-                : new Box(product, quantity);
+                ? new Box(boxId, product, quantity, expiryDate)
+                : new Box(boxId, product, quantity);
 
         // Place the box into the first bay with available capacity
         boolean placed = false;

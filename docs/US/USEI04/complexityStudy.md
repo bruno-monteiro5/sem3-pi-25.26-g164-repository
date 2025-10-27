@@ -1,4 +1,4 @@
-# Complexity Study - WagonUnloading.java
+# Complexity Study - PickPathUI.java & PickPathController.java
 
 ## 1. Identification
 **File:** `PickPathUI.java` & `PickPathController.java`  
@@ -20,44 +20,64 @@ The code follows an **iterative** structure, with no explicit recursion.
 ### 3.1 Main Structure (Simulation)
 **Complexity:**
 
-Creation of the `Warehouse` instance:
-- Creates all aisles and bays;
-- Determines when to move from one aisle to another.
+Creation of the `PickPathController` instance:
+- Begins the process of running the main simulation.
 
-Each iteration depends on reading a CSV file of `n` lines.
-
-**Complexity:**
-- Best case: O(n) — when the file is well organized.
-- Worst case: O(n²) — when the file is poorly formatted or disorganized, requiring multiple passes through the file.
-- Average case: O(n log n) — when the file is formatted but not perfectly organized.
-
-The logic for reading `wagons.csv` involves iterating through each wagon record once, and:
-- Checking how many products are in each wagon and storing them temporarily;
-- Verifying which products have expiration dates and which do not.
-
-Each iteration depends linearly on the number of wagons `n`.
+Each iteration depends on reading a CSV file of `1` lines.
 
 **Complexity:**
-- Best case: O(n) — if the sequence is already in the correct order.
-- Worst case: O(n²) — when multiple internal operations per element are needed (e.g., insertions/removals in stacks).
-- Average case: O(n log n) — typical behavior when partial optimizations exist.
+- Best case: O(1) — when the file runs quickkly.
+- Worst case: O(1) — when file runs slowly.
+- Average case: O(1) — when the file runs at average speed.
 
-The organization of products involves reading each stored product at least once:
-- Performing FEFO organization first when one or more products have expiration dates, and FIFO afterwards, or FIFO only if no product has expiration dates;
-- Storing products while checking each organizational entry at least once.
+The logic for printing the results of the calculations envolved:
+- running through each and every PickPath instance and printing the results.
 
-Each iteration depends linearly on the number of products in FEFO organization `n` and the number of products in FIFO organization `n`.
+Each iteration depends linearly on the number of PickPath instances `n`.
 
 **Complexity:**
-- Best case: O(n) — all products are organized either by FEFO or FIFO, with a moderate quantity.
-- Worst case: O(n) — both FEFO and FIFO groups have similar sizes and relatively high quantities.
-- Average case: O(n log n) — most products are organized under one system (FEFO or FIFO), with a smaller portion under the other.
+- Best case: O(n) — if the sequence of instances is relatively short and simple.
+- Worst case: O(n) — if the sequence of instances is long and complex.
+- Average case: O(n) — if the sequence of instances is medium-sized, and relatively complex.
+
+The calculation of stops merged requires:
+- A number of allocatons to pass through;
+
+Each iteration depends linearly on the number allocations `n`.
+
+**Complexity:**
+- Best case: O(n) — the allocation list is relatively small.
+- Worst case: O(n) — the allocation list is quite big.
+- Average case: O(n) — the allocation list is medium-sized.
+
+The calculation of the total distance requires:
+- A number of stops to pass through;
+- A number of allocations to pass through;
+
+Each iteration depends linearly on the number of stops and allocations `n`, totaling `n²`.
+
+**Complexity:**
+- Best case: O(n²) — the allocation and stop list are relatively small
+- Worst case: O(n²) — the allocation and stop list are large
+- Average case: O(n²) — the allocation and stop list are medium-sized.
+
+The calculation of the diffrent sequence strategy requires:
+- A number of stops to pass through;
+
+Each iteration depends linearly on the number of stops `n`.
+
+**Complexity:**
+- Best case: O(n) — the stop list are relatively small
+- Worst case: O(n) — the stop list are large
+- Average case: O(n) — the stop list are medium-sized.
 
 ### 3.2 Operations on Data Structures
-|   | Structure                      | Operation | Complexity          |
-|---|--------------------------------|-----------|---------------------|
-|   | `List.contains()`              | O(n)      | Linear              |
-|   | `List.add()` / `List.remove()` | O(1)–O(n) | Depends on position |
+|   | Structure                                     | Operation | Complexity          |
+|---|-----------------------------------------------|-----------|---------------------|
+|   | `List.contains()`                             | O(n)      | Linear              |
+|   | `List.add()` / `List.remove()` / `List.get()` | O(1)–O(n) | Depends on position |
+|   | `Allocation.get*()`                           | O(1)      | Constant            |
+
 
 ### 3.3 Verification or Sorting Method
 If the method performs element comparisons or validations within nested loops, the global complexity may reach O(n²).
@@ -66,28 +86,30 @@ If the method performs element comparisons or validations within nested loops, t
 
 ## 4. Space Complexity Analysis
 The program uses:
-- Auxiliary structures to temporarily store wagons;
-- Control variables and counters.
+- Auxiliary structures to store the PickPath instances and path stops;
+- Simple variables (counters, indexes). 
 
 **Space Complexity:**
-- Auxiliary structures with up to `n` elements: O(n)
+- Auxiliary structures with up to `n²` elements: O(n²)
 - Simple variables (counters, indexes): O(1)  
-  **Total:** O(n)
+  **Total:** O(n²)
 
 ---
 
 ## 5. Case Analysis
-| Case             | Description                                   | Complexity |
-|------------------|-----------------------------------------------|------------|
-| **Best case**    | Sequence already ordered (minimal operations) | O(n)       |
-| **Average case** | Part of the sequence requires reorganization  | O(n log n) |
-| **Worst case**   | Fully inverted sequence / repeated operations | O(n²)      |
+| Case             | Description                                                   | Complexity |
+|------------------|---------------------------------------------------------------|------------|
+| **Best case**    | Sequence properly ordered and formattted                      | O(n²)      |
+| **Average case** | Sequence relatibely well ordered, maybe not as well formatted | O(n²)      |
+| **Worst case**   | Fully inverted sequence / repeated operations                 | O(n²)      |
 
 ---
 
 ## 6. Conclusion
-The `WagonUnloading.java` file presents a **time complexity ranging from O(n) to O(n²)** depending on the case and data structure used.  
-The **space complexity** is O(n), proportional to the number of wagons processed.
+The `PickPathUI.java` file presents a **time complexity set in O(1)** depending on the duration of the PickPathController running time.
+The **space complexity** is O(1), proportional to the number lines in the file.
+
+The `PickPathController.java` file presents a **time complexity set in O(n²)** depending on the amount of Allocation and PickStop variables
 
 The algorithm is **efficient for small to medium datasets** and acceptable in a **discrete simulation context**.  
 For large data volumes, optimization is recommended in data access and verification (e.g., using a `HashSet` for O(1) access).

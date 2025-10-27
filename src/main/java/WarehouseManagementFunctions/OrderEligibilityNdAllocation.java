@@ -170,7 +170,7 @@ public class OrderEligibilityNdAllocation implements Runnable{
         }
 
     }
-    private static final double MAX_ALLOCATION_KG = 200.0;
+    public static final double MAX_ALLOCATION_KG = 400.0;
 
     private int maxUnitsPerAllocation(double unitWeight) {
         if (unitWeight <= 0.0) return 0;
@@ -190,7 +190,7 @@ public class OrderEligibilityNdAllocation implements Runnable{
             int chunk = Math.min(remaining, maxPerAlloc);
             Allocation part = new Allocation(
                     o, ol, ol.getSku(),
-                    new Box(sourceBox.getProduct(), chunk, sourceBox.getExpDate()),
+                    new Box(sourceBox.getBoxID(), sourceBox.getProduct(), chunk, sourceBox.getExpDate()),
                     a, b,
                     chunk,
                     unitW

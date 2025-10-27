@@ -18,13 +18,13 @@ public class PickingPlanUI implements Runnable {
 
         if (allocations == null || allocations.isEmpty()) {
             System.out.println("There are no allocations available.");
-            new WarehouseManagementMenu().run();
-            return;
+            Runnable war = new WarehouseManagementMenu();
+            war.run();
         }
 
         PackingMode mode = PackingMode.BFD;               // ou FF / FFD
-        AllocationPolicy policy = AllocationPolicy.SPLIT_LINE;  // ou DEFER_LINE
-        double capacity = 200.0;
+        AllocationPolicy policy = AllocationPolicy.SPLIT_LINE;// ou DEFER_LINE
+        double capacity = OrderEligibilityNdAllocation.MAX_ALLOCATION_KG;
 
         PickingPlanController controller = new PickingPlanController();
         PickingPlan plan = controller.generatePlan(allocations, mode, capacity, policy);

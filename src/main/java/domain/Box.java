@@ -13,6 +13,9 @@ package domain;
  */
 public class Box {
 
+    /** Unique identifier of this box. */
+    private String boxID;
+
     /** The product stored inside this box. */
     private Items items;
 
@@ -29,7 +32,8 @@ public class Box {
      * @param quantity the quantity of the product units contained in the box
      * @param expDate  the expiration date of the product (may be {@code null} if not perishable)
      */
-    public Box(Items items, int quantity, String expDate) {
+    public Box(String boxid, Items items, int quantity, String expDate) {
+        this.boxID = boxid;
         this.items = items;
         this.quantity = quantity;
         this.expDate = expDate;
@@ -43,7 +47,8 @@ public class Box {
      * @param items    the product stored in this box
      * @param quantity the quantity of the product units contained in the box
      */
-    public Box(Items items, int quantity) {
+    public Box(String boxid, Items items, int quantity) {
+        this.boxID = boxid;
         this.items = items;
         this.quantity = quantity;
         this.expDate = null;
@@ -106,6 +111,26 @@ public class Box {
     }
 
     /**
+     * Returns the unique identifier of this box.
+     *
+     * @return the box ID
+     */
+
+    public String getBoxID() {
+        return boxID;
+    }
+
+    /**
+     * sets the identifier of this box.
+     *
+     * @param boxID the new identifier
+     */
+
+    public void setBoxID(String boxID) {
+        this.boxID = boxID;
+    }
+
+    /**
      * Returns a formatted string describing this box.
      * <p>
      * If the expiration date is available, it is appended at the end of the description;
@@ -123,16 +148,18 @@ public class Box {
     public String toString() {
         if (expDate != null) {
             return String.format(
-                    "Box of %d units of %s, expires on %s",
+                    "Box of %d units of %s, expires on %s: ID %s",
                     this.quantity,
                     this.items.toString(),
-                    this.expDate
+                    this.expDate,
+                    this.boxID
             );
         }
         return String.format(
-                "Box of %d units of %s",
+                "Box of %d units of %s: ID %s",
                 this.quantity,
-                this.items.toString()
+                this.items.toString(),
+                this.boxID
         );
     }
 }
