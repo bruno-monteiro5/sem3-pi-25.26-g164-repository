@@ -17,26 +17,18 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Test suite for {@link InventoryAdapter}.
  * <p>
- * This test class ensures full branch coverage of
- * {@link InventoryPort#restockReturnedBox(String, String, int, String, LocalDateTime)},
- * verifying the correct interaction with {@link WarehouseRepository} and
- * the underlying warehouse domain model.
- * <p>
- * Covered scenarios:
- * <ul>
- *   <li>Warehouse not initialized (throws {@link IllegalStateException});</li>
- *   <li>Reuse of existing {@link Items} by matching SKU;</li>
- *   <li>Creation of a minimal {@link Items} when SKU not found;</li>
- *   <li>Placement of boxes in the first available bay with capacity;</li>
- *   <li>No capacity available (throws generic {@link Exception});</li>
- *   <li>Box creation with and without an expiry date.</li>
- * </ul>
+ * Each test method documents its scenario, preconditions and expected outcome,
+ * ensuring full branch coverage of
+ * {@link InventoryPort#restockReturnedBox(String, String, int, String, LocalDateTime)}
+ * and verifying correct interaction with {@link WarehouseRepository} and the warehouse model.
  */
 class InventoryAdapterTest {
 
     /**
-     * Cleans up static state after each test to prevent side effects
-     * between consecutive test executions.
+     * Cleans up the static warehouse state after each test to prevent interference
+     * between test executions.
+     *
+     * @see WarehouseRepository#setCurrentWarehouse(Warehouse)
      */
     @AfterEach
     void cleanup() {
@@ -45,13 +37,16 @@ class InventoryAdapterTest {
 
     /**
      * Creates a temporary in-memory warehouse with a single aisle and one bay
-     * of the specified capacity.
-     * <p>
-     * The constructed warehouse is set as the active instance
-     * in {@link WarehouseRepository}.
+     * of the specified capacity, setting it as the active warehouse.
      *
-     * @param capacity the number of boxes that the single bay can hold
-     * @return the created {@link Bay} instance for direct inspection
+     * Preconditions:
+     *  - Positive capacity value.
+     *
+     * Expected:
+     *  - A new {@link Warehouse} is created with one {@link Aisle} and one {@link Bay}.
+     *
+     * @param capacity maximum number of boxes the bay can hold
+     * @return the created {@link Bay} instance
      */
     private Bay newWarehouseWithSingleBay(int capacity) {
         Warehouse w = new Warehouse("W1");
@@ -66,6 +61,14 @@ class InventoryAdapterTest {
     /**
      * Verifies that calling {@code restockReturnedBox} without initializing
      * a warehouse triggers an {@link IllegalStateException}.
+     *
+     * Scenario:
+     *  - No warehouse has been configured in {@link WarehouseRepository}.
+     *
+     * Expected:
+     *  - Method throws {@link IllegalStateException} with message mentioning “warehouse”.
+     *
+     * @see InventoryAdapter#restockReturnedBox(String, String, int, String, LocalDateTime)
      */
     @Test
     void restock_warehouseNotInitialized_throwsIllegalState() {
@@ -80,6 +83,15 @@ class InventoryAdapterTest {
     /**
      * Verifies that when a box with a matching SKU already exists in stock,
      * the adapter reuses the same {@link Items} instance rather than creating a new one.
+     *
+     * Preconditions:
+     *  - Existing box with the same SKU is already stored in a bay with free capacity.
+     *
+     * Expected:
+     *  - Newly restocked box references the same {@link Items} object as the existing one;
+     *  - Expiry date is {@code null} when not provided.
+     *
+     * @see InventoryAdapter#restockReturnedBox(String, String, int, String, LocalDateTime)
      */
     @Test
     void restock_reusesExistingItemsBySku_inSameBay() throws Exception {
@@ -105,8 +117,18 @@ class InventoryAdapterTest {
 
     /**
      * Verifies that if the SKU is not present in the warehouse,
-     * the adapter creates a minimal {@link Items} instance and places the box
+     * the adapter creates a minimal {@link Items} instance and places the new box
      * in the first bay with available capacity.
+     *
+     * Scenario:
+     *  - Warehouse contains other SKUs but not the one being restocked.
+     *
+     * Expected:
+     *  - A new {@link Items} object is created for the missing SKU;
+     *  - Box is placed in the first available bay;
+     *  - Expiry date is correctly assigned.
+     *
+     * @see InventoryAdapter#restockReturnedBox(String, String, int, String, LocalDateTime)
      */
     @Test
     void restock_createsNewItemsWhenSkuNotFound_andPlacesInFirstBay() throws Exception {
@@ -130,8 +152,16 @@ class InventoryAdapterTest {
     }
 
     /**
-     * Verifies that when no bay has capacity available, the adapter
-     * throws a generic {@link Exception} indicating the condition.
+     * Verifies that when no bay has available capacity,
+     * the adapter throws a generic {@link Exception}.
+     *
+     * Preconditions:
+     *  - Warehouse exists but all bays are full.
+     *
+     * Expected:
+     *  - {@link Exception} is thrown with message containing “no available capacity”.
+     *
+     * @see InventoryAdapter#restockReturnedBox(String, String, int, String, LocalDateTime)
      */
     @Test
     void restock_noCapacityAnywhere_throwsException() {
