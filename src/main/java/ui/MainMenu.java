@@ -11,13 +11,15 @@ public class MainMenu implements Runnable{
     }
 
     public static void menu(){
-        Option[] options = new Option[2];
+        Option[] options = new Option[3];
         Runnable warehouse = new WarehouseManagementMenu();
+        Runnable travelTime = new TravelTimeCalculatorUI();
 
         System.out.println("####MAIN MENU####");
 
         options[0] = new Option("Warehouse Management Functions", warehouse);
-        options[1] = new Option("Exit", () -> System.exit(0));
+        options[1] = new Option("Calculate Travel Time (USLP03)", travelTime);
+        options[2] = new Option("Exit", () -> System.exit(0));
         Utils.listAndSelect(options);
     }
 }
