@@ -103,24 +103,27 @@ public class TravelTimeCalculatorUI implements Runnable {
             System.out.printf("Locomotive: %s\n\n", locomotive.getName());
 
             System.out.println("─".repeat(80));
-            System.out.printf("%-10s | %-12s | %-15s | %-12s | %-10s\n",
-                    "Segment", "Length (m)", "Speed Limit", "Used Speed", "Time (min)");
+            System.out.printf("%-10s | %-12s | %-15s | %-12s | %-16s\n",
+                    "Segment", "Length (m)", "Speed Limit", "Used Speed", "Time (hh:mm:ss)");
             System.out.println("─".repeat(80));
 
             for (TravelTimeResult.SegmentTime st : result.getSegmentTimes()) {
-                System.out.printf("%-10d | %,12d | %12d km/h | %9d km/h | %10.2f\n",
+                String segHms = formatHMS(st.getTimeMinutes());
+                System.out.printf("%-10d | %,12d | %12d km/h | %9d km/h | %16s\n",
                         st.getSegment().getId(),
                         st.getSegment().getLength(),
                         st.getSegment().getSpeedLimit(),
                         st.getSpeedUsed(),
-                        st.getTimeMinutes()
+                        segHms
                 );
             }
 
             System.out.println("─".repeat(80));
             System.out.printf("\n✓ Total Distance: %.2f km\n", result.getTotalDistanceKm());
-            System.out.printf("✓ Total Time: %.2f minutes (%.2f hours)\n",
-                    result.getTotalTimeMinutes(), result.getTotalTimeMinutes() / 60);
+            String totalHms = formatHMS(result.getTotalTimeMinutes());
+            System.out.printf("✓Total time: %s (%.2f min)%n",
+                    totalHms, result.getTotalTimeMinutes(), result.getTotalDistanceKm());
+
             System.out.println("\n" + "═".repeat(80));
 
         } catch (IllegalArgumentException e) {
@@ -129,6 +132,7 @@ public class TravelTimeCalculatorUI implements Runnable {
             System.err.println("\n[DATABASE ERROR] " + e.getMessage());
         }
     }
+
 
     private int getValidChoice(int min, int max) {
         int choice = -1;
@@ -147,6 +151,15 @@ public class TravelTimeCalculatorUI implements Runnable {
         }
         return choice;
     }
+
+    private static String formatHMS(double minutes) {
+        long totalSeconds = Math.round(minutes * 60.0); //
+        long hours = totalSeconds / 3600;
+        long minutesPart = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+        return String.format("%02d:%02d:%02d", hours, minutesPart, seconds);
+    }
+
 
     private void returnToMainMenu() {
         new MainMenu().run();
