@@ -1,21 +1,21 @@
 package domain;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test suite for {@link ReturnDecision}.
  * <p>
- * Verifies that all fields are copied correctly from the source {@link ReturnEntry},
- * that the timestamp is generated, and that {@link #toString()} includes every element.
+ * Each test method documents the scenario, preconditions and expected outcome,
+ * verifying correct field copying, timestamp generation, and string formatting.
  */
 class ReturnDecisionTest {
 
     /**
-     * Helper to create a sample ReturnEntry for tests.
+     * Helper method to create a sample {@link ReturnEntry} used across tests.
+     *
+     * @return a valid {@link ReturnEntry} with predefined attributes
      */
     private ReturnEntry sampleEntry() {
         return new ReturnEntry(
@@ -29,7 +29,19 @@ class ReturnDecisionTest {
     }
 
     /**
-     * Verifies that constructor copies all values and sets a non-null timestamp.
+     * Verifies that the constructor copies all values from the provided {@link ReturnEntry}
+     * and assigns a non-null timestamp.
+     *
+     * Preconditions:
+     *  - Valid {@link ReturnEntry} and {@link ReturnAction} provided;
+     *  - Positive restocked and discarded quantities.
+     *
+     * Expected:
+     *  - All fields in {@link ReturnDecision} match their corresponding values from the entry;
+     *  - Timestamp is automatically generated and is recent.
+     *
+     * @see ReturnDecision#ReturnDecision(ReturnEntry, ReturnAction, int, int)
+     * @see ReturnDecision#getTimestamp()
      */
     @Test
     void constructor_copiesValues_andSetsTimestamp() {
@@ -48,7 +60,17 @@ class ReturnDecisionTest {
     }
 
     /**
-     * Verifies that toString includes all field values and is formatted as expected.
+     * Verifies that {@link ReturnDecision#toString()} includes all field names and values
+     * and follows the documented output format.
+     *
+     * Scenario:
+     *  - Create a decision with known parameters.
+     *
+     * Expected:
+     *  - String contains identifiers, action type, quantities, and a timestamp
+     *    in ISO-8601 date-time format.
+     *
+     * @see ReturnDecision#toString()
      */
     @Test
     void toString_includesAllFields() {

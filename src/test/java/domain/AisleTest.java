@@ -160,11 +160,19 @@ class AisleTest {
     @Test
     void toString_formatsIdAndCount() {
         Aisle aisle = new Aisle(4);
-        aisle.addBay(new Bay(400, 1));
+        Bay bay = new Bay(400, 1);
+        aisle.addBay(bay);
 
-        String expected = "Aisle ID: 4, with 1 bays";
-        assertEquals(expected, aisle.toString());
+        String actual = aisle.toString();
+        String header = "Aisle ID: 4, with 1 bays";
+
+        // A implementação adiciona também a descrição de cada Bay e uma quebra de linha.
+        // Validamos o cabeçalho e que contém a toString() do bay.
+        assertTrue(actual.startsWith(header));
+        assertTrue(actual.contains(bay.toString()));
+        assertTrue(actual.endsWith("\n") || actual.endsWith(bay.toString() + "\n"));
     }
+
 
     /**
      * Tests the search for the first available bay (capacity not reached).

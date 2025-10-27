@@ -183,7 +183,7 @@ class BoxTest {
      *  - Construct a box without expiry.
      *
      * Expected:
-     *  - Format: "Box of {quantity} units of {items.toString()}".
+     *  - Format: "Box of {quantity} units of {items.toString()}: ID {boxID}".
      *  - {@link Items#toString()} must appear with two decimal places for volume/weight.
      *
      * @see Box#toString()
@@ -192,10 +192,10 @@ class BoxTest {
     @Test
     void toString_withoutExpiry_formatsCorrectly() {
         Items items = new Items("SKU-X", "Prod-X", "Category-X", "Pack-X", 1.20f, 3.40f);
-        Box box = new Box(items, 2);
+        Box box = new Box(items, 2); // boxID == null
 
         String expectedItems = "Product Prod-X, SKU: SKU-X, Category: Category-X, Pack: Pack-X, Volume: 1.20, Weight: 3.40";
-        String expected = "Box of 2 units of " + expectedItems;
+        String expected = "Box of 2 units of " + expectedItems + ": ID null";
 
         assertEquals(expected, box.toString());
     }
@@ -207,7 +207,7 @@ class BoxTest {
      *  - Construct a box with an explicit expiry.
      *
      * Expected:
-     *  - Format: "Box of {quantity} units of {items.toString()}, expires on {expDate}".
+     *  - Format: "Box of {quantity} units of {items.toString()}, expires on {expDate}: ID {boxID}".
      *
      * @see Box#toString()
      * @see Items#toString()
@@ -215,11 +215,100 @@ class BoxTest {
     @Test
     void toString_withExpiry_formatsCorrectly() {
         Items items = new Items("SKU-Y", "Prod-Y", "Category-Y", "Pack-Y", 2.34f, 5.67f);
-        Box box = new Box(items, 3, "2028-09-15");
+        Box box = new Box(items, 3, "2028-09-15"); // boxID == null
 
         String expectedItems = "Product Prod-Y, SKU: SKU-Y, Category: Category-Y, Pack: Pack-Y, Volume: 2.34, Weight: 5.67";
-        String expected = "Box of 3 units of " + expectedItems + ", expires on 2028-09-15";
+        String expected = "Box of 3 units of " + expectedItems + ", expires on 2028-09-15: ID null";
 
         assertEquals(expected, box.toString());
     }
+
+    /**
+     * Verifies that the constructor with box ID and expiry initializes all fields.
+     *
+     * Preconditions:
+     *  - Valid {@link Items}, positive quantity, non-null expiry; explicit box ID supplied.
+     *
+     * Expected:
+     *  - All getters return the values passed to the constructor, including {@code boxID}.
+     *
+     * @see Box#Box(String, Items, int, String)
+     * @see Box#getBoxID()
+     * @see Box#getProduct()
+     * @see Box#getQuantity()
+     * @see Box#getExpDate()
+     */
+    @Test
+    void constructor_withBoxIdAndExpiry_initializesAllFields() {
+        Items items = new Items("SKU-A", "Name-A", "Cat-A", "Pack-A", 1.00f, 2.00f);
+        Box box = new Box("B-A", items, 10, "2032-12-31");
+
+        assertEquals("B-A", box.getBoxID());
+        assertSame(items, box.getProduct());
+        assertEquals(10, box.getQuantity());
+        assertEquals("2032-12-31", box.getExpDate());
+    }
+
+    /**
+     * Verifies that the constructor with box ID and without expiry sets {@code expDate} to {@code null}.
+     *
+     * Preconditions:
+     *  - Valid {@link Items}, positive quantity; explicit box ID supplied; no expiry.
+     *
+     * Expected:
+     *  - Product, quantity and box ID set; expiry is {@code null}.
+     *
+     * @see Box#Box(String, Items, int)
+     * @see Box#getBoxID()
+     * @see Box#getExpDate()
+     */
+    @Test
+    void constructor_withBoxIdWithoutExpiry_setsNullExpiry() {
+        Items items = new Items("SKU-B", "Name-B", "Cat-B", "Pack-B", 0.75f, 1.25f);
+        Box box = new Box("B-B", items, 6);
+
+        assertEquals("B-B", box.getBoxID());
+        assertSame(items, box.getProduct());
+        assertEquals(6, box.getQuantity());
+        assertNull(box.getExpDate());
+    }
+
+    /**
+     * Tests the getter for the box identifier.
+     *
+     * Scenario:
+     *  - Construct a box with an explicit box ID and read it back.
+     *
+     * Expected:
+     *  - Returned value matches the constructor value.
+     *
+     * @see Box#getBoxID()
+     */
+    @Test
+    void getBoxID_returnsCurrentIdentifier() {
+        Box box = new Box("B-C", new Items("S-C", "N-C", "C-C", "P-C", 1.10f, 2.10f), 3);
+        assertEquals("B-C", box.getBoxID());
+    }
+
+    /**
+     * Tests the setter for the box identifier.
+     *
+     * Scenario:
+     *  - Update the box ID and read it back.
+     *
+     * Expected:
+     *  - Getter returns the updated identifier.
+     *
+     * @see Box#setBoxID(String)
+     * @see Box#getBoxID()
+     */
+    @Test
+    void setBoxID_updatesIdentifier() {
+        Box box = new Box(new Items("S-D", "N-D", "C-D", "P-D", 2.20f, 3.30f), 4);
+        assertNull(box.getBoxID());
+
+        box.setBoxID("B-D");
+        assertEquals("B-D", box.getBoxID());
+    }
+
 }

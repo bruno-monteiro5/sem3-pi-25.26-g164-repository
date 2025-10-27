@@ -1,19 +1,27 @@
 package domain;
 
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test suite for {@link ReturnReason}.
  * <p>
- * Verifies correct parsing behavior of {@link ReturnReason#fromString(String)}
- * and ensures all enum constants are defined and accessible.
+ * Each test method documents its scenario, preconditions and expected outcome,
+ * verifying correct parsing behavior of {@link ReturnReason#fromString(String)}
+ * and ensuring all enum constants are defined and accessible.
  */
 class ReturnReasonTest {
 
     /**
-     * Verifies that all expected enum constants exist and are in order.
+     * Verifies that all expected enum constants are defined and appear in the declared order.
+     *
+     * Preconditions:
+     *  - {@link ReturnReason} defines exactly four constants.
+     *
+     * Expected:
+     *  - {@link ReturnReason#values()} returns all constants in declaration order.
+     *
+     * @see ReturnReason#values()
      */
     @Test
     void values_containsAllExpectedConstants() {
@@ -30,7 +38,16 @@ class ReturnReasonTest {
     }
 
     /**
-     * Verifies that {@code fromString} parses hyphenated, lowercase, and trimmed inputs correctly.
+     * Verifies that {@link ReturnReason#fromString(String)} correctly parses case-insensitive
+     * and hyphenated text values into the corresponding enum constants.
+     *
+     * Scenario:
+     *  - Input strings contain lower/upper case letters, optional hyphens or spaces.
+     *
+     * Expected:
+     *  - Returned constant matches the logical reason, ignoring case and formatting.
+     *
+     * @see ReturnReason#fromString(String)
      */
     @Test
     void fromString_parsesCaseInsensitiveAndHyphenatedValues() {
@@ -42,7 +59,16 @@ class ReturnReasonTest {
     }
 
     /**
-     * Verifies that {@code fromString} throws an exception for invalid inputs.
+     * Verifies that {@link ReturnReason#fromString(String)} throws an exception
+     * when the provided string does not match any valid constant.
+     *
+     * Preconditions:
+     *  - Input text does not correspond to any known reason.
+     *
+     * Expected:
+     *  - {@link IllegalArgumentException} is thrown.
+     *
+     * @see ReturnReason#fromString(String)
      */
     @Test
     void fromString_invalidValue_throwsException() {
@@ -50,7 +76,15 @@ class ReturnReasonTest {
     }
 
     /**
-     * Verifies that valueOf returns the correct constant for each name.
+     * Verifies that {@link Enum#valueOf(Class, String)} returns the correct constant for valid names.
+     *
+     * Scenario:
+     *  - Invoke {@code valueOf()} with known constant names.
+     *
+     * Expected:
+     *  - Correct constant returned for each name.
+     *
+     * @see ReturnReason#valueOf(String)
      */
     @Test
     void valueOf_returnsCorrectConstant() {

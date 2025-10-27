@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class TrolleyTest {
 
-    // ---- helpers ------------------------------------------------------------
 
     private Allocation alloc(String orderId, int lineNo, String sku,
                              int aisleId, int bayId,
@@ -27,7 +26,6 @@ class TrolleyTest {
         return new Allocation(order, line, sku, box, aisle, bay, allocQty, unitWeight);
     }
 
-    // ---- tests --------------------------------------------------------------
 
     /**
      * Verifies that the constructor initializes ID, capacity, usedKg and items.

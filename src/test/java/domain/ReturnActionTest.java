@@ -7,12 +7,21 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Test suite for {@link ReturnAction}.
  * <p>
- * Ensures all enum constants are defined and accessible via {@link Enum#valueOf(Class, String)}.
+ * Each test method documents its scenario, preconditions and expected outcome,
+ * verifying the correct behaviour of the {@link Enum} methods defined by {@link ReturnAction}.
  */
 class ReturnActionTest {
 
     /**
-     * Verifies that all expected enum constants exist and have the correct names.
+     * Verifies that all expected enum constants are defined and appear in the correct order.
+     *
+     * Preconditions:
+     *  - {@link ReturnAction} defines exactly three constants: RESTOCK_ALL, DISCARD_ALL and PARTIAL.
+     *
+     * Expected:
+     *  - {@link ReturnAction#values()} returns an array of length three containing those constants in declaration order.
+     *
+     * @see ReturnAction#values()
      */
     @Test
     void values_containsAllExpectedConstants() {
@@ -25,7 +34,16 @@ class ReturnActionTest {
     }
 
     /**
-     * Verifies that valueOf returns the correct enum constant for each name.
+     * Verifies that {@link Enum#valueOf(Class, String)} correctly resolves
+     * each constant name defined in {@link ReturnAction}.
+     *
+     * Scenario:
+     *  - Call {@code valueOf()} with valid constant names.
+     *
+     * Expected:
+     *  - Each name returns its matching constant.
+     *
+     * @see ReturnAction#valueOf(String)
      */
     @Test
     void valueOf_returnsCorrectConstant() {
@@ -35,7 +53,16 @@ class ReturnActionTest {
     }
 
     /**
-     * Verifies that an invalid name triggers IllegalArgumentException.
+     * Verifies that {@link Enum#valueOf(Class, String)} throws an {@link IllegalArgumentException}
+     * when provided with a name that does not match any existing constant.
+     *
+     * Preconditions:
+     *  - Input string is not one of the defined constant names.
+     *
+     * Expected:
+     *  - {@link IllegalArgumentException} is thrown.
+     *
+     * @see ReturnAction#valueOf(String)
      */
     @Test
     void valueOf_invalidName_throwsException() {
