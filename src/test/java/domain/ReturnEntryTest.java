@@ -1,105 +1,189 @@
-// src/test/java/domain/ReturnEntryTest.java
 package domain;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
-
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test suite for {@link ReturnEntry}.
+ * <p>
+ * Each test method documents its scenario, preconditions and expected outcome,
+ * verifying constructor validation, normalization, comparison, equality and string formatting.
+ */
 class ReturnEntryTest {
 
+    /**
+     * Utility method to parse ISO date-time strings.
+     *
+     * @param iso the ISO-8601 date-time string
+     * @return a {@link LocalDateTime} instance
+     */
+    private static LocalDateTime t(String iso) {
+        return LocalDateTime.parse(iso);
+    }
+
+    /**
+     * Helper to create a {@link ReturnEntry} instance with given parameters.
+     *
+     * @param id   the return identifier
+     * @param sku  the product SKU
+     * @param qty  the quantity
+     * @param reason the {@link ReturnReason}
+     * @param ts   the timestamp (ISO format)
+     * @param exp  the expiry date (nullable)
+     * @return configured {@link ReturnEntry}
+     */
+    private static ReturnEntry e(String id, String sku, int qty, ReturnReason reason, String ts, String exp) {
+        return new ReturnEntry(id, sku, qty, reason, t(ts), exp);
+    }
+
+    /**
+     * Verifies that a valid construction sets all fields and normalizes blank expiry to {@code null}.
+     *
+     * Preconditions:
+     *  - All arguments valid and non-null except expiry (blank string).
+     *
+     * Expected:
+     *  - All getters reflect constructor values;
+     *  - Blank expiry string converted to {@code null}.
+     *
+     * @see ReturnEntry#ReturnEntry(String, String, int, ReturnReason, LocalDateTime, String)
+     */
     @Test
-    void testValidEntryAndExpiryNormalization() {
-        LocalDateTime ts = LocalDateTime.now();
-        ReturnEntry e = new ReturnEntry("ID1", "SKU", 10, ReturnReason.EXPIRED, ts, "");
-        assertEquals("ID1", e.getReturnId());
-        assertEquals("SKU", e.getSku());
-        assertEquals(10, e.getQuantity());
-        assertEquals(ReturnReason.EXPIRED, e.getReason());
-        assertEquals(ts, e.getTimestamp());
-        // Blank expiry normalized to null
+    void constructor_valid_setsFields_andNormalizesBlankExpiry() {
+        ReturnEntry e = new ReturnEntry(
+                "RET-001",
+                "SKU1",
+                5,
+                ReturnReason.CUSTOMER_REMORSE,
+                t("2025-10-27T10:00:00"),
+                "   "
+        );
+
+        assertEquals("RET-001", e.getReturnId());
+        assertEquals("SKU1", e.getSku());
+        assertEquals(5, e.getQuantity());
+        assertEquals(ReturnReason.CUSTOMER_REMORSE, e.getReason());
+        assertEquals(t("2025-10-27T10:00:00"), e.getTimestamp());
         assertNull(e.getExpiryDate());
     }
 
+    /**
+     * Verifies that invalid constructor arguments trigger {@link IllegalArgumentException}.
+     *
+     * Scenario:
+     *  - Test each validation rule: null/blank identifiers, non-positive quantity, null reason or timestamp.
+     *
+     * Expected:
+     *  - An {@link IllegalArgumentException} is thrown for each invalid case.
+     *
+     * @see ReturnEntry#ReturnEntry(String, String, int, ReturnReason, LocalDateTime, String)
+     */
     @Test
-    void testInvalidArguments() {
-        LocalDateTime ts = LocalDateTime.now();
-        // null or blank returnId
+    void constructor_invalidArguments_throwIAE() {
         assertThrows(IllegalArgumentException.class, () ->
-                new ReturnEntry(null, "SKU", 1, ReturnReason.EXPIRED, ts, null)
-        );
+                new ReturnEntry(null, "SKU", 1, ReturnReason.DAMAGED, t("2025-10-27T10:00:00"), null));
+
         assertThrows(IllegalArgumentException.class, () ->
-                new ReturnEntry(" ", "SKU", 1, ReturnReason.EXPIRED, ts, null)
-        );
-        // null or blank sku
+                new ReturnEntry("  ", "SKU", 1, ReturnReason.DAMAGED, t("2025-10-27T10:00:00"), null));
+
         assertThrows(IllegalArgumentException.class, () ->
-                new ReturnEntry("ID", "", 1, ReturnReason.EXPIRED, ts, null)
-        );
-        // non-positive quantity
+                new ReturnEntry("RET-1", null, 1, ReturnReason.DAMAGED, t("2025-10-27T10:00:00"), null));
+
         assertThrows(IllegalArgumentException.class, () ->
-                new ReturnEntry("ID", "SKU", 0, ReturnReason.EXPIRED, ts, null)
-        );
-        // null reason
+                new ReturnEntry("RET-1", "  ", 1, ReturnReason.DAMAGED, t("2025-10-27T10:00:00"), null));
+
         assertThrows(IllegalArgumentException.class, () ->
-                new ReturnEntry("ID", "SKU", 1, null, ts, null)
-        );
-        // null timestamp
+                new ReturnEntry("RET-1", "SKU", 0, ReturnReason.DAMAGED, t("2025-10-27T10:00:00"), null));
+
         assertThrows(IllegalArgumentException.class, () ->
-                new ReturnEntry("ID", "SKU", 1, ReturnReason.EXPIRED, null, null)
-        );
+                new ReturnEntry("RET-1", "SKU", -5, ReturnReason.DAMAGED, t("2025-10-27T10:00:00"), null));
+
+        assertThrows(IllegalArgumentException.class, () ->
+                new ReturnEntry("RET-1", "SKU", 1, null, t("2025-10-27T10:00:00"), null));
+
+        assertThrows(IllegalArgumentException.class, () ->
+                new ReturnEntry("RET-1", "SKU", 1, ReturnReason.DAMAGED, null, null));
     }
 
+    /**
+     * Verifies natural ordering: newer timestamps first, then by returnId ascending.
+     *
+     * Scenario:
+     *  - Several entries with distinct timestamps and IDs.
+     *
+     * Expected:
+     *  - Newer entries appear first;
+     *  - When timestamps match, sorting uses ascending returnId.
+     *
+     * @see ReturnEntry#compareTo(ReturnEntry)
+     */
     @Test
-    void testCompareToOrdering() {
-        LocalDateTime t1 = LocalDateTime.parse("2025-01-01T10:00:00");
-        LocalDateTime t2 = LocalDateTime.parse("2025-01-02T10:00:00");
-        ReturnEntry e1 = new ReturnEntry("A", "SKU", 1, ReturnReason.DAMAGED, t1, null);
-        ReturnEntry e2 = new ReturnEntry("B", "SKU", 1, ReturnReason.DAMAGED, t2, null);
-        // e2 has newer time, so e2 should come before e1 (i.e., e2.compareTo(e1) < 0)
-        assertTrue(e2.compareTo(e1) < 0);
-        // Same timestamp, compare by returnId lexicographically
-        ReturnEntry e3 = new ReturnEntry("A01", "SKU", 1, ReturnReason.DAMAGED, t1, null);
-        ReturnEntry e4 = new ReturnEntry("B02", "SKU", 1, ReturnReason.DAMAGED, t1, null);
-        assertTrue(e3.compareTo(e4) < 0); // "A01" < "B02"
-        assertTrue(e4.compareTo(e3) > 0);
+    void compareTo_ordersByTimestampDesc_thenIdAsc() {
+        ReturnEntry newest = e("RET-100", "SKU", 1, ReturnReason.DAMAGED, "2025-10-27T13:00:00", null);
+        ReturnEntry sameTsA = e("RET-001", "SKU", 1, ReturnReason.DAMAGED, "2025-10-27T12:00:00", null);
+        ReturnEntry sameTsB = e("RET-002", "SKU", 1, ReturnReason.DAMAGED, "2025-10-27T12:00:00", null);
+        ReturnEntry oldest = e("RET-000", "SKU", 1, ReturnReason.DAMAGED, "2025-10-27T09:00:00", null);
+
+        assertTrue(newest.compareTo(sameTsA) < 0);
+        assertTrue(sameTsA.compareTo(newest) > 0);
+
+        assertTrue(sameTsA.compareTo(sameTsB) < 0);
+        assertTrue(sameTsB.compareTo(sameTsA) > 0);
+
+        assertTrue(oldest.compareTo(newest) > 0);
     }
 
+    /**
+     * Verifies equality and hash code semantics based solely on {@code returnId}.
+     *
+     * Preconditions:
+     *  - Two entries share the same returnId but differ in other attributes.
+     *
+     * Expected:
+     *  - Entries with the same returnId are equal and share the same hash code;
+     *  - Different IDs result in inequality.
+     *
+     * @see ReturnEntry#equals(Object)
+     * @see ReturnEntry#hashCode()
+     */
     @Test
-    void testEqualsAndHashCode() {
-        LocalDateTime ts = LocalDateTime.now();
-        ReturnEntry e1 = new ReturnEntry("ID1", "SKU", 5, ReturnReason.CYCLE_COUNT, ts, null);
-        ReturnEntry e2 = new ReturnEntry("ID1", "SKU", 5, ReturnReason.CYCLE_COUNT, ts, null);
-        // Same ID => equal (per equals implementation)
-        assertEquals(e1, e2);
-        assertEquals(e1.hashCode(), e2.hashCode());
-        // Different ID => not equal
-        ReturnEntry e3 = new ReturnEntry("ID2", "SKU", 5, ReturnReason.CYCLE_COUNT, ts, null);
-        assertNotEquals(e1, e3);
+    void equalsAndHashCode_basedOnReturnId_only() {
+        ReturnEntry a1 = e("RET-42", "SKU-A", 3, ReturnReason.CUSTOMER_REMORSE, "2025-10-27T10:00:00", null);
+        ReturnEntry a2 = e("RET-42", "DIFF", 99, ReturnReason.EXPIRED, "2025-10-27T11:00:00", "2026-01-01");
+        ReturnEntry b = e("RET-43", "SKU-A", 3, ReturnReason.CUSTOMER_REMORSE, "2025-10-27T10:00:00", null);
+
+        assertEquals(a1, a2);
+        assertEquals(a1.hashCode(), a2.hashCode());
+
+        assertNotEquals(a1, b);
+        assertNotEquals(a1.hashCode(), b.hashCode());
+
+        assertEquals(a1, a1);
+        assertNotEquals(a1, null);
+        assertNotEquals(a1, "not-entry");
     }
 
+    /**
+     * Verifies that {@link ReturnEntry#toString()} includes all field names and values.
+     *
+     * Scenario:
+     *  - Construct an entry with known parameters.
+     *
+     * Expected:
+     *  - Returned string contains all main attributes in readable format.
+     *
+     * @see ReturnEntry#toString()
+     */
     @Test
-    void testToStringContainsKeyFields() {
-        LocalDateTime ts = LocalDateTime.parse("2025-10-26T15:00:00");
-        ReturnEntry e = new ReturnEntry(
-                "RET001", "SKU123", 5, ReturnReason.DAMAGED, ts, "2026-01-01");
-
-        String str = e.toString();
-        assertNotNull(str);
-
-        // Campos essenciais
-        assertTrue(str.contains("RET001"), "toString should contain returnId");
-        assertTrue(str.contains("SKU123"), "toString should contain sku");
-        assertTrue(str.contains("5"), "toString should contain quantity");
-        assertTrue(str.contains(ReturnReason.DAMAGED.name()), "toString should contain reason enum name");
-
-        // Timestamp: valida só o prefixo até aos minutos para não falhar por segundos omitidos
-        String tsPrefix = ts.toString().substring(0, 16); // "2025-10-26T15:00"
-        assertTrue(str.contains(tsPrefix), "toString should contain timestamp prefix: " + tsPrefix);
-
-        // Expiry se não for null deve aparecer algures
-        assertTrue(str.contains("2026-01-01"), "toString should contain expiry date when present");
+    void toString_includesAllFields() {
+        ReturnEntry e = e("RET-9", "SKU9", 7, ReturnReason.CYCLE_COUNT, "2025-10-27T10:00:00", "2025-12-31");
+        String s = e.toString();
+        assertTrue(s.contains("returnId='RET-9'"));
+        assertTrue(s.contains("sku='SKU9'"));
+        assertTrue(s.contains("quantity=7"));
+        assertTrue(s.contains("reason=CYCLE_COUNT"));
+        assertTrue(s.contains("timestamp=2025-10-27T10:00"));
+        assertTrue(s.contains("expiryDate='2025-12-31'"));
     }
-
-
 }
