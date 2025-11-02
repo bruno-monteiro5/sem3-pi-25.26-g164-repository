@@ -39,14 +39,6 @@ abstract class Endpoint {
     name
 }
 
-class Owner {
-    name
-}
-
-class Operator {
-    name
-}
-
 class Station extends Endpoint{
     country
     timeZone
@@ -257,15 +249,12 @@ RailLine "1" --> "1" Endpoint : from
 RailLine "1" --> "1" Endpoint : to
 LineSegment "1" --> "1" Endpoint : from
 LineSegment "1" --> "1" Endpoint : to
-RailLine "1" --> "1" Owner : has
-RailLine "1" --> "*" Operator : used by of
 Terminal "1" ---> "*" Warehouse : may include
 Station "1" ---> "*" Warehouse : may include
 Terminal "1" ---> "*" RefrigeratedArea : may include
 Station "1" ---> "*" RefrigeratedArea : may include
 Terminal "1" ---> "*" GrainSilo : may include
 Station "1" ---> "*" GrainSilo : may include
-Operator "1" --- "0..*" RollingStock : owns >
 Train "1" -- "1..*" Locomotive : is composed of >
 Train "1" -- "0..*" Wagon      : is composed of >
 Train "*" ---> "*" RailLine : run on >
