@@ -232,4 +232,164 @@ class PickingPlanControllerTest {
         assertEquals(70.0, usedKgOf(plan.getTrolleys().get(0)), 1e-9);
         assertEquals(80.0, usedKgOf(plan.getTrolleys().get(1)), 1e-9);
     }
+
+    /**
+     * FF + DEFER_LINE: When allocation weight exceeds trolley capacity and no trolleys exist.
+     * <p>
+     * Expected:
+     *  - Creates a new trolley for the overweight allocation.
+     */
+    @Test
+    void ff_whenWeightExceedsCapacity_andNoTrolleys_yieldsNewTrolley() {
+        var ctrl = new PickingPlanController();
+        var list = List.of(alloc("O1", 1, "S1", 1, 1, 10, 20.0, 3.0)); // 60 kg > 50 capacity
+        var plan = ctrl.generatePlan(list, PackingMode.FF, 50.0, AllocationPolicy.DEFER_LINE);
+
+        assertEquals(1, plan.getNumberOfTrolleys());
+        assertEquals(60.0, plan.getTrolleys().get(0).getUsedKg(), 1e-9);
+    }
+
+    /**
+     * FF + SPLIT_LINE: When unit weight is zero, no split should occur.
+     * <p>
+     * Expected:
+     *  - Creates a single trolley with total weight 0.
+     */
+    @Test
+    void ff_unitWeightZero_fallsBackToNewTrolley() {
+        var ctrl = new PickingPlanController();
+        var list = List.of(alloc("O1", 1, "S1", 1, 1, 10, 10.0, 0.0)); // unit weight = 0
+        var plan = ctrl.generatePlan(list, PackingMode.FF, 100.0, AllocationPolicy.SPLIT_LINE);
+
+        assertEquals(1, plan.getNumberOfTrolleys());
+        assertEquals(0.0, plan.getTrolleys().get(0).getUsedKg(), 1e-9);
+    }
+
+    /**
+     * FF + SPLIT_LINE: Força split quando o segundo allocation é ligeiramente maior
+     * que a capacidade restante do último trolley.
+     * <p>
+     * Construction:
+     *  - T1 recebe 40 kg (20×2).
+     *  - Segundo allocation: 21×3 = 63 kg; só 20 cabem no T1 → 1 unidade (3 kg) vai para T2.
+     *
+     * Expected:
+     *  - Dois trolleys: T1=100 (40 + 60), T2=3.
+     */
+    @Test
+    void ff_splitPartial_overExactCapacity_createsSecondTrolleyWithRemainder() {
+        var ctrl = new PickingPlanController();
+        var a1 = alloc("O1", 1, "S1", 1, 1, 50, 20.0, 2.0); // 40 kg -> T1
+        var a2 = alloc("O1", 2, "S2", 1, 1, 50, 21.0, 3.0); // 63 kg -> split: 60 em T1, 3 em T2
+
+        var plan = ctrl.generatePlan(List.of(a1, a2), PackingMode.FF, 100.0, AllocationPolicy.SPLIT_LINE);
+
+        assertEquals(2, plan.getNumberOfTrolleys());
+        assertEquals(100.0, plan.getTrolleys().get(0).getUsedKg(), 1e-9);
+        assertEquals(3.0,    plan.getTrolleys().get(1).getUsedKg(), 1e-9);
+    }
+
+
+    /**
+     * FFD: Verifies allocations are sorted by descending total weight before packing.
+     * <p>
+     * Expected:
+     *  - Heavier allocation is placed first.
+     */
+    @Test
+    void ffd_sortsByWeightDescending_beforeDelegating() {
+        var ctrl = new PickingPlanController();
+        var light = alloc("O", 1, "L", 1, 1, 100, 10.0, 2.0); // 20 kg
+        var heavy = alloc("O", 2, "H", 1, 1, 100, 30.0, 3.0); // 90 kg
+        var plan = ctrl.generatePlan(List.of(light, heavy), PackingMode.FFD, 100.0, AllocationPolicy.DEFER_LINE);
+
+        assertEquals(2, plan.getNumberOfTrolleys());
+        assertEquals(90.0, plan.getTrolleys().get(0).getUsedKg(), 1e-9);
+    }
+
+    /**
+     * BFD: Verifies placement into the trolley that leaves smallest remaining capacity.
+     * <p>
+     * Expected:
+     *  - Single trolley with total used weight 95 (60 + 35).
+     */
+    @Test
+    void bfd_bestNotNull_placesIntoTightestTrolley() {
+        var ctrl = new PickingPlanController();
+        var a1 = alloc("O", 1, "A", 1, 1, 100, 20.0, 3.0); // 60 kg
+        var a2 = alloc("O", 2, "B", 1, 1, 100, 35.0, 1.0); // 35 kg
+        var plan = ctrl.generatePlan(List.of(a1, a2), PackingMode.BFD, 100.0, AllocationPolicy.DEFER_LINE);
+
+        assertEquals(1, plan.getNumberOfTrolleys());
+        assertEquals(95.0, plan.getTrolleys().get(0).getUsedKg(), 1e-9);
+    }
+
+    /**
+     * BFD + SPLIT_LINE: Covers split branch where quantityFits > allocation quantity (clamped).
+     * <p>
+     * Expected:
+     *  - Allocation correctly clamped; trolley weight >= 55.
+     */
+    @Test
+    void bfd_splitBranch_clampsQuantityFits_whenRemainingIsHuge() {
+        var ctrl = new PickingPlanController();
+        var seed = alloc("O", 1, "S", 1, 1, 100, 1.0, 50.0); // 50 kg
+        var small = alloc("O", 2, "X", 1, 1, 100, 5.0, 1.0); // 5 kg
+        var plan = ctrl.generatePlan(List.of(seed, small), PackingMode.BFD, 1000.0, AllocationPolicy.SPLIT_LINE);
+
+        assertTrue(plan.getTrolleys().get(0).getUsedKg() >= 55.0 - 1e-9);
+    }
+
+    /**
+     * FF + DEFER_LINE: Verifies first allocation is never deferred when no trolleys exist.
+     * <p>
+     * Expected:
+     *  - One trolley created normally.
+     */
+    @Test
+    void deferLine_doesNotDeferFirst_whenNoTrolleysYet() {
+        var ctrl = new PickingPlanController();
+        var only = alloc("O1", 1, "S1", 1, 1, 100, 60.0, 1.0);
+        var plan = ctrl.generatePlan(List.of(only), PackingMode.FF, 50.0, AllocationPolicy.DEFER_LINE);
+
+        assertEquals(1, plan.getNumberOfTrolleys());
+    }
+
+    /**
+     * Edge case: Empty allocation list.
+     * <p>
+     * Expected:
+     *  - Returns a plan with zero trolleys.
+     */
+    @Test
+    void emptyAllocations_returnsPlanWithZeroTrolleys() {
+        var ctrl = new PickingPlanController();
+        var plan = ctrl.generatePlan(List.of(), PackingMode.FF, 100.0, AllocationPolicy.SPLIT_LINE);
+
+        assertEquals(0, plan.getNumberOfTrolleys());
+    }
+
+    /**
+     * FF + SPLIT_LINE: When remaining capacity is less than one unit weight,
+     * no split occurs and the whole allocation goes to a new trolley.
+     * <p>
+     * Expected:
+     *  - Two trolleys: first keeps its original load; second receives the full allocation.
+     */
+    @Test
+    void ff_splitLine_remainingLessThanUnitWeight_createsNewTrolleyWithoutSplit() {
+        var ctrl = new PickingPlanController();
+        // Open T1 with 99 kg used (1 kg remaining)
+        var a1 = alloc("O1", 1, "S1", 1, 1, 100, 33.0, 3.0); // 33*3 = 99 kg
+        // Next requires 2 kg per unit; remaining (1 kg) < unitWeight → quantityFits == 0
+        var a2 = alloc("O1", 2, "S2", 1, 1, 100, 10.0, 2.0); // 20 kg total
+
+        var plan = ctrl.generatePlan(List.of(a1, a2), PackingMode.FF, 100.0, AllocationPolicy.SPLIT_LINE);
+
+        assertEquals(2, plan.getNumberOfTrolleys());
+        assertEquals(99.0, plan.getTrolleys().get(0).getUsedKg(), 1e-9);
+        assertEquals(20.0, plan.getTrolleys().get(1).getUsedKg(), 1e-9);
+    }
+
+
 }
