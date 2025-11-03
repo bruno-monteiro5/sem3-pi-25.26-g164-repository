@@ -5,6 +5,7 @@ import domain.*;
 import repository.WarehouseRepository;
 import ui.WarehouseManagementMenu;
 import java.util.List;
+import java.util.Scanner;
 
 public class PickingPlanUI implements Runnable {
 
@@ -15,6 +16,9 @@ public class PickingPlanUI implements Runnable {
     private static final String YELLOW = COLOR_ON ? "\u001B[33m" : "";
     private static final String RED    = COLOR_ON ? "\u001B[31m" : "";
     private static final String SEP    = "─";
+
+
+    Scanner scanner = new Scanner(System.in);
 
     @Override
     public void run() {
@@ -32,8 +36,8 @@ public class PickingPlanUI implements Runnable {
             war.run();
         }
 
-        PackingMode mode = PackingMode.BFD;               // ou FF / FFD
-        AllocationPolicy policy = AllocationPolicy.SPLIT_LINE;// ou DEFER_LINE
+        PackingMode mode = askPackingMode();
+        AllocationPolicy policy = askAllocationPolicy();
         double capacity = OrderEligibilityNdAllocation.MAX_ALLOCATION_KG;
 
         PickingPlanController controller = new PickingPlanController();
@@ -103,4 +107,64 @@ public class PickingPlanUI implements Runnable {
         for (int i = 0; i < pad; i++) left.append(' ');
         return left + s;
     }
+
+    private PackingMode askPackingMode() {
+        System.out.println(GREEN + "\nSelect packing heuristic:" + RESET);
+        System.out.println("  1) FF  - First Fit");
+        System.out.println("  2) FFD - First Fit Decreasing");
+        System.out.println("  3) BFD - Best Fit Decreasing");
+
+        String option;
+        boolean valid = false;
+        PackingMode mode = null;
+
+        do {
+            System.out.print("Option (1-3): ");
+            option = scanner.nextLine().trim();
+
+            if (option.equals("1")) {
+                mode = PackingMode.FF;
+                valid = true;
+            } else if (option.equals("2")) {
+                mode = PackingMode.FFD;
+                valid = true;
+            } else if (option.equals("3")) {
+                mode = PackingMode.BFD;
+                valid = true;
+            } else {
+                System.out.println(RED + "Invalid option" + RESET);
+            }
+        } while (!valid);
+
+        return mode;
+    }
+
+
+    private AllocationPolicy askAllocationPolicy() {
+        System.out.println(GREEN + "\nIf a single line doesn't fit in remaining capacity:" + RESET);
+        System.out.println("  1) SPLIT_LINE ");
+        System.out.println("  2) DEFER_LINE ");
+
+        String option;
+        boolean valid = false;
+        AllocationPolicy policy = null;
+
+        do {
+            System.out.print("Option (1-2): ");
+            option = scanner.nextLine().trim();
+
+            if (option.equals("1")) {
+                policy = AllocationPolicy.SPLIT_LINE;
+                valid = true;
+            } else if (option.equals("2")) {
+                policy = AllocationPolicy.DEFER_LINE;
+                valid = true;
+            } else {
+                System.out.println(RED + "Invalid option" + RESET);
+            }
+        } while (!valid);
+
+        return policy;
+    }
+
 }

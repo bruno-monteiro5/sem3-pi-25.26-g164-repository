@@ -33,25 +33,21 @@ class DoubleTrackSegment extends LineSegment {
 
 class Siding {
   name
-  location
 }
 
 abstract class Endpoint {
     name
-    location
-}
-
-class Owner {
-    name
-}
-
-class Operator {
-    name
 }
 
 class Station extends Endpoint{
-
+    country
+    timeZone
+    timeZoneGroup
+    isCity
+    isMainStation
+    isAirport
 }
+
 class Terminal extends Endpoint{
 
 }
@@ -61,7 +57,7 @@ class IntermodalTerminal extends Terminal {
 
 class FreightYard {
     name
-    location
+
 }
 
 class Warehouse {
@@ -230,11 +226,6 @@ class InspectionLog {
     qtyDiscarded
 }
 
-
-
-
-
-
 class Trolley {
     id
     weightCapacity
@@ -245,6 +236,10 @@ class PickPlan {
     quantity
 }
 
+class Location {
+    latitude
+    longitude
+}
 
 
 RailwayInfrastructure "1" -> "*" RailLine : includes
@@ -254,15 +249,12 @@ RailLine "1" --> "1" Endpoint : from
 RailLine "1" --> "1" Endpoint : to
 LineSegment "1" --> "1" Endpoint : from
 LineSegment "1" --> "1" Endpoint : to
-RailLine "1" --> "1" Owner : has
-RailLine "1" --> "*" Operator : used by of
 Terminal "1" ---> "*" Warehouse : may include
 Station "1" ---> "*" Warehouse : may include
 Terminal "1" ---> "*" RefrigeratedArea : may include
 Station "1" ---> "*" RefrigeratedArea : may include
 Terminal "1" ---> "*" GrainSilo : may include
 Station "1" ---> "*" GrainSilo : may include
-Operator "1" --- "0..*" RollingStock : owns >
 Train "1" -- "1..*" Locomotive : is composed of >
 Train "1" -- "0..*" Wagon      : is composed of >
 Train "*" ---> "*" RailLine : run on >
@@ -306,6 +298,12 @@ Trolley   "1" -- "*" PickPlan    : aggregates picks from >
 Quarantine "1" -- "1..*" Return : contains >
 Return "1" -- "1..*" InspectionLog : recorded in >
 Return "1" --> "1" Item : refers to >
+Endpoint "1" --> "1" Location : has >
+FreightYard "1" --> "1" Location : has >
+Siding "1" --> "1" Location : has >
+UnloadingDock "1" --> "1" Location : has >
+
+
 
 
 
