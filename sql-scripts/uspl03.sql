@@ -17,7 +17,7 @@ FROM Line l
          JOIN Locomotive loc ON loc.id = 5621
          JOIN Locomotive_Gauge lg ON lg.locomotive = loc.id AND lg.gauge = l.gauge
          LEFT JOIN Electric_Locomotive el ON el.locomotive = loc.id
-WHERE l.endpoint_a = 21
-  AND l.endpoint_b = 16
+WHERE l.endpoint_a = 7
+  AND l.endpoint_b = 5
   AND (el.locomotive IS NULL OR ls.is_electrified = 'Y')
 GROUP BY l.id, l.name, e1.name, e2.name, loc.id, loc.name;
