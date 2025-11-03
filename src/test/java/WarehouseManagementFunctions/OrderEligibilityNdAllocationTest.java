@@ -1,6 +1,7 @@
 package WarehouseManagementFunctions;
 
 import domain.Aisle;
+import domain.Allocation;
 import domain.Bay;
 import domain.Warehouse;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,11 @@ class OrderEligibilityNdAllocationTest {
             for(Bay bay : aisle.getBays()){
                 assertTrue(bay.getInventory().size() <= bay.getCapacity());
             }
+        }
+
+        assertTrue(OrderEligibilityNdAllocation.allocation.isEmpty());
+        for(Allocation allocation : OrderEligibilityNdAllocation.allocation){
+            assertTrue(allocation.totalWeight()<=200);
         }
 
     }
