@@ -11,11 +11,11 @@ import java.util.*;
 
 public class OrderEligibilityNdAllocation implements Runnable {
 
-    Warehouse warehouse = WarehouseRepository.getCurrentWarehouse();
-    List<Order> orders = new ArrayList<>();
-    String filenameorders = "warehouseMngt/train_station_dataset/orders.csv";
-    String filenameorderlines = "warehouseMngt/train_station_dataset/order_lines.csv";
-    List<Allocation> allocation = new ArrayList<>();
+    public static Warehouse warehouse = WarehouseRepository.getCurrentWarehouse();
+    public static List<Order> orders = new ArrayList<>();
+    public static String filenameorders = "warehouseMngt/train_station_dataset/orders.csv";
+    public static String filenameorderlines = "warehouseMngt/train_station_dataset/order_lines.csv";
+    public static List<Allocation> allocation = new ArrayList<>();
 
     private static final boolean COLOR_ON = true;
     private static final String RESET  = COLOR_ON ? "\u001B[0m"  : "";
@@ -72,7 +72,7 @@ public class OrderEligibilityNdAllocation implements Runnable {
         WarehouseManagementMenu.run();
     }
 
-    public void fillOrders() throws FileNotFoundException {
+    public static void fillOrders() throws FileNotFoundException {
         validateCsvHeaders(filenameorders, new String[]{"orderId", "dueDate", "priority"});
         validateCsvHeaders(filenameorderlines, new String[]{"orderId", "lineNo", "sku", "qty"});
 
@@ -117,7 +117,7 @@ public class OrderEligibilityNdAllocation implements Runnable {
         orders.sort(Comparator.comparing(Order::getPriority));
     }
 
-    private void validateCsvHeaders(String filename, String[] expectedHeaders) throws FileNotFoundException {
+    private static void validateCsvHeaders(String filename, String[] expectedHeaders) throws FileNotFoundException {
         Scanner sc = new Scanner(new File(filename));
         if (!sc.hasNextLine()) {
             throw new IllegalArgumentException("CSV file is empty: " + filename);
@@ -129,7 +129,7 @@ public class OrderEligibilityNdAllocation implements Runnable {
         }
     }
 
-    private boolean isValidOrderLine(String[] linesplit) {
+    private static boolean isValidOrderLine(String[] linesplit) {
         try {
             // Validate orderId: should be alphanumeric
             if (!linesplit[0].matches("^ORD\\d+$")) return false;
@@ -146,7 +146,7 @@ public class OrderEligibilityNdAllocation implements Runnable {
         }
     }
 
-    private boolean isValidOrderLineDetails(String[] linesplit) {
+    private static boolean isValidOrderLineDetails(String[] linesplit) {
         try {
             // Validate orderId: should be alphanumeric
             if (!linesplit[0].matches("^ORD\\d+$")) return false;

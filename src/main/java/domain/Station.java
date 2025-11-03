@@ -45,7 +45,7 @@ public class Station extends Endpoint {
 
 
 
-    public String timeZoneGroup() {
+    public String getTimeZoneGroup() {
         return timeZoneGroup;
     }
 
@@ -60,6 +60,12 @@ public class Station extends Endpoint {
     public boolean isAirport() {
         return isAirport;
     }
+
+    public String getCountry() {
+        return country;
+    }
+
+
 
 
 }
