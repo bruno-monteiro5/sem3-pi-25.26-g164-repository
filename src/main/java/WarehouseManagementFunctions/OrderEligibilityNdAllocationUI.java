@@ -68,10 +68,10 @@ public class OrderEligibilityNdAllocationUI implements Runnable {
             System.out.println(line(72));
         }
 
-        WarehouseRepository.setAllocation(allocation);
-
         System.out.println(GREEN + "Allocation workflow finished." + RESET);
         System.out.println(line(72));
+
+        WarehouseRepository.setAllocation(OrderEligibilityNdAllocationController.allocation);
 
         Runnable WarehouseManagementMenu = new WarehouseManagementMenu();
         WarehouseManagementMenu.run();

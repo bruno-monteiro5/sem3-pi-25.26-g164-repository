@@ -234,6 +234,8 @@ public class OrderEligibilityNdAllocationController {
                 System.out.println(GREEN + "ORDER FINISHED: " + RESET + o);
                 System.out.println(line(72));
             }
+
+            WarehouseRepository.setAllocation(allocation);
         }
     }
 
