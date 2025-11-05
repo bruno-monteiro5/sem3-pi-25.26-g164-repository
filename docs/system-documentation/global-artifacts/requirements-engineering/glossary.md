@@ -1,7 +1,7 @@
 # Glossary
 
 
-| TEA (EN)                    | Description (EN)                                                                                                                        |
+| TEA (EN) | Description (EN) |
 |:----------------------------|:----------------------------------------------------------------------------------------------------------------------------------------|
 | AC                          | Acceptance Criteria                                                                                                                     |
 | Acceptance Criteria         | A set of predefined conditions or requirements that a software product must meet to be accepted by the client or stakeholders.          
@@ -15,6 +15,7 @@
 | Boxcar                      | A type of freight wagon enclosed on all sides, used to transport general goods.                                                         |
 | Bulk Good                   | A large quantity of unpackaged material, such as coal, grain, or minerals, transported in wagons.                                       |
 | C                           | One of the programming languages used to develop this project                                                                           |
+| Caesar Cipher               | Basic encryption technique used for message encoding between devices at railway stations.                                                                                                        |
 | CamelCase                   | A naming convention where the first word starts with a lowercase letter and each subsequent word begins with a capital letter.          |
 | Cargo                       | Goods or materials transported by train, ship, or other means of transport.                                                             |
 | Cargo Handling              | The process of loading, unloading, and managing goods during transportation and storage.                                                |
@@ -34,6 +35,7 @@
 | Done                        | A column in a project or Scrum board that contains tasks fully completed.                                                               |
 | Editor                      | Person who can create maps and scenarios that can be provided in a bundle with the game or sold separately.                             |
 | Electricity                 | A form of energy used to power electric locomotives and railway systems.                                                                |
+| Endpoint                    | A terminal point in a railway line or route where trains start or finish their journeys.                                                |
 | FEFO                        | First-Expired-First-Out                                                                                                                 |
 | FF                          | First Fit                                                                                                                               |
 | FFD                         | First Fit Decreasing                                                                                                                    |
@@ -45,6 +47,7 @@
 | Flatcar                     | A type of freight wagon with a flat deck, used to carry containers, vehicles, or machinery.                                             |
 | Freight Manager             | The role responsible for supervising freight operations, ensuring goods are transported efficiently and safely.                         |
 | Freight Wagon               | A non-powered rail vehicle designed to carry goods, such as containers, liquids, bulk materials, or perishable items.                   |
+| Freight Yard                | Facility where trains are assembled, wagons are sorted, and goods are loaded or unloaded before shipment.                                                                                                        |
 | Functional Requirement      | Specification that define what a system should do, describing the features, functions, and behaviors it must provide to meet user needs. |
 | Gauge                       | The distance between the two rails of a railway track, determining the type of trains that can run on it.                               |
 | Git                         | Version control system designed to track changes in source code during software development                                             |
@@ -54,6 +57,7 @@
 | In Process                  | A column in a project or Scrum board that shows tasks currently being worked on.                                                        |
 | In-Memory Data Structure    | A temporary data organization stored in system memory, used for efficient processing of loaded datasets.                                |
 | Integrative Project         | A project that combines knowledge from multiple subjects or areas, requiring students to design and implement a unified solution to a real-world problem. |
+| Intermodal Terminal         | Facility where containers are transferred between trains, trucks, or ships, enabling multimodal transport.                                                                                                        |
 | Java                        | One of the programming languages used to develop this project                                                                           |
 | Javadoc                     | A documentation tool for Java that generates API reference material directly from source code comments.                                 |
 | Locomotive                  | A powered railway vehicle that pulls wagons or carriages along the track.                                                               |
@@ -143,7 +147,3 @@
 | Warehouse Planner           | Oversees order fulfillment by verifying inventory and allocating quantities using FEFO logic.                                           |
 | Warehousing                 | The activity of storing goods in facilities until they are needed for distribution or consumption.                                      |
 | WMS                         | Warehouse Management System                                                                                                             |
-| Endpoint                    | A terminal point in a railway line or route where trains start or finish their journeys.                                                |
-| Freight Yard                | Facility where trains are assembled, wagons are sorted, and goods are loaded or unloaded before shipment.                                                                                                        |
-| Intermodal Terminal         | Facility where containers are transferred between trains, trucks, or ships, enabling multimodal transport.                                                                                                        |
-| Caesar Cipher               | Basic encryption technique used for message encoding between devices at railway stations.                                                                                                        |
