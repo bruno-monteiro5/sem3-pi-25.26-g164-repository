@@ -7,13 +7,25 @@ title Use Case Diagram — LAPR3
 actor "Product Owner" as PO
 actor "Station Storage\nManager" as SSM
 actor "Traffic\nDispatcher" as TD
+actor "Freight\nManager" as FM
 
-usecase "USLP01 - Create Domain Model" as UC1
-usecase "USLP02 - Access Cargo Handling" as UC2
-usecase "USLP03 - Calculate Travel Time" as UC3
 
-PO --> UC1
-SSM --> UC2
-TD --> UC3
+usecase "USLP01 - Create Domain Model" as USLP01
+usecase "USLP02 - Access Cargo Handling" as USLP02
+usecase "USLP03 - Calculate Travel Time" as USLP03
+usecase "USLP04 - Create Data Dictionary/Glossary" as USLP04
+
+usecase "USLP05 - Update Conceptual Domain Model" as USLP05
+usecase "USLP06 - Update Data Dictionary/Glossary" as USLP06
+usecase "USLP07 - Use Scheduler to Dispatch Trains" as USLP07
+
+PO  --> USLP01
+PO  --> USLP04
+PO  --> USLP05
+PO  --> USLP06
+
+SSM --> USLP02
+TD  --> USLP03
+FM  --> USLP07
 
 @enduml
