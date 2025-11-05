@@ -1,0 +1,32 @@
+@startuml
+skinparam packageStyle rectangle
+left to right direction
+
+title Use Case Diagram — ARQCP
+
+actor "System Administrator" as SA
+actor "Station Operator" as SO
+
+usecase "USAC01 - Encrypt Data" as UC1
+usecase "USAC02 - Decrypt Data" as UC2
+usecase "USAC03 - Extract Data" as UC3
+usecase "USAC04 - Format Command" as UC4
+usecase "USAC08 - Sort Array" as UC8
+usecase "USAC09 - Median" as UC9
+
+usecase "USAC05 - Enqueue Value" as UC5
+usecase "USAC06 - Dequeue Value" as UC6
+usecase "USAC07 - Move N to Array" as UC7
+
+SA --> UC1
+SA --> UC2
+SA --> UC3
+SA --> UC4
+SA --> UC8
+SA --> UC9
+
+SO --> UC5
+SO --> UC6
+SO --> UC7
+
+@enduml

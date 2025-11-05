@@ -24,7 +24,7 @@ class StationCsvLoaderTest {
     @Test
     void emptyInput_returnsEmptyList() throws Exception {
         StationCsvLoader loader = new StationCsvLoader();
-        List<Station> list = loader.load(new StringReader("")); // header == null → retorna lista vazia
+        List<Station> list = loader.load(new StringReader(""));
         assertTrue(list.isEmpty());
     }
 
