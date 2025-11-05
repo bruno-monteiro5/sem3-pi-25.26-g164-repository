@@ -1,5 +1,6 @@
-package WarehouseManagementFunctions;
+package controller;
 
+import WarehouseManagementFunctions.WagonUnloadingUI;
 import domain.*;
 import ui.WarehouseManagementMenu;
 import repository.WarehouseRepository;
@@ -9,7 +10,7 @@ import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class OrderEligibilityNdAllocation implements Runnable {
+public class OrderEligibilityNdAllocationController {
 
     public static Warehouse warehouse = WarehouseRepository.getCurrentWarehouse();
     public static List<Order> orders = new ArrayList<>();
@@ -24,53 +25,6 @@ public class OrderEligibilityNdAllocation implements Runnable {
     private static final String YELLOW = COLOR_ON ? "\u001B[33m" : "";
     private static final String RED    = COLOR_ON ? "\u001B[31m" : "";
     private static final String SEP    = "─";
-
-    public void run() {
-
-        banner("ORDER ELIGIBILITY & ALLOCATION");
-
-        //fills the warehouse if it senses it is null
-        if (warehouse == null) {
-            System.out.println(RED + "Warehouse is null." + RESET + "Beginning warehouse initialization...");
-            Runnable run = new WagonUnloading();
-            run.run();
-            warehouse = WarehouseRepository.getCurrentWarehouse();
-            System.out.println(GREEN + "Warehouse initialized." + RESET);
-            System.out.println(line(72));
-        }
-
-        try {
-            fillOrders();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        // writes the list's contents if it is filled with success
-        System.out.println(GREEN + "Orders loaded:" + RESET);
-        System.out.println(line(72));
-        for (Order o : orders) {
-            System.out.println(o.toString());
-        }
-        System.out.println(line(72));
-
-        // verifies which boxes can be allocated to the requests
-        allocateBoxesChoice();
-
-        // writes all the allocations with the requests
-        for (Allocation a : allocation) {
-            System.out.println(GREEN + "ALLOCATION RESULT" + RESET);
-            System.out.println(line(72));
-            System.out.println(a.toString());
-            System.out.println(line(72));
-        }
-
-        WarehouseRepository.setAllocation(allocation);
-
-        System.out.println(GREEN + "Allocation workflow finished." + RESET);
-        System.out.println(line(72));
-
-        Runnable WarehouseManagementMenu = new WarehouseManagementMenu();
-        WarehouseManagementMenu.run();
-    }
 
     public static void fillOrders() throws FileNotFoundException {
         validateCsvHeaders(filenameorders, new String[]{"orderId", "dueDate", "priority"});
@@ -167,38 +121,14 @@ public class OrderEligibilityNdAllocation implements Runnable {
         }
     }
 
-    public void allocateBoxesChoice(){
-        System.out.println(GREEN + "ALLOCATION MODE" + RESET);
-        System.out.println(line(72));
-        System.out.println("Do you wish to perform strict allocation or partial? [DEFAULT: Strict]");
-        System.out.println("1. Strict");
-        System.out.println("2. Partial");
-        Scanner sc = new Scanner(System.in);
-        int choice = sc.nextInt();
-
-        while (choice != 1 && choice != 2) {
-            System.out.println(RED + "[ERROR] Invalid input. Please enter 1 or 2" + RESET);
-            choice = sc.nextInt();
-        }
-        if (choice == 1) {
-            System.out.println(GREEN + "Strict allocation selected." + RESET);
-            System.out.println(line(72));
-            allocateBoxes(true);
-        } else {
-            System.out.println(YELLOW + "Partial allocation selected." + RESET);
-            System.out.println(line(72));
-            allocateBoxes(false);
-        }
-    }
-
     public static final double MAX_ALLOCATION_KG = 400.0;
 
-    private int maxUnitsPerAllocation(double unitWeight) {
+    private static int maxUnitsPerAllocation(double unitWeight) {
         if (unitWeight <= 0.0) return 0;
         return (int) Math.floor(MAX_ALLOCATION_KG / unitWeight);
     }
 
-    private void addSlicedAllocations(Order o, OrderLine ol, Aisle a, Bay b, Box sourceBox, int takeQty, List<Allocation> out) {
+    private static void addSlicedAllocations(Order o, OrderLine ol, Aisle a, Bay b, Box sourceBox, int takeQty, List<Allocation> out) {
         double unitW = sourceBox.getProduct().getWeight();
         int maxPerAlloc = maxUnitsPerAllocation(unitW);
         if (maxPerAlloc <= 0) {
@@ -221,7 +151,7 @@ public class OrderEligibilityNdAllocation implements Runnable {
         }
     }
 
-    public void allocateBoxes(boolean strict) {
+    public static void allocateBoxes(boolean strict) {
         if (!strict) {
             for (Order o : orders) {
                 System.out.println(CYAN + "ORDER: " + RESET + o);
@@ -304,6 +234,8 @@ public class OrderEligibilityNdAllocation implements Runnable {
                 System.out.println(GREEN + "ORDER FINISHED: " + RESET + o);
                 System.out.println(line(72));
             }
+
+            WarehouseRepository.setAllocation(allocation);
         }
     }
 

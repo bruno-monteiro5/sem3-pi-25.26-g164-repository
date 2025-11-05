@@ -1,5 +1,6 @@
 package WarehouseManagementFunctions;
 
+import controller.OrderEligibilityNdAllocationController;
 import controller.PickingPlanController;
 import domain.*;
 import repository.WarehouseRepository;
@@ -38,7 +39,7 @@ public class PickingPlanUI implements Runnable {
 
         PackingMode mode = askPackingMode();
         AllocationPolicy policy = askAllocationPolicy();
-        double capacity = OrderEligibilityNdAllocation.MAX_ALLOCATION_KG;
+        double capacity = OrderEligibilityNdAllocationController.MAX_ALLOCATION_KG;
 
         PickingPlanController controller = new PickingPlanController();
         PickingPlan plan = controller.generatePlan(allocations, mode, capacity, policy);
