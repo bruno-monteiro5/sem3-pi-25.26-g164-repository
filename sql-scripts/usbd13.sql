@@ -4,7 +4,7 @@ FROM Locomotive l
 JOIN Electric_Locomotive e ON e.locomotive = l.id
 JOIN   Locomotive_Gauge lg   ON lg.locomotive = l.id
 JOIN Gauge g ON g.id = lg.gauge
-WHERE l.operator = 'PT509017800'
+WHERE l.operator = 'PT509999999'
 AND g.id = 2;
 
 --Diesel
@@ -13,7 +13,7 @@ FROM   Locomotive l
 JOIN   Diesel_Locomotive d ON d.locomotive = l.id
 JOIN   Locomotive_Gauge lg ON lg.locomotive = l.id
 JOIN Gauge g ON g.id = lg.gauge
-WHERE  l.operator = 'PT509017800'
+WHERE  l.operator = 'PT509999999'
 AND  g.id = 2;
 
 

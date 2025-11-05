@@ -1,4 +1,4 @@
-package WarehouseManagementFunctions;
+package controller;
 
 import domain.*;
 import ui.WarehouseManagementMenu;
@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
-public class WagonUnloading implements Runnable {
+public class WagonUnloadingController {
 
     public static Warehouse warehouse;
     public static List<Items> products;
@@ -27,30 +27,6 @@ public class WagonUnloading implements Runnable {
     private static final String GREEN = COLOR_ON ? "\u001B[32m" : "";
     private static final String RED = COLOR_ON ? "\u001B[31m" : "";
     private static final String SEP = "─";
-
-    @Override
-    public void run() {
-        try {
-            beginWarehouse();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            beginProducts();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            removeCargoFromWagon(warehouse, products);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        Runnable menu = new WarehouseManagementMenu();
-        menu.run();
-    }
 
     public static void beginWarehouse() throws FileNotFoundException {
         String fileNameWarehouse = "warehouseMngt/train_station_dataset/bays.csv";
@@ -128,10 +104,6 @@ public class WagonUnloading implements Runnable {
 
         System.out.println();
         System.out.println(GREEN + "  CURRENT INVENTORY : " + RESET);
-
-        for (Aisle a : warehouse.getAisles()) {
-            System.out.println(a.toString());
-        }
 
         WarehouseRepository.setCurrentWarehouse(warehouse);
 

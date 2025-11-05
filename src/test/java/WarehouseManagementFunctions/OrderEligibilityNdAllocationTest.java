@@ -1,10 +1,11 @@
 package WarehouseManagementFunctions;
 
+import controller.WagonUnloadingController;
 import domain.Aisle;
+import domain.Allocation;
 import domain.Bay;
 import domain.Warehouse;
 import org.junit.jupiter.api.Test;
-import repository.WarehouseRepository;
 
 import java.io.FileNotFoundException;
 
@@ -15,10 +16,10 @@ class OrderEligibilityNdAllocationTest {
     @Test
     void run() throws FileNotFoundException {
 
-        WagonUnloading.beginWarehouse();
-        WagonUnloading.beginProducts();
-        Warehouse w = WagonUnloading.warehouse;
-        WagonUnloading.removeCargoFromWagon(w, WagonUnloading.products);
+        WagonUnloadingController.beginWarehouse();
+        WagonUnloadingController.beginProducts();
+        Warehouse w = WagonUnloadingController.warehouse;
+        WagonUnloadingController.removeCargoFromWagon(w, WagonUnloadingController.products);
 
         assertEquals(5, w.getAisles().size());
         assertEquals(20, w.getAisles().get(0).getBays().size());
@@ -27,6 +28,11 @@ class OrderEligibilityNdAllocationTest {
             for(Bay bay : aisle.getBays()){
                 assertTrue(bay.getInventory().size() <= bay.getCapacity());
             }
+        }
+
+        assertTrue(OrderEligibilityNdAllocationUI.allocation.isEmpty());
+        for(Allocation allocation : OrderEligibilityNdAllocationUI.allocation){
+            assertTrue(allocation.totalWeight()<=200);
         }
 
     }
