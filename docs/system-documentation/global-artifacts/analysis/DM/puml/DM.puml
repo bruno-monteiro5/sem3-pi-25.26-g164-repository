@@ -93,6 +93,8 @@ class DieselLocomotive extends Locomotive {
 }
 
 class ElectricLocomotive extends Locomotive {
+    voltage
+    frequency
 }
 
 class Wagon extends RollingStock {
