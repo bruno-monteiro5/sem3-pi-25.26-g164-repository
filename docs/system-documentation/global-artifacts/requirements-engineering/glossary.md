@@ -60,6 +60,8 @@
 | Intermodal Terminal         | Facility where containers are transferred between trains, trucks, or ships, enabling multimodal transport.                                                                                                        |
 | Java                        | One of the programming languages used to develop this project                                                                           |
 | Javadoc                     | A documentation tool for Java that generates API reference material directly from source code comments.                                 |
+| Line                        | A railway route connecting two endpoints, made up of one or more line segments.                                                                                                            |
+| Line Segment                | A section of a railway line between two points, defined by its track type, gauge, and physical characteristics.                                                                                                            |
 | Locomotive                  | A powered railway vehicle that pulls wagons or carriages along the track.                                                               |
 | LogBook                     | A column in a project or Scrum board where notes, records, and key decisions about the project are stored.                              |
 | Logistics                   | The process of planning, managing, and executing the movement and storage of goods from origin to destination.                          |
