@@ -8,37 +8,25 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ---
 
-## LAPR3 — Use Case Diagram
+## ARQCP — Use Case Diagram
 
-![Use Case Diagram](svg/UCDLAPR.svg)
-
-**For each UC/US, it must be provided evidences of applying main activities of the software development process (requirements, analysis, design, tests and code). Gather those evidences on a separate file for each UC/US and set up a link as suggested below.**
-
-### Use Cases / User Stories — LAPR3
-
-| UC/US | Description                                                                                                       |
-|:------|:------------------------------------------------------------------------------------------------------------------|
-| USLP01 | [Create Domain Model](../../USLP01/01.requirements-engineering/USLP01-requirements.md)                           |
-| USLP02 | [Access Cargo Handling](../../USLP02/01.requirements-engineering/USLP02-requirements.md)                         |
-| USLP03 | [Calculate Travel Time](../../USLP03/01.requirements-engineering/USLP03-requirements.md)                         |
-
----
-
-## ESINF — Use Case Diagram
-
-![Use Case Diagram](svg/UCDESINF.svg)
+![Use Case Diagram](svg/UCDARQCP.svg)
 
 **For each UC/US, it must be provided evidences of applying main activities of the software development process (requirements, analysis, design, tests and code).**
 
-### Use Cases / User Stories — ESINF
+### Use Cases / User Stories — ARQCP
 
-| UC/US | Description                                                                                                      |
-|:------|:-----------------------------------------------------------------------------------------------------------------|
-| USEI01 | [Wagons Unloading (Inventory Replenishment)](../../USEI01/01.requirements-engineering/USEI01-requirements.md)   |
-| USEI02 | [Order Eligibility & Allocation](../../USEI02/01.requirements-engineering/USEI02-requirements.md)               |
-| USEI03 | [Picking Plans](../../USEI03/01.requirements-engineering/USEI03-requirements.md)                                |
-| USEI04 | [Pick Path Sequencing](../../USEI04/01.requirements-engineering/USEI04-requirements.md)                         |
-| USEI05 | [Returns & Quarantine](../../USEI05/01.requirements-engineering/USEI05-requirements.md)                         |
+| UC/US   | Description                       |
+|:--------|:----------------------------------|
+| USAC01  | Encrypt Data                      |
+| USEAC02 | Decrypt Data                      |
+| USEAC3  | Extract Data                      |
+| USAC04  | Format Command                    |
+| USAC05  | Enqueue Value                     |
+| USAC06  | Dequeue Value                     |
+| USAC07  | Move N to Array                   |
+| USAC08  | Sort Array                        |
+| USAC09  | Median                            |
 
 ---
 
@@ -50,15 +38,58 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ### Use Cases / User Stories — BDAD
 
-| UC/US | Description                                                                                                      |
-|:------|:-----------------------------------------------------------------------------------------------------------------|
-| USBD01 | [Create Data Dictionary / Glossary](../../USBD01/01.requirements-engineering/USBD01-requirements.md)            |
-| USBD02 | [Create Relational Model](../../USBD02/01.requirements-engineering/USBD02-requirements.md)                      |
-| USBD03 | [Instantiate Relational Model](../../USBD03/01.requirements-engineering/USBD03-requirements.md)                 |
-| USBD04 | [Insert Provided Data](../../USBD04/01.requirements-engineering/USBD04-requirements.md)                         |
-| USBD08 | [List Locomotives by Type](../../USBD08/01.requirements-engineering/USBD08-requirements.md)                     |
-| USBD13 | [List Locomotives by Type and Gauge per Operator](../../USBD13/01.requirements-engineering/USBD13-requirements.md) |
-| USBD19 | [Count Segments per Owner by Track Type](../../USBD19/01.requirements-engineering/USBD19-requirements.md)       |
+| UC/US | Description                                                   |
+|:------|:--------------------------------------------------------------|
+| USBD01 | Create Data Dictionary / Glossary                             |
+| USBD02 | Create Relational Model                                       |
+| USBD03 | Instantiate Relational Model                                  |
+| USBD04 | Insert Provided Data                                          |
+| USBD08 | List Locomotives by Type                                      |
+| USBD13 | List Locomotives by Type and Gauge per Operator               |
+| USBD19 | Count Segments per Owner by Track                             |
+
+---
+
+## ESINF — Use Case Diagram
+
+![Use Case Diagram](svg/UCDESINF.svg)
+
+**For each UC/US, it must be provided evidences of applying main activities of the software development process (requirements, analysis, design, tests and code).**
+
+### Use Cases / User Stories — ESINF
+
+| UC/US  | Description                    |
+|:-------|:-------------------------------|
+| USEI01 | Wagons Unloading               |
+| USEI02 | Order Eligibility & Allocation |
+| USEI03 | Picking Plans                  |
+| USEI04 | Pick Path Sequencing           |
+| USEI05 | Returns & Quarantine           |
+| USEI06 | Time-Zone Index                |
+| USEI07 | Build 2D-Tree                  |
+| USEI08 | Area Search                    |
+| USEI09 | Proximity Search               |
+| USEI10 | Radius Search                  |
+
+---
+
+## LAPR3 — Use Case Diagram
+
+![Use Case Diagram](svg/UCDLAPR.svg)
+
+**For each UC/US, it must be provided evidences of applying main activities of the software development process (requirements, analysis, design, tests and code). Gather those evidences on a separate file for each UC/US and set up a link as suggested below.**
+
+### Use Cases / User Stories — LAPR3
+
+| UC/US  | Description                      |
+|:-------|:---------------------------------|
+| USLP01 | Create Domain Model              |
+| USLP02 | Access Cargo Handling            |
+| USLP03 | Calculate Travel Time            |
+| USLP04 | Create Data Dictionary/Glossary  |
+| USLP05 | Update Conceptual Domain Model   |
+| USLP06 | Update Data Dictionary/Glossar   |
+| USLP07 | Use Scheduler to Dispatch Trains |
 
 ---
 
