@@ -22,14 +22,16 @@ public class MainMenu implements Runnable {
         System.out.println("                                MAIN MENU");
         System.out.println(line(72 )+ RESET);
 
-        Option[] options = new Option[3];
+        Option[] options = new Option[4];
         Runnable warehouse = new WarehouseManagementMenu();
         Runnable travelTime = new TravelTimeCalculatorUI();
+        Runnable infraIndex  = new InfraestructureIndexMenu();
         Runnable exit = new Runnable() { public void run() { System.exit(0); } };
 
         options[0] = new Option("Warehouse Management Functions", warehouse);
-        options[1] = new Option("Calculate Travel Time (USLP03)" + RED, travelTime);
-        options[2] = new Option(RED   + "Exit" + RESET, exit);
+        options[1] = new Option("Infrastructure Index ", infraIndex);
+        options[2] = new Option("Calculate Travel Time (USLP03)" + RED, travelTime);
+        options[3] = new Option(RED   + "Exit" + RESET, exit);
 
         Utils.listAndSelect(options);
     }

@@ -10,7 +10,6 @@ import java.util.*;
 
 public class StatsPrinterUI implements Runnable {
 
-    // design comentado
     private static final boolean COLOR_ENABLED = true;
     private static final String COLOR_GREEN = COLOR_ENABLED ? "\u001B[32m" : "";
     private static final String COLOR_CYAN  = COLOR_ENABLED ? "\u001B[36m" : "";
