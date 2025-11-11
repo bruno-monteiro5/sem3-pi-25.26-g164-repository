@@ -5,118 +5,175 @@
 format_command:
 	li t0, 'A'
 	li t1, 'Z'
-	li t5, 0      
-	li t2, 32       
+	li t2, 32          # Para converter minúscula->maiúscula
+	li t4, 0           # Return value
 
 loop:
 	lb t6, 0(a0)
-	beqz t6, ending  
+	beqz t6, invalid       # Se fim da string, inválido
 	li t3, ' '
-	beq t6, t3, loop_skip_space   
-	j loop_non_zero
+	beq t6, t3, skip_space # Se é espaço, pula
+	j check_commands       # Se é letra, processa
 
-loop_skip_space:
+skip_space:
 	addi a0, a0, 1
 	j loop
 
-loop_non_zero:
-	li t3, ' '
-	beq t6, t3, validate_command 
-	beqz t6, validate_command 
-	
-	li t3, 'a'
-	li t4, 'z'
-	blt t6, t3, store_upper       
-	bgt t6, t4, store_upper    
-	
-	sub t6, t6, t2          
-	
-store_upper:
-	sb t6, 0(a2)
-	addi a2, a2, 1
-	addi a0, a0, 1
-	lb t6, 0(a0)
-	j loop_non_zero
+check_commands:
+	lb t3, 2(a0)       # Carregar 3º caractere
+	beqz t3, check_command_2_letter
+	li t6, ' '
+	beq t3, t6, check_command_2_letter  # Se é espaço, comando de 2 letras
+	j check_command_3_letter            # Caso contrário, 3 letras
 
-validate_command:
+check_command_2_letter:
+	lb t5, 0(a0)       # Carregar 1ª letra
+	bgt t5, t1, increase_first_letter
+	lb t5, 1(a0)       # Carregar 2ª letra
+	bgt t5, t1, increase_second_letter
 
-	mv t3, a2
-	addi t3, t3, -2  
-	lb t4, 0(t3)   
-	lb t6, 1(t3) 
-	
-	li t0, 'R'
-	bne t4, t0, check_ye
-	li t0, 'E'
-	beq t6, t0, valid_re
-	li t0, 'B'
-	beq t6, t0, valid_rb
-	j check_3char
+	lb t5, 0(a0)
+	li t3, 'R'
+	beq t5, t3, check_rb
+	li t3, 'G'
+	beq t5, t3, check_ge
+	li t3, 'Y'
+	beq t5, t3, check_ye
+	j invalid
 
-check_ye:
-	li t0, 'Y'
-	bne t4, t0, check_ge
-	li t0, 'E'
-	beq t6, t0, valid_2char
-	j check_3char
+increase_first_letter:
+	lb t5, 0(a0)
+	sub t5, t5, t2
+	sb t5, 0(a0)
+	j check_command_2_letter
+
+increase_second_letter:
+	lb t5, 1(a0)
+	sub t5, t5, t2
+	sb t5, 1(a0)
+	j check_command_2_letter
+
+check_rb:
+	lb t5, 1(a0)
+	li t3, 'B'
+	bne t5, t3, check_rg
+	j validate_rb
+
+check_rg:
+	lb t5, 1(a0)
+	li t3, 'G'
+	beq t5, t3, validate_rg
+	j invalid
 
 check_ge:
-	li t0, 'G'
-	bne t4, t0, check_3char
-	li t0, 'E'
-	beq t6, t0, valid_2char
-	j check_3char
+	lb t5, 1(a0)
+	li t3, 'E'
+	beq t5, t3, validate_ge
+	j invalid
 
-valid_re:
-valid_rb:
-valid_2char:
-	li t0, 100
-	bge a1, t0, invalid
-	
-	li t4, ','
-	sb t4, 0(a2)
+check_ye:
+	lb t5, 1(a0)
+	li t3, 'E'
+	beq t5, t3, validate_ye
+	j invalid
+
+validate_rb:
+validate_rg:
+validate_ge:
+validate_ye:
+	lb t5, 0(a0)
+	sb t5, 0(a2)
 	addi a2, a2, 1
-	
-	li t0, 10
-	div t3, a1, t0 
-	rem t4, a1, t0
-	
-	li t0, '0'
-	add t3, t3, t0
-	add t4, t4, t0
-	
+	lb t5, 1(a0)
+	sb t5, 0(a2)
+	addi a2, a2, 1
+	li t3, 100
+	blt a1, t3, represent
+	j invalid
+
+
+check_command_3_letter:
+	lb t5, 0(a0)
+	bgt t5, t1, increase_first_letter_3
+	lb t5, 1(a0)
+	bgt t5, t1, increase_second_letter_3
+	lb t5, 2(a0)
+	bgt t5, t1, increase_third_letter
+
+	lb t5, 0(a0)
+	li t3, 'G'
+	beq t5, t3, check_t
+	j invalid
+
+check_t:
+	lb t5, 1(a0)
+	li t3, 'T'
+	beq t5, t3, check_h
+	j invalid
+
+check_h:
+	lb t5, 2(a0)
+	li t3, 'H'
+	beq t5, t3, validate_gth
+	j invalid
+
+increase_first_letter_3:
+	lb t5, 0(a0)
+	sub t5, t5, t2
+	sb t5, 0(a0)
+	j check_command_3_letter
+
+increase_second_letter_3:
+	lb t5, 1(a0)
+	sub t5, t5, t2
+	sb t5, 1(a0)
+	j check_command_3_letter
+
+increase_third_letter:
+	lb t5, 2(a0)
+	sub t5, t5, t2
+	sb t5, 2(a0)
+	j check_command_3_letter
+
+
+validate_gth:
+	lb t5, 0(a0)
+	sb t5, 0(a2)
+	addi a2, a2, 1
+	lb t5, 1(a0)
+	sb t5, 0(a2)
+	addi a2, a2, 1
+	lb t5, 2(a0)
+	sb t5, 0(a2)
+	addi a2, a2, 1
+	sb zero, 0(a2)     # Null terminator
+	li t4, 1
+	j return
+
+represent:
+	li t3, ','
 	sb t3, 0(a2)
-	sb t4, 1(a2)
-	addi a2, a2, 2
-	
-	sb zero, 0(a2)
-	
-	li t5, 1 
-	j ending
-
-check_3char:
-
-	addi t3, a2, -3
-	lb t4, 0(t3)       # G
-	lb t6, 1(t3)       # T
-	lb t0, 2(t3)       # H
-	
-	li t1, 'G'
-	bne t4, t1, invalid
-	li t1, 'T'
-	bne t6, t1, invalid
-	li t1, 'H'
-	bne t0, t1, invalid
-	
-	sb zero, 0(a2)
-	li t5, 1    
-	j ending
+	addi a2, a2, 1
+	li t3, 10
+	div t5, a1, t3     # Dezena
+	li t3, '0'
+	add t5, t5, t3     # Converter para ASCII
+	sb t5, 0(a2)
+	addi a2, a2, 1
+	li t3, 10
+	rem t5, a1, t3     # Unidade
+	li t3, '0'
+	add t5, t5, t3     # Converter para ASCII
+	sb t5, 0(a2)
+	addi a2, a2, 1
+	sb zero, 0(a2)     # Null terminator
+	li t4, 1
+	j return
 
 invalid:
-	addi a2, a2, -10   
-	sb zero, 0(a2)
-	li t5, 0
+	sb zero, 0(a2)     # Limpar output
+	li t4, 0
 
-ending:
-	mv a0, t5
+return:
+	mv a0, t4
 	ret
