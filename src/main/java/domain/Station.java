@@ -18,6 +18,9 @@ public class Station extends Endpoint {
         super(normalizeName(name), location);
         this.country = normalizeCountry(country);
         this.timeZoneGroup = normalizeTzGroup(timeZoneGroup);
+        if (getName().isEmpty()) throw new IllegalArgumentException("name is blank");
+        if (this.country.isEmpty()) throw new IllegalArgumentException("country is blank");
+        if (this.timeZoneGroup.isEmpty()) throw new IllegalArgumentException("timeZoneGroup is blank");
         this.isCity = isCity;
         this.isMainStation = isMainStation;
         this.isAirport = isAirport;

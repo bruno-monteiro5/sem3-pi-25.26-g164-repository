@@ -101,7 +101,7 @@ public class AVL <E extends Comparable<E>> extends BST<E> {
         else
             node.setElement(element); // substitui
 
-        return balanceNode(node); // <-- equilibrar ao subir
+        return balanceNode(node); // equilibrar ao subir
     }
 
     @Override
