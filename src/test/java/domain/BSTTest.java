@@ -125,11 +125,11 @@ public class BSTTest {
     @Test
     public void testSmallestElement() {
         System.out.println("smallestElement");
-        assertEquals(new Integer(7), instance.smallestElement());
+        assertEquals((Integer)7, instance.smallestElement());
         instance.remove(7);
-        assertEquals(new Integer(8), instance.smallestElement());
+        assertEquals((Integer)8, instance.smallestElement());
         instance.remove(8);
-        assertEquals(new Integer(10), instance.smallestElement());
+        assertEquals((Integer)10, instance.smallestElement());
     }
     /**
      * Test of processBstByLevel method, of class TREE.
