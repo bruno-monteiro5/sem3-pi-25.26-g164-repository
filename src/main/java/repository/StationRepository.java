@@ -1,10 +1,82 @@
 package repository;
 
-import controller.StationCsvLoader;
-import domain.*;
+import domain.Station;
+import domain.StationIndexes;
+
 import java.util.List;
 
+/**
+ * Repository responsible for storing and querying Station data through
+ * AVL-based indexes. It is the single source of truth for Station queries.
+ */
 public class StationRepository {
-    private final StationIndexes indexes = new StationIndexes();
 
+    /** Holds all AVL indexes over stations. */
+    private final StationIndexes stationIndexes = new StationIndexes();
+
+    /** Counters for load process diagnostics. */
+    private int totalLoadedCount = 0;
+    private int totalRejectedCount = 0;
+
+    /**
+     * Loads and indexes all stations from a provided list.
+     * <p>
+     * This method assumes Station/Location constructors have enforced domain invariants.
+     * Any malformed object should have been filtered out before reaching here; however,
+     * null checks and defensive catches are kept for safety.
+     *
+     * @param stationList list of Station objects to be indexed (may be empty, but not null)
+     * @throws NullPointerException if stationList is null
+     */
+    public void loadAll(List<Station> stationList) {
+        if (stationList == null) {
+            throw new NullPointerException("stationList cannot be null");
+        }
+
+        totalLoadedCount = 0;
+        totalRejectedCount = 0;
+
+        for (Station station : stationList) {
+            try {
+                if (station == null) {
+                    totalRejectedCount++;
+                } else {
+                    stationIndexes.add(station);
+                    totalLoadedCount++;
+                }
+            } catch (RuntimeException exception) {
+                totalRejectedCount++;
+            }
+        }
+    }
+
+    /** Returns the number of successfully loaded stations. */
+    public int getTotalLoadedCount() {
+        return totalLoadedCount;
+    }
+
+    /** Returns the number of rejected stations. */
+    public int getTotalRejectedCount() {
+        return totalRejectedCount;
+    }
+
+    /** Returns stations in the inclusive latitude window [minLatitude, maxLatitude]. */
+    public List<Station> findByLatitudeWindow(double minLatitude, double maxLatitude) {
+        return stationIndexes.inLatitudeWindow(minLatitude, maxLatitude);
+    }
+
+    /** Returns stations in the inclusive longitude window [minLongitude, maxLongitude]. */
+    public List<Station> findByLongitudeWindow(double minLongitude, double maxLongitude) {
+        return stationIndexes.inLongitudeWindow(minLongitude, maxLongitude);
+    }
+
+    /** Returns stations for a time zone group, ordered by (country, station name). */
+    public List<Station> findByTimeZoneGroup(String timeZoneGroup) {
+        return stationIndexes.byTimeZoneGroup(timeZoneGroup);
+    }
+
+    /** Returns stations for a (time zone group, country), ordered by station name. */
+    public List<Station> findByTimeZoneAndCountry(String timeZoneGroup, String country) {
+        return stationIndexes.byTimeZoneAndCountry(timeZoneGroup, country);
+    }
 }
