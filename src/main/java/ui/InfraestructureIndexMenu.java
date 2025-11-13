@@ -23,10 +23,10 @@ public class InfraestructureIndexMenu implements Runnable {
         System.out.println(line(72) + RESET);
 
         Option[] options = new Option[2];
-        //Runnable tzIndex = new StationIndexUI();
+        Runnable tzIndex = new BuildIndexesUI();
         Runnable main    = new MainMenu();
 
-        //options[0] = new Option("Time-Zone Index & Windowed Queries", tzIndex);
+        options[0] = new Option("Time-Zone Index & Windowed Queries", tzIndex);
         options[1] = new Option("Go Back", main);
 
         Utils.listAndSelect(options);
