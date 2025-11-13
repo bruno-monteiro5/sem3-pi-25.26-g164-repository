@@ -1,54 +1,76 @@
 /*
- * int dequeue_value(int* buffer, int length,
- *                   int* nelem, int* tail, int* head, int* value);
+ * int move_n_to_array(int* buffer, int length,
+ *                     int* nelem, int* tail, int* head,
+ *                     int n, int* array);
  *
  * a0 = buffer
  * a1 = length
  * a2 = nelem
  * a3 = tail
- * a4 = head
- * a5 = value
+ * a4 = head   (não usado aqui)
+ * a5 = n
+ * a6 = array
  */
 
-    .text
-    .globl dequeue_value
+    .section .text
+    .globl move_n_to_array
 
-dequeue_value:
-
-    # Carregar *nelem para saber se há elementos no buffer
+move_n_to_array:
+    # Carregar *nelem e *tail
     lw      t0, 0(a2)             # t0 = *nelem
-    beqz    t0, .fail             # Se *nelem == 0 → buffer vazio → retorna 0
-
-    # Carregar índice tail (posição do elemento mais antigo)
     lw      t1, 0(a3)             # t1 = *tail
 
-    # Calcular endereço de buffer[tail]
-    slli    t2, t1, 2             # t2 = tail * 4 (cada int = 4 bytes)
-    add     t3, a0, t2            # t3 = &buffer[tail]
+    # Guardar n e ponteiro para array em temporários
+    mv      t5, a5                # t5 = n
+    mv      t6, a6                # t6 = array
 
-    # Ler o elemento antigo
+    # Verificar se há elementos suficientes: *nelem < n ?
+    blt     t0, t5, .fail         # se *nelem < n -> não há n elem. → retorna 0
+
+    # i = 0 (contador de quantos já movemos)
+    li      t2, 0                 # t2 = i = 0
+
+.loop:
+    # Se i == n, já movemos todos → sair do ciclo
+    beq     t2, t5, .done         # if (i == n) goto done
+
+    # --- Ler elemento mais antigo: buffer[tail] ---
+
+    # endereço de buffer[tail]
+    slli    t3, t1, 2             # t3 = tail * 4
+    add     t3, a0, t3            # t3 = &buffer[tail]
+
     lw      t4, 0(t3)             # t4 = buffer[tail]
 
-    # Guardar elemento removido no local apontado por value
-    sw      t4, 0(a5)             # *value = buffer[tail]
+    # --- Escrever em array[i] ---
+
+    slli    t3, t2, 2             # t3 = i * 4
+    add     t3, t6, t3            # t3 = &array[i]
+    sw      t4, 0(t3)             # array[i] = buffer[tail]
 
     # Avançar tail: tail = (tail + 1) % length
     addi    t1, t1, 1             # tail++
-    bne     t1, a1, .no_wrap      # Se tail != length → não fazer wrap
-    li      t1, 0                 # Caso contrário → tail = 0 (wrap)
+    bne     t1, a1, .no_wrap_tail # se tail != length, não faz wrap
+    li      t1, 0                 # senão, tail = 0
+.no_wrap_tail:
 
-.no_wrap:
-    sw      t1, 0(a3)             # *tail = novo tail
+    # i++
+    addi    t2, t2, 1             # i++
+    j       .loop                 # repetir
 
-    # Decrementar número de elementos
-    addi    t0, t0, -1            # --(*nelem)
-    sw      t0, 0(a2)             # *nelem = atualizado
+.done:
+    # Atualizar *nelem: *nelem -= n
+    sub     t0, t0, t5            # t0 = *nelem - n
+    sw      t0, 0(a2)             # *nelem = t0
+
+    # Atualizar *tail
+    sw      t1, 0(a3)             # *tail = tail
 
     # Sucesso → retorna 1
     li      a0, 1                 # a0 = 1 (sucesso)
     ret
 
 .fail:
-    # Buffer vazio → não remove nada
+    # Não há elementos suficientes para mover
     li      a0, 0                 # a0 = 0 (falha)
     ret
