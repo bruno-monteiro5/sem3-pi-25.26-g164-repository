@@ -23,8 +23,6 @@ public class BuildIndexesUI implements Runnable {
                     "train_station_dataset" + File.separator +
                     "train_stations_europe.csv";
 
-    private int PRINT_LIMIT = 30;
-
     private StationRepository stationRepository = new StationRepository();
     private BuildIndexesController controller   = new BuildIndexesController(stationRepository);
     private boolean indexesBuilt = false;
@@ -62,7 +60,6 @@ public class BuildIndexesUI implements Runnable {
         File file = new File(csvPath);
         if (!file.isFile()) {
             System.out.println("CSV file not found: " + csvPath);
-            pressEnterToContinue();
             menu();
             return;
         }
@@ -76,7 +73,6 @@ public class BuildIndexesUI implements Runnable {
         System.out.println("(AVL indexes for latitude and longitude; BST index for time-zone groups)");
 
         indexesBuilt = true;
-        pressEnterToContinue();
         menu();
     }
 
@@ -90,9 +86,8 @@ public class BuildIndexesUI implements Runnable {
 
         System.out.printf("%nLatitude window [%.4f, %.4f] → %d results%n",
                 minLat, maxLat, list.size());
-        printStationsLimited(list);
 
-        pressEnterToContinue();
+        printStations(list);
         menu();
     }
 
@@ -106,40 +101,37 @@ public class BuildIndexesUI implements Runnable {
 
         System.out.printf("%nLongitude window [%.4f, %.4f] → %d results%n",
                 minLon, maxLon, list.size());
-        printStationsLimited(list);
 
-        pressEnterToContinue();
+        printStations(list);
         menu();
     }
 
     private void tzGroupAction() {
         if (!requireBuilt()) return;
 
-        String group = askLine("Time zone group", "WET/GMT");
+        String group = askLine("Time zone group", "CET");
 
         List<Station> list = controller.queryByTimeZoneGroup(group);
 
         System.out.printf("%nGroup '%s' → %d results%n",
                 group, list.size());
-        printStationsLimited(list);
 
-        pressEnterToContinue();
+        printStations(list);
         menu();
     }
 
     private void tzGroupCountryAction() {
         if (!requireBuilt()) return;
 
-        String group   = askLine("Time zone group", "WET/GMT");
-        String country = askLine("Country", "PT");
+        String group   = askLine("Time zone group", "CET");
+        String country = askLine("Country", "ES");
 
         List<Station> list = controller.queryByTimeZoneAndCountry(group, country);
 
         System.out.printf("%nGroup '%s' + country '%s' → %d results%n",
                 group, country, list.size());
-        printStationsLimited(list);
 
-        pressEnterToContinue();
+        printStations(list);
         menu();
     }
 
@@ -148,15 +140,11 @@ public class BuildIndexesUI implements Runnable {
             return true;
 
         System.out.println("Indexes not built yet. Use option 1 first.");
-        pressEnterToContinue();
         menu();
         return false;
     }
 
-    private void printStationsLimited(List<Station> stationList) {
-        int printed = 0;
-        int total = stationList.size();
-
+    private void printStations(List<Station> stationList) {
         for (Station st : stationList) {
             System.out.printf("%-42s %-6s [%.5f, %.5f]  %s%n",
                     st.getName(),
@@ -164,14 +152,8 @@ public class BuildIndexesUI implements Runnable {
                     st.getLocation().getLatitude(),
                     st.getLocation().getLongitude(),
                     st.getTimeZoneGroup());
-            printed++;
-
-            if (printed >= PRINT_LIMIT && total > PRINT_LIMIT) {
-                System.out.println("... " + (total - PRINT_LIMIT) + " more stations ...");
-                break;
-            }
         }
-        System.out.println("Total: " + total);
+        System.out.println("Total: " + stationList.size());
     }
 
     private void clear() {
@@ -185,7 +167,6 @@ public class BuildIndexesUI implements Runnable {
         return sb.toString();
     }
 
-    /** cleaner askLine */
     private String askLine(String label, String defaultValue) {
         System.out.print(label + ": ");
         Scanner scanner = new Scanner(System.in);
@@ -193,7 +174,6 @@ public class BuildIndexesUI implements Runnable {
         return text.isEmpty() ? defaultValue : text;
     }
 
-    /** cleaner askDouble */
     private double askDouble(String label, double defaultValue) {
         System.out.print(label + ": ");
         Scanner scanner = new Scanner(System.in);
@@ -206,11 +186,5 @@ public class BuildIndexesUI implements Runnable {
             System.out.println("Invalid number. Using default value.");
             return defaultValue;
         }
-    }
-
-    private void pressEnterToContinue() {
-        System.out.print("\nPress ENTER to continue...");
-        Scanner scanner = new Scanner(System.in);
-        scanner.nextLine();
     }
 }
