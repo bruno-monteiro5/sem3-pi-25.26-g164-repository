@@ -28,7 +28,7 @@ public class StationIndexes {
     private final AVL<TZKey> timeZoneIndex = new AVL<>();
 
     /** Sentinel strings used to close open-ended string ranges. */
-    private static final String LOWEST  = "\u0000";
+    private static final String LOWEST  = "!";
     private static final String HIGHEST = "\uFFFF";
 
     /**
@@ -151,7 +151,7 @@ public class StationIndexes {
      * @param upper inclusive upper bound
      * @return list of elements inside the inclusive window
      */
-    private static <E extends Comparable<E>> List<E> filterWindow(
+    private  <E extends Comparable<E>> List<E> filterWindow(
             Iterable<E> sortedElements, E lower, E upper) {
 
         List<E> resultList = new ArrayList<>();
@@ -172,7 +172,7 @@ public class StationIndexes {
     }
 
     /** Creates a valid LatKey boundary for (latitude, name). */
-    private static LatKey createLatitudeBoundary(double latitude, String name) {
+    private  LatKey createLatitudeBoundary(double latitude, String name) {
         Station boundaryStation = new Station(
                 name, "ZZZ",
                 new Location(latitude, 0),
@@ -182,7 +182,7 @@ public class StationIndexes {
     }
 
     /** Creates a valid LonKey boundary for (longitude, name). */
-    private static LonKey createLongitudeBoundary(double longitude, String name) {
+    private  LonKey createLongitudeBoundary(double longitude, String name) {
         Station boundaryStation = new Station(
                 name, "ZZZ",
                 new Location(0, longitude),
@@ -192,7 +192,7 @@ public class StationIndexes {
     }
 
     /** Creates a valid TZKey boundary for (group, country, name). */
-    private static TZKey createTimeZoneBoundary(String group, String country, String name) {
+    private  TZKey createTimeZoneBoundary(String group, String country, String name) {
         Station boundaryStation = new Station(
                 name, country,
                 new Location(0, 0),
@@ -202,7 +202,7 @@ public class StationIndexes {
     }
 
     /** Converts a list of LatKey objects to their Station references. */
-    private static List<Station> unwrapLatitude(List<LatKey> latitudeKeys) {
+    private  List<Station> unwrapLatitude(List<LatKey> latitudeKeys) {
         List<Station> stationList = new ArrayList<>(latitudeKeys.size());
         for (LatKey key : latitudeKeys) {
             stationList.add(key.getStation());
@@ -211,7 +211,7 @@ public class StationIndexes {
     }
 
     /** Converts a list of LonKey objects to their Station references. */
-    private static List<Station> unwrapLongitude(List<LonKey> longitudeKeys) {
+    private  List<Station> unwrapLongitude(List<LonKey> longitudeKeys) {
         List<Station> stationList = new ArrayList<>(longitudeKeys.size());
         for (LonKey key : longitudeKeys) {
             stationList.add(key.getStation());
@@ -220,7 +220,7 @@ public class StationIndexes {
     }
 
     /** Converts a list of TZKey objects to their Station references. */
-    private static List<Station> unwrapTimeZone(List<TZKey> timeZoneKeys) {
+    private  List<Station> unwrapTimeZone(List<TZKey> timeZoneKeys) {
         List<Station> stationList = new ArrayList<>(timeZoneKeys.size());
         for (TZKey key : timeZoneKeys) {
             stationList.add(key.getStation());
@@ -229,7 +229,7 @@ public class StationIndexes {
     }
 
     /** Checks whether a string is null or blank. */
-    private static boolean isBlank(String text) {
+    private boolean isBlank(String text) {
         return text == null || text.trim().isEmpty();
     }
 }

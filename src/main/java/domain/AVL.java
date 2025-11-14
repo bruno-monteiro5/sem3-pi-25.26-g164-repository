@@ -12,7 +12,6 @@ package domain;
  */
 public class AVL <E extends Comparable<E>> extends BST<E> {
 
-    // ADDED BY ME NOT THE TEACHER
 
     private int nodeHeight(Node<E> node) {
         if (node == null) return -1;
@@ -21,7 +20,6 @@ public class AVL <E extends Comparable<E>> extends BST<E> {
         return 1 + Math.max(hl, hr);
     }
 
-    // END OF ADDED CODE
 
     private int balanceFactor(Node<E> node){
         if (node == null) return 0; // por convenção, FB de null é 0
