@@ -30,23 +30,27 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ---
 
-## BDAD — Use Case Diagram
+## BDDAD — Use Case Diagram
 
-![Use Case Diagram](svg/UCDBDAD.svg)
+![Use Case Diagram](svg/UCDBDDAD.svg)
 
 **For each UC/US, it must be provided evidences of applying main activities of the software development process (requirements, analysis, design, tests and code).**
 
-### Use Cases / User Stories — BDAD
+### Use Cases / User Stories — BDDAD
 
-| UC/US | Description                                                   |
-|:------|:--------------------------------------------------------------|
-| USBD01 | Create Data Dictionary / Glossary                             |
-| USBD02 | Create Relational Model                                       |
-| USBD03 | Instantiate Relational Model                                  |
-| USBD04 | Insert Provided Data                                          |
-| USBD08 | List Locomotives by Type                                      |
-| USBD13 | List Locomotives by Type and Gauge per Operator               |
-| USBD19 | Count Segments per Owner by Track                             |
+| UC/US  | Description                                             |
+|:-------|:--------------------------------------------------------|
+| USBD01 | Create Data Dictionary / Glossary                       |
+| USBD02 | Create Relational Model                                 |
+| USBD03 | Instantiate Relational Model                            |
+| USBD04 | Insert Provided Data                                    |
+| USBD08 | List Locomotives by Type                                |
+| USBD13 | List Locomotives by Type and Gauge per Operator         |
+| USBD19 | Count Segments by Track Type                            |
+| USBD21 | Update the Relational Model                             |
+| USBD25 | List Endpoints Passed Without Stop on a Planned Route   |
+| USBD27 | List Grain Wagons Used in Every Train                   |
+| USBD29 | Know the Percentage of Electric Locomotives by Operator |
 
 ---
 
