@@ -15,6 +15,11 @@ usecase "USBD08 - List Locomotives by Type" as UC5
 usecase "USBD13 - List Locomotives by Type and Gauge" as UC6
 usecase "USBD19 - Count Segments by Track Type" as UC7
 
+usecase "USBD21 - Update the Relational Model" as UC8
+usecase "USBD25 - List Endpoints Passed Without Stop on a Planned Route" as UC9
+usecase "USBD27 - List Grain Wagons Used in Every Train" as UC10
+usecase "USBD29 - Know the Percentage of Electric Locomotives by Operator" as UC11
+
 PO --> UC1
 PO --> UC2
 PO --> UC3
@@ -22,5 +27,11 @@ PO --> UC4
 PL --> UC5
 PL --> UC6
 PL --> UC7
+
+PO --> UC8
+PL --> UC9
+PL --> UC10
+PL --> UC11
+
 
 @enduml

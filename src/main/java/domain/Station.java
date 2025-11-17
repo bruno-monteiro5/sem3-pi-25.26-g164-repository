@@ -1,7 +1,9 @@
 package domain;
 
-public class Station extends Endpoint {
+public class Station  {
 
+    private String name;
+    private Location location;
     private String country;
     private String timeZoneGroup;
     private boolean isCity;
@@ -15,12 +17,21 @@ public class Station extends Endpoint {
                    boolean isCity,
                    boolean isMainStation,
                    boolean isAirport) {
-        super(normalizeName(name), location);
+
+        this.name = normalizeName(name);
         this.country = normalizeCountry(country);
         this.timeZoneGroup = normalizeTzGroup(timeZoneGroup);
-        if (getName().isEmpty()) throw new IllegalArgumentException("name is blank");
-        if (this.country.isEmpty()) throw new IllegalArgumentException("country is blank");
-        if (this.timeZoneGroup.isEmpty()) throw new IllegalArgumentException("timeZoneGroup is blank");
+        this.location = location;
+
+        if (this.name == null || this.name.isEmpty())
+            throw new IllegalArgumentException("name is blank");
+        if (this.country == null || this.country.isEmpty())
+            throw new IllegalArgumentException("country is blank");
+        if (this.timeZoneGroup == null || this.timeZoneGroup.isEmpty())
+            throw new IllegalArgumentException("timeZoneGroup is blank");
+        if (this.location == null)
+            throw new IllegalArgumentException("location is null");
+
         this.isCity = isCity;
         this.isMainStation = isMainStation;
         this.isAirport = isAirport;
@@ -47,6 +58,13 @@ public class Station extends Endpoint {
     }
 
 
+    public String getName() {
+        return name;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
 
     public String getTimeZoneGroup() {
         return timeZoneGroup;
