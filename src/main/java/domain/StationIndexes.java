@@ -228,6 +228,20 @@ public class StationIndexes {
         return stationList;
     }
 
+    /**
+     * Returns the internal latitude AVL index (for 2D-Tree construction).
+     */
+    public AVL<LatKey> getLatitudeIndex() {
+        return latitudeIndex;
+    }
+
+    /**
+     * Returns the internal longitude AVL index (for 2D-Tree construction).
+     */
+    public AVL<LonKey> getLongitudeIndex() {
+        return longitudeIndex;
+    }
+
     /** Checks whether a string is null or blank. */
     private boolean isBlank(String text) {
         return text == null || text.trim().isEmpty();

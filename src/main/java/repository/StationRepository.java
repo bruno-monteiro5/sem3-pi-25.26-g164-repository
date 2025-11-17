@@ -79,4 +79,11 @@ public class StationRepository {
     public List<Station> findByTimeZoneAndCountry(String timeZoneGroup, String country) {
         return stationIndexes.byTimeZoneAndCountry(timeZoneGroup, country);
     }
+
+    /**
+     * Returns the internal StationIndexes object for advanced queries.
+     */
+    public StationIndexes getStationIndexes() {
+        return stationIndexes;
+    }
 }
