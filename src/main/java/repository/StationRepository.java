@@ -8,8 +8,13 @@ import java.util.List;
 /**
  * Repository responsible for storing and querying Station data through
  * AVL-based indexes. It is the single source of truth for Station queries.
+ *
+ * Singleton pattern ensures all controllers share the same data.
  */
 public class StationRepository {
+
+    /** Singleton instance */
+    private static StationRepository instance = null;
 
     /** Holds all AVL indexes over stations. */
     private final StationIndexes stationIndexes = new StationIndexes();
@@ -17,6 +22,22 @@ public class StationRepository {
     /** Counters for load process diagnostics. */
     private int totalLoadedCount = 0;
     private int totalRejectedCount = 0;
+
+    /**
+     * Private constructor to prevent external instantiation.
+     */
+    private StationRepository() {
+    }
+
+    /**
+     * Returns the singleton instance of StationRepository.
+     */
+    public static synchronized StationRepository getInstance() {
+        if (instance == null) {
+            instance = new StationRepository();
+        }
+        return instance;
+    }
 
     /**
      * Loads and indexes all stations from a provided list.
@@ -85,5 +106,22 @@ public class StationRepository {
      */
     public StationIndexes getStationIndexes() {
         return stationIndexes;
+    }
+
+    /**
+     * Checks if indexes have been built (data loaded).
+     */
+    public boolean isLoaded() {
+        return totalLoadedCount > 0;
+    }
+
+    /**
+     * Clears all loaded data (for testing purposes).
+     */
+    public void clear() {
+        totalLoadedCount = 0;
+        totalRejectedCount = 0;
+        // Note: StationIndexes doesn't have a clear method,
+        // stationIndexes = new StationIndexes();
     }
 }
