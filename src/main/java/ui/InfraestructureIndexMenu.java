@@ -22,12 +22,14 @@ public class InfraestructureIndexMenu implements Runnable {
         System.out.println("                       INFRASTRUCTURE INDEX MENU");
         System.out.println(line(72) + RESET);
 
-        Option[] options = new Option[2];
+        Option[] options = new Option[3];
         Runnable tzIndex = new BuildIndexesUI();
+        Runnable build2DTree = new Build2DTreeUI();
         Runnable main    = new MainMenu();
 
-        options[0] = new Option("Time-Zone Index & Windowed Queries", tzIndex);
-        options[1] = new Option("Go Back", main);
+        options[0] = new Option("Time-Zone Index & Windowed Queries (USEI06)", tzIndex);
+        options[1] = new Option("Build 2D-Tree (USEI07)", build2DTree);
+        options[2] = new Option("Go Back", main);
 
         Utils.listAndSelect(options);
     }
