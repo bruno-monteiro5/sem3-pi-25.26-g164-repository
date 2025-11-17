@@ -5,7 +5,6 @@ import controller.StationCsvLoader;
 import domain.Option;
 import domain.Station;
 import domain.Utils;
-import repository.StationRepository;
 
 import java.io.File;
 import java.util.List;
@@ -16,6 +15,8 @@ public class BuildIndexesUI implements Runnable {
     private static final boolean COLOR_ON = true;
     private static final String RESET = COLOR_ON ? "\u001B[0m" : "";
     private static final String CYAN  = COLOR_ON ? "\u001B[36m" : "";
+    private static final String GREEN = COLOR_ON ? "\u001B[32m" : "";
+    private static final String YL = COLOR_ON ? "\u001B[33m" : "";
     private static final String SEP   = "─";
 
     private String DEFAULT_CSV_PATH =
@@ -23,9 +24,7 @@ public class BuildIndexesUI implements Runnable {
                     "train_station_dataset" + File.separator +
                     "train_stations_europe.csv";
 
-    private StationRepository stationRepository = new StationRepository();
-    private BuildIndexesController controller   = new BuildIndexesController(stationRepository);
-    private boolean indexesBuilt = false;
+    private BuildIndexesController controller = new BuildIndexesController();
 
     @Override
     public void run() {
@@ -37,6 +36,14 @@ public class BuildIndexesUI implements Runnable {
         System.out.println(CYAN + line(72));
         System.out.println("                        STATION INDEXES (USEI06)");
         System.out.println(line(72) + RESET);
+
+        // Show current status
+        if (controller.isLoaded()) {
+            System.out.println(GREEN + "✓ Indexes are loaded and ready" + RESET);
+        } else {
+            System.out.println(YL + "⚠ Indexes not loaded yet" + RESET);
+        }
+        System.out.println();
 
         Option[] options = new Option[6];
 
@@ -52,7 +59,7 @@ public class BuildIndexesUI implements Runnable {
 
     private void buildIndexesAction() {
 
-        System.out.print("CSV path: ");
+        System.out.print("CSV path [" + DEFAULT_CSV_PATH + "]: ");
         Scanner sc = new Scanner(System.in);
         String input = sc.nextLine().trim();
         String csvPath = input.isEmpty() ? DEFAULT_CSV_PATH : input;
@@ -69,10 +76,10 @@ public class BuildIndexesUI implements Runnable {
         StationCsvLoader loader = new StationCsvLoader();
         controller.buildFromCsvPath(loader, csvPath);
 
-        System.out.println("CSV loaded. Indexes successfully built.");
-        System.out.println("(AVL indexes for latitude and longitude; BST index for time-zone groups)");
+        System.out.println(GREEN + "CSV loaded. Indexes successfully built." + RESET);
+        System.out.println("(AVL indexes for latitude, longitude, and time-zone groups)");
 
-        indexesBuilt = true;
+        pause();
         menu();
     }
 
@@ -88,6 +95,7 @@ public class BuildIndexesUI implements Runnable {
                 minLat, maxLat, list.size());
 
         printStations(list);
+        pause();
         menu();
     }
 
@@ -103,6 +111,7 @@ public class BuildIndexesUI implements Runnable {
                 minLon, maxLon, list.size());
 
         printStations(list);
+        pause();
         menu();
     }
 
@@ -117,6 +126,7 @@ public class BuildIndexesUI implements Runnable {
                 group, list.size());
 
         printStations(list);
+        pause();
         menu();
     }
 
@@ -132,19 +142,22 @@ public class BuildIndexesUI implements Runnable {
                 group, country, list.size());
 
         printStations(list);
+        pause();
         menu();
     }
 
     private boolean requireBuilt() {
-        if (indexesBuilt)
+        if (controller.isLoaded())
             return true;
 
         System.out.println("Indexes not built yet. Use option 1 first.");
+        pause();
         menu();
         return false;
     }
 
     private void printStations(List<Station> stationList) {
+        int count = 0;
         for (Station st : stationList) {
             System.out.printf("%-42s %-6s [%.5f, %.5f]  %s%n",
                     st.getName(),
@@ -152,8 +165,19 @@ public class BuildIndexesUI implements Runnable {
                     st.getLocation().getLatitude(),
                     st.getLocation().getLongitude(),
                     st.getTimeZoneGroup());
+            count++;
+            if (count >= 20 && stationList.size() > 20) {
+                System.out.println("... (showing first 20 of " + stationList.size() + " results)");
+                break;
+            }
         }
         System.out.println("Total: " + stationList.size());
+    }
+
+    private void pause() {
+        System.out.println("\nPress Enter to continue...");
+        Scanner sc = new Scanner(System.in);
+        sc.nextLine();
     }
 
     private void clear() {
@@ -168,14 +192,14 @@ public class BuildIndexesUI implements Runnable {
     }
 
     private String askLine(String label, String defaultValue) {
-        System.out.print(label + ": ");
+        System.out.print(label + " [" + defaultValue + "]: ");
         Scanner scanner = new Scanner(System.in);
         String text = scanner.nextLine().trim();
         return text.isEmpty() ? defaultValue : text;
     }
 
     private double askDouble(String label, double defaultValue) {
-        System.out.print(label + ": ");
+        System.out.print(label + " [" + defaultValue + "]: ");
         Scanner scanner = new Scanner(System.in);
         String text = scanner.nextLine().trim();
         if (text.isEmpty())
