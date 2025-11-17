@@ -6,9 +6,6 @@ skinparam classAttributeIconSize 0
 hide circle
 hide methods
 
-class RailwayInfrastructure {
-
-}
 
 class RailLine {
     id
@@ -31,29 +28,14 @@ class Siding {
   name
 }
 
-abstract class Endpoint {
-    name
-}
 
-class Station extends Endpoint{
+class Station{
     country
     timeZone
     timeZoneGroup
     isCity
     isMainStation
     isAirport
-}
-
-class Terminal extends Endpoint{
-
-}
-
-class IntermodalTerminal extends Terminal {
-}
-
-class FreightYard {
-    name
-
 }
 
 class Warehouse {
@@ -65,18 +47,16 @@ class RefrigeratedArea {
 class GrainSilo {
 }
 
-abstract class RollingStock {
-   id
-   make
-   model
-}
 
 class Gauge {
     code
     width
 }
 
-class Locomotive extends RollingStock {
+class Locomotive {
+    id
+    make
+    model
     entryYear
     power
     acceleration
@@ -93,39 +73,22 @@ class ElectricLocomotive extends Locomotive {
     frequency
 }
 
-class Wagon extends RollingStock {
+class Wagon  {
+    id
+    make
+    model
     payload
     volCapacity
     tare
+}
+
+class WagonType {
 }
 
 class Train {
     id
 }
 
-class Boxcar extends Wagon {
- }
-class Flatcar extends Wagon {
-    maxStackLevel
-}
-class TankCar extends Wagon {
- }
-class HopperCar extends Wagon {
-}
-class RefrigeratedCar extends Wagon {
-}
-
-class ChemicalTankCar extends TankCar {
- }
-class MineralOilCar   extends TankCar {
- }
-class PressureGasCar  extends TankCar {
- }
-
- class Container {
-    length
-    isHighCube
-}
 
 class Dimension {
     length
@@ -239,24 +202,19 @@ class Location {
     longitude
 }
 
+class StationType {
+}
 
-RailwayInfrastructure "1" -> "*" RailLine : includes
+
 RailLine *-- "*" LineSegment : composed of
 SingleTrackSegment "0..*" ---> "0..*" Siding : has crossing areas
-RailLine "1" --> "1" Endpoint : from
-RailLine "1" --> "1" Endpoint : to
-LineSegment "1" --> "1" Endpoint : from
-LineSegment "1" --> "1" Endpoint : to
-Terminal "1" ---> "*" Warehouse : may include
-Station "1" ---> "*" Warehouse : may include
-Terminal "1" ---> "*" RefrigeratedArea : may include
+RailLine "1" --> "1" Station : from
+RailLine "1" --> "1" Station : to
 Station "1" ---> "*" RefrigeratedArea : may include
-Terminal "1" ---> "*" GrainSilo : may include
 Station "1" ---> "*" GrainSilo : may include
 Train "1" -- "1..*" Locomotive : is composed of >
 Train "1" -- "0..*" Wagon      : is composed of >
 Train "*" ---> "*" RailLine : run on >
-Flatcar "1" -- "*" Container : carries >
 Locomotive "1" -- "0..1" Dimension : has >
 Wagon      "1" -- "0..1" Dimension : has >
 Bay        "1" -- "0..1" Dimension : has >
@@ -268,20 +226,16 @@ Path "1" -- "1..*" PathStep : consists of >
 PathStep "1" --> "1" LineSegment : via >
 PathStep "1" --> "1" Station : passes >
 Route "1" -- "1..*" Freight
-Terminal "1" -- "1..*" CirculationLine : has >
-Terminal "1" -- "1..*" ParkingLine    : has >
-Terminal "1" -- "1..*" UnloadingDock  : has >
+Station "1" -- "0..*" CirculationLine : may include >
+Station "1" -- "0..*" ParkingLine    : may include >
 Warehouse "1" -- "1..*" Aisle : organized in >
 Aisle     "1" -- "1..*" Bay : has >
 Bay "1" -- "0..*" Box : stores >
 Wagon "1" -- "0..*" Box : carries >
-UnloadingDock "1" --> "1..*" Warehouse : connects to >
 Box "1" -- "1" Item : contains >
 Order "1" -- "1..*" OrderLine : has >
 OrderLine "1" --> "1" Item : refers to >
 Return "1" --> "1" Item : returned product >
-FreightYard "1" --- "*" Train : handles >
-RollingStock "1" -- "1..*" Gauge : supports >
 LineSegment "0..*" --> "1" Gauge : has >
 PickPlan "1" --> "1" Trolley     : is loaded onto >
 PickPlan "1" --> "1" OrderLine   : fulfills >
@@ -291,10 +245,17 @@ Trolley   "1" -- "*" PickPlan    : aggregates picks from >
 Quarantine "1" -- "1..*" Return : contains >
 Return "1" -- "1..*" InspectionLog : recorded in >
 Return "1" --> "1" Item : refers to >
-Endpoint "1" --> "1" Location : has >
-FreightYard "1" --> "1" Location : has >
+Station "1" --> "1" Location : has >
 Siding "1" --> "1" Location : has >
-UnloadingDock "1" --> "1" Location : has >
+Wagon "1" --> "1" WagonType : has >
+Station "1" --> "1" StationType : has >
+Station "1" --> "0..*" Warehouse        : has >
+Warehouse "1" --> "0..*" UnloadingDock  : has >
+Locomotive "1" -- "1..*" Gauge : supports >
+Wagon      "1" -- "1..*" Gauge : supports >
+
+
+
 
 
 
