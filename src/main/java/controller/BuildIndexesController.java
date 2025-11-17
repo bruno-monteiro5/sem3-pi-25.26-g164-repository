@@ -16,12 +16,10 @@ public class BuildIndexesController {
     private StationRepository stationRepository;
 
     /**
-     * Creates a controller with the given repository dependency.
-     *
-     * @param stationRepository repository that stores and queries stations
+     * Creates a controller using the singleton repository.
      */
-    public BuildIndexesController(StationRepository stationRepository) {
-        this.stationRepository = stationRepository;
+    public BuildIndexesController() {
+        this.stationRepository = StationRepository.getInstance();
     }
 
     /**
@@ -58,9 +56,6 @@ public class BuildIndexesController {
         );
     }
 
-
-
-
     public List<Station> queryByLatitude(double minLatitude, double maxLatitude) {
         return stationRepository.findByLatitudeWindow(minLatitude, maxLatitude);
     }
@@ -76,4 +71,12 @@ public class BuildIndexesController {
     public List<Station> queryByTimeZoneAndCountry(String timeZoneGroup, String country) {
         return stationRepository.findByTimeZoneAndCountry(timeZoneGroup, country);
     }
+
+    /**
+     * Checks if indexes have been built.
+     */
+    public boolean isLoaded() {
+        return stationRepository.isLoaded();
+    }
+
 }

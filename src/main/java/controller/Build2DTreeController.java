@@ -11,21 +11,27 @@ public class Build2DTreeController {
     private StationRepository stationRepository;
     private KDTree2D kdTree;
 
-    public Build2DTreeController(StationRepository stationRepository) {
-        this.stationRepository = stationRepository;
+    /**
+     * Creates a controller using the singleton repository.
+     */
+    public Build2DTreeController() {
+        this.stationRepository = StationRepository.getInstance();
         this.kdTree = new KDTree2D();
     }
 
     /**
      * Builds a balanced 2D-Tree using the existing AVL indexes from USEI06.
      *
-     * @param stationIndexes the indexes built in USEI06
+     * @throws IllegalStateException if AVL indexes haven't been built yet
      */
-    public void build2DTree(StationIndexes stationIndexes) {
+    public void build2DTree() {
+        if (!stationRepository.isLoaded()) {
+            throw new IllegalStateException("AVL indexes must be built first (USEI06)");
+        }
+
         long startNanos = System.nanoTime();
 
-        // Access the internal AVL trees from StationIndexes
-        // Note: You'll need to add getter methods to StationIndexes to expose the AVL trees
+        StationIndexes stationIndexes = stationRepository.getStationIndexes();
         AVL<LatKey> latIndex = stationIndexes.getLatitudeIndex();
         AVL<LonKey> lonIndex = stationIndexes.getLongitudeIndex();
 
@@ -62,5 +68,12 @@ public class Build2DTreeController {
      */
     public KDTree2D.KDTreeStats getStatistics() {
         return kdTree.getStatistics();
+    }
+
+    /**
+     * Checks if the 2D-Tree has been built.
+     */
+    public boolean isBuilt() {
+        return kdTree.size() > 0;
     }
 }
