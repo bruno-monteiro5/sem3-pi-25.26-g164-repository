@@ -1,7 +1,7 @@
 # Glossary
 
 
-| TEA (EN)                    | Description (EN)                                                                                                                                                     |
+| TEA (EN) | Description (EN) |
 |:----------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | AC                          | Acceptance Criteria                                                                                                                                                  |
 | Acceptance Criteria         | A set of predefined conditions or requirements that a software product must meet to be accepted by the client or stakeholders.                                       
@@ -130,6 +130,7 @@
 | SKU                         | Stock Keeping Unit                                                                                                                                                   |
 | Sprint                      | A short, fixed-length period in SCRUM during which a team works to complete a specific set of tasks or deliverables.                                                 |
 | Staked Container            | A container placed on top of another, often restricted in Europe due to tunnels and electric lines.                                                                  |
+| Station                     | In this work, station can be station, freigthYards, terminals and intermodal terminals, being an endpoint.                                                           |
 | Station Master              | The person in charge of managing station operations, coordinating train arrivals and departures.                                                                     |
 | Station Storage Manager     | The role responsible for overseeing and controlling storage operations within a railway station or terminal.                                                         |
 | Stock Keeping Unit          | A unique identifier assigned to a product for inventory tracking and management.                                                                                     |
@@ -161,4 +162,3 @@
 | Warehouse Planner           | Oversees order fulfillment by verifying inventory and allocating quantities using FEFO logic.                                                                        |
 | Warehousing                 | The activity of storing goods in facilities until they are needed for distribution or consumption.                                                                   |
 | WMS                         | Warehouse Management System                                                                                                                                          |
-| Station                     | In this work, station can be station, freigthYards, terminals and intermodal terminals, being an endpoint.                                                           |
