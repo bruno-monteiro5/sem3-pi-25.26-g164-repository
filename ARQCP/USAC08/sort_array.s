@@ -1,95 +1,107 @@
 /*
  * int sort_array(int* vec, int length, char order);
  *
- * a0 = vec
- * a1 = length
- * a2 = order  (1 ascendente, 0 descendente - ainda só usamos asc)
+ * a0 = vec       (pointer to integer array)
+ * a1 = length    (array size)
+ * a2 = order     (1 for ascending, 0 for descending)
  *
- * Retorno:
- *   1 → se conseguir ordenar;
- *   0 → se length <= 0.
+ * Return value:
+ *   1 → success
+ *   0 → failure (length <= 0)
  */
 
     .section .text
     .globl sort_array
 
 sort_array:
-    # Se length <= 0 → falha
+    # If length <= 0 → nothing to sort → failure
     blez    a1, fail_sort         # if (length <= 0) goto fail_sort
 
-    # Guardar argumentos em temporários
+    # Save arguments into temporaries
     mv      t0, a0                # t0 = vec
     mv      t1, a1                # t1 = length
-    # order (a2) ainda não é usado nesta versão
+    mv      t2, a2                # t2 = order (1 asc, 0 desc)
 
-    # length - 1 (usado várias vezes no algoritmo)
+    # Precompute (length - 1), used many times in bubble sort
     addi    t4, t1, -1            # t4 = length - 1
 
-    # i = 0 (índice do ciclo exterior do bubble sort)
+    # i = 0 (outer bubble sort loop index)
     li      t3, 0                 # t3 = i = 0
 
 outer_loop:
-    # Condição de paragem do ciclo exterior: i >= length - 1 ?
-    bge     t3, t4, done_sort     # if (i >= length-1) → done
+    # If i >= length - 1 → sorting finished
+    bge     t3, t4, done_sort     # if (i >= length-1) goto done_sort
 
-    # j = 0 (índice do ciclo interior)
+    # j = 0 (inner bubble sort loop index)
     li      t5, 0                 # t5 = j = 0
 
 inner_loop:
-    # limite = (length-1) - i
-    sub     a3, t4, t3            # a3 = limite = (length - 1) - i
-    # Se j >= limite → terminamos ciclo interior
-    bge     t5, a3, next_i        # if (j >= limite) → próximo i
+    # Compute limit = (length - 1) - i
+    sub     a3, t4, t3            # a3 = limit = (length - 1) - i
 
-    # -------------------------------------------------
-    # Carregar vec[j] em a4 e vec[j+1] em a5
-    # -------------------------------------------------
-    slli    a3, t5, 2             # a3 = j * 4 (offset em bytes)
+    # If j >= limit → go to next i
+    bge     t5, a3, next_i        # if (j >= limit) goto next_i
+
+    # -----------------------------------------------------
+    # Load vec[j] into a4 and vec[j+1] into a5
+    # -----------------------------------------------------
+    slli    a3, t5, 2             # a3 = j * 4 (offset in bytes)
     add     a3, t0, a3            # a3 = &vec[j]
     lw      a4, 0(a3)             # a4 = vec[j]
 
     addi    a3, a3, 4             # a3 = &vec[j+1]
     lw      a5, 0(a3)             # a5 = vec[j+1]
 
-    # -------------------------------------------------
-    # Ordem ascendente:
-    # se vec[j] > vec[j+1] → trocar
-    # condição equivalente: vec[j+1] < vec[j]
-    # -------------------------------------------------
+    # -----------------------------------------------------
+    # Decide whether to swap based on sort order
+    # -----------------------------------------------------
+    beqz    t2, desc_check        # if (order == 0) → descending mode
+
+asc_check:
+    # ASCENDING ORDER:
+    # swap if vec[j] > vec[j+1]
+    # equivalent to: if (a5 < a4)
     blt     a5, a4, do_swap       # if (a5 < a4) swap
+    j       no_swap
+
+desc_check:
+    # DESCENDING ORDER:
+    # swap if vec[j] < vec[j+1]
+    blt     a4, a5, do_swap       # if (a4 < a5) swap
 
 no_swap:
+    # Advance j and continue inner loop
     addi    t5, t5, 1             # j++
     j       inner_loop
 
 do_swap:
-    # Neste ponto:
-    #  a3 = &vec[j+1]
-    #  a4 = vec[j]
-    #  a5 = vec[j+1]
+    # Current state:
+    #   a3 = &vec[j+1]
+    #   a4 = vec[j]
+    #   a5 = vec[j+1]
     #
-    # Queremos:
-    #  vec[j]   = a5
-    #  vec[j+1] = a4
+    # Swap so that:
+    #   vec[j]   = a5
+    #   vec[j+1] = a4
 
-    sw      a4, 0(a3)             # vec[j+1] = valor original de vec[j]
+    sw      a4, 0(a3)             # vec[j+1] = original vec[j]
     addi    a3, a3, -4            # a3 = &vec[j]
-    sw      a5, 0(a3)             # vec[j] = valor original de vec[j+1]
+    sw      a5, 0(a3)             # vec[j] = original vec[j+1]
 
     addi    t5, t5, 1             # j++
     j       inner_loop
 
 next_i:
-    # Avançar i e repetir bubble sort para próxima passagem
+    # Advance i and repeat outer loop
     addi    t3, t3, 1             # i++
     j       outer_loop
 
 done_sort:
-    # Sucesso → devolve 1
-    li      a0, 1                 # a0 = 1 (sucesso)
+    # Sorting successfully completed
+    li      a0, 1                 # return 1 (success)
     ret
 
 fail_sort:
-    # length <= 0 → falha
-    li      a0, 0                 # a0 = 0 (falha)
+    # Invalid length → cannot sort
+    li      a0, 0                 # return 0 (failure)
     ret
