@@ -17,16 +17,24 @@ public class Station  {
                    boolean isCity,
                    boolean isMainStation,
                    boolean isAirport) {
+
+        this.name = normalizeName(name);
         this.country = normalizeCountry(country);
         this.timeZoneGroup = normalizeTzGroup(timeZoneGroup);
-        if (this.name.isEmpty()) throw new IllegalArgumentException("name is blank");
-        if (this.country.isEmpty()) throw new IllegalArgumentException("country is blank");
-        if (this.timeZoneGroup.isEmpty()) throw new IllegalArgumentException("timeZoneGroup is blank");
+        this.location = location;
+
+        if (this.name == null || this.name.isEmpty())
+            throw new IllegalArgumentException("name is blank");
+        if (this.country == null || this.country.isEmpty())
+            throw new IllegalArgumentException("country is blank");
+        if (this.timeZoneGroup == null || this.timeZoneGroup.isEmpty())
+            throw new IllegalArgumentException("timeZoneGroup is blank");
+        if (this.location == null)
+            throw new IllegalArgumentException("location is null");
+
         this.isCity = isCity;
         this.isMainStation = isMainStation;
         this.isAirport = isAirport;
-        this.name = name;
-        this.location = location;
     }
 
 
@@ -50,6 +58,13 @@ public class Station  {
     }
 
 
+    public String getName() {
+        return name;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
 
     public String getTimeZoneGroup() {
         return timeZoneGroup;
