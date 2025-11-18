@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -268,5 +269,26 @@ class Build2DTreeControllerTest {
         assertNotNull(stats.getBucketDistribution());
         assertTrue(stats.getSize() > 0);
         assertTrue(stats.getHeight() >= 0);
+    }
+
+    @Test
+    void searchInArea(){
+        // Load specific data
+        List<Station> stations = new ArrayList<>();
+        stations.add(station1);
+        stations.add(station2);
+        stations.add(station3);
+
+        repository.loadAll(stations);
+        controller.build2DTree();
+        String result = controller.searchInArea(39, 42, -10, -8);
+
+        assertFalse(result.isBlank());
+
+        assertFalse(result.contains("Lisboa Santa Apolonia"));
+        assertFalse(result.contains("Porto Campanha"));
+        assertTrue(result.contains("Coimbra-B"));
+
+
     }
 }
