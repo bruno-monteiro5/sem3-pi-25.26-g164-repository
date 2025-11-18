@@ -1,127 +1,199 @@
 package domain;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.BeforeEach;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Test suite for {@link KDNode}.
- * Covers construction, bucket sorting, getters/setters, and coordinate retrieval for both axes,
- * including the empty-stations edge case.
- */
 class KDNodeTest {
 
-    /** Helper to create a Location (adjust to your actual constructor). */
-    private Location loc(double lat, double lon) {
-        return new Location(lat, lon);
-    }
+    private Station station1;
+    private Station station2;
+    private Station station3;
+    private List<Station> stationList;
 
-    /** Helper to create a Station with minimal valid data. */
-    private Station st(String name, double lat, double lon) {
-        // Adjust to your Station constructor if needed:
-        // Station(String name, String country, Location location, String timeZoneGroup, boolean isCity, boolean isMainStation, boolean isAirport)
-        return new Station(name, "PT", loc(lat, lon), "WET", false, false, false);
-    }
-
-    /**
-     * Constructor: bucket must be sorted by Station name (ascending) regardless of input order.
-     * Expected:
-     *  - KDNode#getStations() returns stations ordered alphabetically by name.
-     */
-    @Test
-    void constructor_sortsBucketByName() {
-        List<Station> input = new ArrayList<>();
-        input.add(st("Charlie", 10.0, 20.0));
-        input.add(st("Alice",   10.0, 20.0));
-        input.add(st("Bob",     10.0, 20.0));
-
-        KDNode node = new KDNode(0, input);
-        List<Station> bucket = node.getStations();
-
-        assertEquals(3, bucket.size());
-        assertEquals("Alice",  bucket.get(0).getName());
-        assertEquals("Bob",    bucket.get(1).getName());
-        assertEquals("Charlie",bucket.get(2).getName());
-    }
-
-    /**
-     * Defensive copy: later changes to the original list must not affect the node's bucket.
-     * Expected:
-     *  - Modifying the original input list does not change KDNode's internal list.
-     */
-    @Test
-    void constructor_makesDefensiveCopy() {
-        List<Station> input = new ArrayList<>();
-        input.add(st("A", 1.0, 2.0));
-
-        KDNode node = new KDNode(0, input);
-        input.add(st("Z", 1.0, 2.0)); // mutate original
-
-        assertEquals(1, node.getStations().size());
-        assertEquals("A", node.getStations().get(0).getName());
-    }
-
-    /**
-     * Axis 0 (latitude): getCoordinate() returns the latitude of the bucket's first station.
-     * Expected:
-     *  - Returned value equals latitude.
-     */
-    @Test
-    void getCoordinate_axisLatitude() {
-        List<Station> bucket = List.of(
-                st("B", 41.178, -8.598),
-                st("A", 41.178, -8.598) // will be sorted before B
+    @BeforeEach
+    void setUp() {
+        station1 = new Station(
+                "Lisboa Santa Apolonia",
+                "PT",
+                new Location(38.71387, -9.122271),
+                "WET",
+                true,
+                true,
+                false
         );
-        KDNode node = new KDNode(0, bucket); // axis 0 = latitude
-        assertEquals(41.178, node.getCoordinate(), 1e-9);
+
+        station2 = new Station(
+                "Lisboa Oriente",
+                "PT",
+                new Location(38.71387, -9.122271), // Same coordinates
+                "WET",
+                false,
+                true,
+                false
+        );
+
+        station3 = new Station(
+                "Porto Campanha",
+                "PT",
+                new Location(41.14961, -8.58519),
+                "WET",
+                true,
+                true,
+                false
+        );
+
+        stationList = new ArrayList<>();
+    }
+
+    @Test
+    void testConstructorWithSingleStation() {
+        stationList.add(station1);
+        KDNode node = new KDNode(0, stationList);
+
+        assertEquals(0, node.getAxis());
+        assertEquals(1, node.getStations().size());
+        assertEquals("Lisboa Santa Apolonia", node.getStations().get(0).getName());
+        assertNull(node.getLeft());
+        assertNull(node.getRight());
+    }
+
+    @Test
+    void testConstructorWithMultipleStations() {
+        stationList.add(station2);
+        stationList.add(station1);
+        KDNode node = new KDNode(1, stationList);
+
+        assertEquals(1, node.getAxis());
+        assertEquals(2, node.getStations().size());
+        // Should be sorted by name
+        assertEquals("Lisboa Oriente", node.getStations().get(0).getName());
+        assertEquals("Lisboa Santa Apolonia", node.getStations().get(1).getName());
+    }
+
+    @Test
+    void testGetCoordinateLatitude() {
+        stationList.add(station1);
+        KDNode node = new KDNode(0, stationList);
+
+        assertEquals(38.71387, node.getCoordinate(), 0.00001);
+    }
+
+    @Test
+    void testGetCoordinateLongitude() {
+        stationList.add(station1);
+        KDNode node = new KDNode(1, stationList);
+
+        assertEquals(-9.122271, node.getCoordinate(), 0.00001);
+    }
+
+    @Test
+    void testGetCoordinateEmptyList() {
+        KDNode node = new KDNode(0, new ArrayList<>());
+        assertEquals(0.0, node.getCoordinate(), 0.00001);
+    }
+
+    @Test
+    void testSetLeft() {
+        stationList.add(station1);
+        KDNode node = new KDNode(0, stationList);
+
+        List<Station> leftList = new ArrayList<>();
+        leftList.add(station3);
+        KDNode leftNode = new KDNode(1, leftList);
+
+        node.setLeft(leftNode);
+        assertNotNull(node.getLeft());
+        assertEquals(leftNode, node.getLeft());
+    }
+
+    @Test
+    void testSetRight() {
+        stationList.add(station1);
+        KDNode node = new KDNode(0, stationList);
+
+        List<Station> rightList = new ArrayList<>();
+        rightList.add(station3);
+        KDNode rightNode = new KDNode(1, rightList);
+
+        node.setRight(rightNode);
+        assertNotNull(node.getRight());
+        assertEquals(rightNode, node.getRight());
+    }
+
+    @Test
+    void testAxisLatitude() {
+        stationList.add(station1);
+        KDNode node = new KDNode(0, stationList);
         assertEquals(0, node.getAxis());
     }
 
-    /**
-     * Axis 1 (longitude): getCoordinate() returns the longitude of the bucket's first station.
-     * Expected:
-     *  - Returned value equals longitude.
-     */
     @Test
-    void getCoordinate_axisLongitude() {
-        List<Station> bucket = List.of(
-                st("Z", 51.5007, -0.1246),
-                st("Y", 51.5007, -0.1246)
-        );
-        KDNode node = new KDNode(1, bucket); // axis 1 = longitude
-        assertEquals(-0.1246, node.getCoordinate(), 1e-9);
+    void testAxisLongitude() {
+        stationList.add(station1);
+        KDNode node = new KDNode(1, stationList);
         assertEquals(1, node.getAxis());
     }
 
-    /**
-     * Empty bucket: getCoordinate() must return 0.0 to avoid NPE.
-     * Expected:
-     *  - 0.0
-     */
     @Test
-    void getCoordinate_emptyBucketReturnsZero() {
-        KDNode node = new KDNode(0, List.of());
-        assertEquals(0.0, node.getCoordinate(), 1e-9);
+    void testStationsSortedAlphabetically() {
+        // Add in reverse order
+        stationList.add(station3);
+        stationList.add(station2);
+        stationList.add(station1);
+
+        KDNode node = new KDNode(0, stationList);
+
+        List<Station> sorted = node.getStations();
+        assertEquals("Lisboa Oriente", sorted.get(0).getName());
+        assertEquals("Lisboa Santa Apolonia", sorted.get(1).getName());
+        assertEquals("Porto Campanha", sorted.get(2).getName());
     }
 
-    /**
-     * Left/Right setters and getters: node should store and return child references.
-     * Expected:
-     *  - getLeft()/getRight() return the instances previously set.
-     */
     @Test
-    void leftRight_settersAndGetters() {
-        KDNode parent = new KDNode(0, List.of(st("Root", 0.0, 0.0)));
-        KDNode left   = new KDNode(1, List.of(st("L", 1.0, 1.0)));
-        KDNode right  = new KDNode(1, List.of(st("R", 2.0, 2.0)));
+    void testGetStationsIsImmutable() {
+        stationList.add(station1);
+        KDNode node = new KDNode(0, stationList);
 
-        parent.setLeft(left);
-        parent.setRight(right);
+        List<Station> retrieved = node.getStations();
+        int originalSize = retrieved.size();
 
-        assertSame(left, parent.getLeft());
-        assertSame(right, parent.getRight());
+        // Modify the original list
+        stationList.add(station2);
+
+        // Retrieved list should not change
+        assertEquals(originalSize, retrieved.size());
+    }
+
+    @Test
+    void testSetLeftAndRight() {
+        stationList.add(station1);
+        KDNode root = new KDNode(0, stationList);
+
+        List<Station> leftList = new ArrayList<>();
+        leftList.add(station2);
+        KDNode left = new KDNode(1, leftList);
+
+        List<Station> rightList = new ArrayList<>();
+        rightList.add(station3);
+        KDNode right = new KDNode(1, rightList);
+
+        root.setLeft(left);
+        root.setRight(right);
+
+        assertEquals(left, root.getLeft());
+        assertEquals(right, root.getRight());
+    }
+
+    @Test
+    void testNullChildren() {
+        stationList.add(station1);
+        KDNode node = new KDNode(0, stationList);
+
+        assertNull(node.getLeft());
+        assertNull(node.getRight());
     }
 }
