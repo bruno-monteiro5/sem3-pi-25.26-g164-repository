@@ -55,6 +55,100 @@ public class ProximitySearchController {
      * @throws IllegalStateException if 2D-Tree hasn't been built
      * @throws IllegalArgumentException if n <= 0
      */
+    public ProximitySearchResult findNearestN(double targetLat, double targetLon,
+                                              int n, TimeZoneFilter filter) {
+        if (!treeController.isBuilt()) {
+            throw new IllegalStateException("2D-Tree must be built first (run USEI07)");
+        }
+        if (n <= 0) {
+            throw new IllegalArgumentException("n must be > 0");
+        }
+        if (filter == null) {
+            filter = new TimeZoneFilter(); // Default to no filtering
+        }
+
+        long startNanos = System.nanoTime();
+
+        ProximitySearchResult result = new ProximitySearchResult(targetLat, targetLon, n, filter);
+        KDTree2D tree = treeController.getKDTree();
+
+        List<Station> candidates = new ArrayList<>();
+        collectAllStations(tree.getRoot(), candidates);
+
+        List<StationWithDistance> distances = new ArrayList<>();
+        for (int i = 0; i < candidates.size(); i++) {
+            Station station = candidates.get(i);
+            if (filter.matches(station)) {
+                double distance = HaversineDistance.distanceToStation(targetLat, targetLon, station);
+                distances.add(new StationWithDistance(station, distance));
+            }
+        }
+
+        if (distances.isEmpty()) {
+            long endNanos = System.nanoTime();
+            double elapsedSeconds = (endNanos - startNanos) / 1e9;
+            System.out.printf(
+                    "Proximity search finished. Target=(%.4f, %.4f), Found=0/%d, Time=%.3f s%n",
+                    targetLat, targetLon, n, elapsedSeconds
+            );
+            return result;
+        }
+
+        Collections.sort(distances, new Comparator<StationWithDistance>() {
+            @Override
+            public int compare(StationWithDistance sd1, StationWithDistance sd2) {
+                int distCompare = Double.compare(sd1.distance, sd2.distance);
+                if (distCompare != 0) {
+                    return distCompare;
+                }
+                return sd1.station.getName().compareTo(sd2.station.getName());
+            }
+        });
+
+        int baseCount = Math.min(n, distances.size());
+
+        for (int i = 0; i < baseCount; i++) {
+            StationWithDistance sd = distances.get(i);
+            result.addResult(sd.station, sd.distance);
+        }
+
+        // se houver, incluir todas as estações extra que
+        // tenham as mesmas coordenadas que a estação na posição N, resposta do cliente
+        if (baseCount > 0 && baseCount < distances.size()) {
+            StationWithDistance boundary = distances.get(baseCount - 1);
+            double boundaryDistance = boundary.distance;
+            Location boundaryLoc = boundary.station.getLocation();
+            double boundaryLat = boundaryLoc.getLatitude();
+            double boundaryLon = boundaryLoc.getLongitude();
+
+            for (int i = baseCount; i < distances.size(); i++) {
+                StationWithDistance sd = distances.get(i);
+
+                if (Double.compare(sd.distance, boundaryDistance) != 0) {
+                    break;
+                }
+
+                Location loc = sd.station.getLocation();
+                if (loc != null &&
+                        loc.getLatitude() == boundaryLat &&
+                        loc.getLongitude() == boundaryLon) {
+                    result.addResult(sd.station, sd.distance);
+                }
+            }
+        }
+
+        result.sortResults();
+
+        long endNanos = System.nanoTime();
+        double elapsedSeconds = (endNanos - startNanos) / 1e9;
+
+        System.out.printf(
+                "Proximity search finished. Target=(%.4f, %.4f), Found=%d/%d, Time=%.3f s%n",
+                targetLat, targetLon, result.getResultCount(), n, elapsedSeconds
+        );
+
+        return result;
+    }
 
 
     /**
