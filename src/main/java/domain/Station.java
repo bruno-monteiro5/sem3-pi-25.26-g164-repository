@@ -86,7 +86,26 @@ public class Station  {
         return country;
     }
 
+    public String toString(){
+        String s = String.format("Station: %s, Time Zone: %s, Country: %s, Latitude: %f, Longitude %f", name, timeZoneGroup, country, location.getLatitude(), location.getLongitude());
+        if(isCity){
+            s += ", Is city";
+        }else{
+            s += ", Is not city";
+        }
+        if(isMainStation){
+            s += ", Is main station";
+        }else{
+            s += ", Is not main station";
+        }
+        if(isAirport){
+            s += ", Is airport\n";
+        }else{
+            s += ", Is not airport\n";
+        }
 
+        return s;
+    }
 
 
 }

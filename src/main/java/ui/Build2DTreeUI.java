@@ -53,12 +53,13 @@ public class Build2DTreeUI implements Runnable {
         }
         System.out.println();
 
-        Option[] options = new Option[4];
+        Option[] options = new Option[5];
 
         options[0] = new Option("Load CSV & Build AVL Indexes (if needed)", this::buildIndexesAction);
         options[1] = new Option("Build 2D-Tree from AVL Indexes", this::build2DTreeAction);
         options[2] = new Option("Show 2D-Tree Statistics", this::showStatsAction);
-        options[3] = new Option("Go Back", new InfraestructureIndexMenu());
+        options[3] = new Option("Geographic search (USEI06)", this::geographicSearchAction);
+        options[4] = new Option("Go Back", new InfraestructureIndexMenu());
 
         Utils.listAndSelect(options);
     }
@@ -118,6 +119,35 @@ public class Build2DTreeUI implements Runnable {
 
         pause();
         menu();
+    }
+
+    public void geographicSearchAction() {
+        System.out.println("Please select a minimum latitude");
+        Scanner sc = new Scanner(System.in);
+        double minLat = sc.nextDouble();
+        while(minLat<-90 || minLat>90) {
+            System.out.println("Invalid latitude. Please try again.");
+            minLat = sc.nextDouble();
+        }
+        System.out.println("Please select a maximum latitude");
+        double maxLat = sc.nextDouble();
+        while(maxLat<-90 || maxLat>90 && maxLat<minLat) {
+            System.out.println("Invalid latitude. Please try again");
+            maxLat = sc.nextDouble();
+        }
+        System.out.println("Please select a minimum longitude");
+        double minLon = sc.nextDouble();
+        while(minLon<-180 || minLon>180) {
+            System.out.println("Invalid longitude. Please try again");
+            minLon = sc.nextDouble();
+        }
+        System.out.println("Please select a maximum longitude");
+        double maxLon = sc.nextDouble();
+        while(maxLon<-180 || maxLon>180 && maxLon<minLon) {
+            System.out.println("Invalid longitude. Please try again");
+            maxLon = sc.nextDouble();
+        }
+        System.out.println(treeController.searchInArea(minLat, maxLat, minLon, maxLon));
     }
 
     private void showStatsAction() {
