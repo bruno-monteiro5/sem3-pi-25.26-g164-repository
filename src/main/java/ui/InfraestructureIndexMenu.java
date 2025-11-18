@@ -28,7 +28,7 @@ public class InfraestructureIndexMenu implements Runnable {
         Runnable main    = new MainMenu();
 
         options[0] = new Option("Time-Zone Index & Windowed Queries (USEI06)", tzIndex);
-        options[1] = new Option("Build 2D-Tree (USEI07)", build2DTree);
+        options[1] = new Option("Build 2D-Tree (USEI07 && USEI08)", build2DTree);
         options[2] = new Option("Go Back", main);
 
         Utils.listAndSelect(options);

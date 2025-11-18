@@ -58,7 +58,7 @@ public class Build2DTreeUI implements Runnable {
         options[0] = new Option("Load CSV & Build AVL Indexes (if needed)", this::buildIndexesAction);
         options[1] = new Option("Build 2D-Tree from AVL Indexes", this::build2DTreeAction);
         options[2] = new Option("Show 2D-Tree Statistics", this::showStatsAction);
-        options[3] = new Option("Geographic search (USEI06)", this::geographicSearchAction);
+        options[3] = new Option("Geographic search (USEI08)", this::geographicSearchAction);
         options[4] = new Option("Go Back", new InfraestructureIndexMenu());
 
         Utils.listAndSelect(options);
