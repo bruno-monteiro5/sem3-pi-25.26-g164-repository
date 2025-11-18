@@ -2,8 +2,10 @@ package repository;
 
 import domain.Location;
 import domain.Station;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +26,13 @@ import static org.junit.Assert.*;
  */
 public class StationRepositoryTest {
 
+    private StationRepository repository;
+
+    @Before
+    public void setUp() {
+        repository = resetRepositorySingleton();
+    }
+
     /**
      * Tests that loadAll correctly loads valid stations,
      * rejects null stations, and handles exceptions thrown
@@ -31,8 +40,6 @@ public class StationRepositoryTest {
      */
     @Test
     public void loadAll() {
-        StationRepository repository = new StationRepository();
-
         List<Station> list = new ArrayList<>();
 
         Station valid1 = new Station(
@@ -77,7 +84,6 @@ public class StationRepositoryTest {
      */
     @Test
     public void getTotalLoadedCount() {
-        StationRepository repository = new StationRepository();
         List<Station> stations = new ArrayList<>();
 
         stations.add(new Station("X", "PT", new Location(1, 1), "EU", false, false, false));
@@ -92,7 +98,6 @@ public class StationRepositoryTest {
      */
     @Test
     public void getTotalRejectedCount() {
-        StationRepository repository = new StationRepository();
         List<Station> stations = new ArrayList<>();
 
         stations.add(null);
@@ -110,8 +115,6 @@ public class StationRepositoryTest {
      */
     @Test
     public void findByLatitudeWindow() {
-        StationRepository repository = new StationRepository();
-
         Station s1 = new Station(
                 "A", "PT",
                 new Location(10, 0),
@@ -147,8 +150,6 @@ public class StationRepositoryTest {
      */
     @Test
     public void findByLongitudeWindow() {
-        StationRepository repository = new StationRepository();
-
         Station s1 = new Station(
                 "A", "PT",
                 new Location(0, -10),
@@ -183,8 +184,6 @@ public class StationRepositoryTest {
      */
     @Test
     public void findByTimeZoneGroup() {
-        StationRepository repository = new StationRepository();
-
         Station s1 = new Station(
                 "A", "PT",
                 new Location(0, 0),
@@ -224,8 +223,6 @@ public class StationRepositoryTest {
      */
     @Test
     public void findByTimeZoneAndCountry() {
-        StationRepository repository = new StationRepository();
-
         Station s1 = new Station(
                 "A", "PT",
                 new Location(0, 0),
@@ -266,5 +263,15 @@ public class StationRepositoryTest {
         assertTrue(result.contains(s2));
         assertFalse(result.contains(s3));
         assertFalse(result.contains(s4));
+    }
+    private StationRepository resetRepositorySingleton() {
+        try {
+            Field instanceField = StationRepository.class.getDeclaredField("instance");
+            instanceField.setAccessible(true);
+            instanceField.set(null, null);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Unable to reset StationRepository singleton", e);
+        }
+        return StationRepository.getInstance();
     }
 }

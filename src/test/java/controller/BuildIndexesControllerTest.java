@@ -2,11 +2,13 @@ package controller;
 
 import domain.Location;
 import domain.Station;
+import org.junit.Before;
 import org.junit.Test;
 import repository.StationRepository;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,53 +16,34 @@ import static org.junit.Assert.*;
 
 public class BuildIndexesControllerTest {
 
+    private StationRepository repository;
+
+    @Before
+    public void setUp() {
+        repository = resetRepositorySingleton();
+    }
+
     @Test
     public void buildFromCsvPath() {
-        final List<Station>[] loadedHolder = new List[1];
-        final int[] loadedCountHolder = new int[1];
-        final int[] rejectedCountHolder = new int[1];
-
-        StationRepository repo = new StationRepository() {
-            @Override
-            public void loadAll(List<Station> stations) {
-                loadedHolder[0] = stations;
-                loadedCountHolder[0] = (stations == null) ? 0 : stations.size();
-                rejectedCountHolder[0] = 0;
-            }
-
-            @Override public int getTotalLoadedCount() { return loadedCountHolder[0]; }
-            @Override public int getTotalRejectedCount() { return rejectedCountHolder[0]; }
-
-            @Override public List<Station> findByLatitudeWindow(double min, double max) { return null; }
-            @Override public List<Station> findByLongitudeWindow(double min, double max) { return null; }
-            @Override public List<Station> findByTimeZoneGroup(String tz) { return null; }
-            @Override public List<Station> findByTimeZoneAndCountry(String tz, String c) { return null; }
-        };
-
-        BuildIndexesController controller = new BuildIndexesController(repo);
+        BuildIndexesController controller = new BuildIndexesController();
 
         final String[] pathHolder = new String[1];
-        final List<Station>[] stationsHolder = new List[1];
 
         StationCsvLoader okLoader = new StationCsvLoader() {
             @Override
             public List<Station> load(String path) {
                 pathHolder[0] = path;
-                return stationsHolder[0];
+                return Collections.singletonList(
+                        new Station("A", "PT", new Location(1, 2),
+                                "EU", true, false, false));
             }
         };
-
-        Station st = new Station("A", "PT", new Location(1, 2),
-                "EU", true, false, false);
-        stationsHolder[0] = Collections.singletonList(st);
 
         controller.buildFromCsvPath(okLoader, "ok.csv");
 
         assertEquals("ok.csv", pathHolder[0]);
-        assertNotNull(loadedHolder[0]);
-        assertEquals(1, loadedHolder[0].size());
-        assertEquals(1, repo.getTotalLoadedCount());
-        assertEquals(0, repo.getTotalRejectedCount());
+        assertEquals(1, repository.getTotalLoadedCount());
+        assertEquals(0, repository.getTotalRejectedCount());
 
         StationCsvLoader errorLoader = new StationCsvLoader() {
             @Override
@@ -71,144 +54,87 @@ public class BuildIndexesControllerTest {
 
         controller.buildFromCsvPath(errorLoader, "broken.csv");
 
-        assertNotNull(loadedHolder[0]);
-        assertTrue(loadedHolder[0].isEmpty());
-        assertEquals(0, repo.getTotalLoadedCount());
-        assertEquals(0, repo.getTotalRejectedCount());
+        assertEquals(0, repository.getTotalLoadedCount());
+        assertEquals(0, repository.getTotalRejectedCount());
     }
 
 
     @Test
     public void queryByLatitude() {
-        final double[] min = new double[1];
-        final double[] max = new double[1];
+        BuildIndexesController ctrl = new BuildIndexesController();
 
-        List<Station> expected = new ArrayList<>();
-        expected.add(new Station("S", "PT", new Location(10,10), "EU", false,false,false));
+        Station low = station("Low", 0, 0, "TZ", "PT");
+        Station inside = station("Inside", 10, 5, "TZ", "PT");
+        Station high = station("High", 25, 10, "TZ", "PT");
 
-        StationRepository repo = new StationRepository() {
-            @Override public void loadAll(List<Station> s) {}
-            @Override public int getTotalLoadedCount() { return 0; }
-            @Override public int getTotalRejectedCount() { return 0; }
-
-            @Override
-            public List<Station> findByLatitudeWindow(double a, double b) {
-                min[0] = a;
-                max[0] = b;
-                return expected;
-            }
-            @Override public List<Station> findByLongitudeWindow(double a, double b) { return null; }
-            @Override public List<Station> findByTimeZoneGroup(String s) { return null; }
-            @Override public List<Station> findByTimeZoneAndCountry(String a, String b) { return null; }
-        };
-
-        BuildIndexesController ctrl = new BuildIndexesController(repo);
+        loadStations(low, inside, high);
 
         List<Station> result = ctrl.queryByLatitude(5, 20);
 
-        assertSame(expected, result);
-        assertEquals(5, min[0], 0.001);
-        assertEquals(20, max[0], 0.001);
+        assertEquals(Collections.singletonList(inside), result);
     }
 
     @Test
     public void queryByLongitude() {
-        final double[] min = new double[1];
-        final double[] max = new double[1];
+        BuildIndexesController ctrl = new BuildIndexesController();
 
-        List<Station> expected = new ArrayList<>();
-        expected.add(new Station("S", "PT", new Location(10,10), "EU", false,false,false));
+        Station left = station("Left", 0, -10, "TZ", "PT");
+        Station inside = station("Inside", 0, 0, "TZ", "PT");
+        Station right = station("Right", 0, 30, "TZ", "PT");
 
-        StationRepository repo = new StationRepository() {
-            @Override public void loadAll(List<Station> s) {}
-            @Override public int getTotalLoadedCount() { return 0; }
-            @Override public int getTotalRejectedCount() { return 0; }
-
-            @Override public List<Station> findByLatitudeWindow(double a, double b) { return null; }
-
-            @Override
-            public List<Station> findByLongitudeWindow(double a, double b) {
-                min[0] = a;
-                max[0] = b;
-                return expected;
-            }
-
-            @Override public List<Station> findByTimeZoneGroup(String s) { return null; }
-            @Override public List<Station> findByTimeZoneAndCountry(String a, String b) { return null; }
-        };
-
-        BuildIndexesController ctrl = new BuildIndexesController(repo);
+        loadStations(left, inside, right);
 
         List<Station> result = ctrl.queryByLongitude(-5, 5);
 
-        assertSame(expected, result);
-        assertEquals(-5, min[0], 0.001);
-        assertEquals(5, max[0], 0.001);
+        assertEquals(Collections.singletonList(inside), result);
     }
 
     @Test
     public void queryByTimeZoneGroup() {
-        final String[] group = new String[1];
+        BuildIndexesController ctrl = new BuildIndexesController();
 
-        List<Station> expected = new ArrayList<>();
-        expected.add(new Station("A","PT",new Location(0,0),"EU",false,false,false));
+        Station lisbon = station("Lisbon", 0, 0, "Europe/Lisbon", "PT");
+        Station porto = station("Porto", 0, 0, "Europe/Lisbon", "PT");
+        Station madrid = station("Madrid", 0, 0, "Europe/Madrid", "ES");
 
-        StationRepository repo = new StationRepository() {
-            @Override public void loadAll(List<Station> s) {}
-            @Override public int getTotalLoadedCount() { return 0; }
-            @Override public int getTotalRejectedCount() { return 0; }
-
-            @Override public List<Station> findByLatitudeWindow(double a, double b) { return null; }
-            @Override public List<Station> findByLongitudeWindow(double a, double b) { return null; }
-
-            @Override
-            public List<Station> findByTimeZoneGroup(String tz) {
-                group[0] = tz;
-                return expected;
-            }
-
-            @Override public List<Station> findByTimeZoneAndCountry(String a, String b) { return null; }
-        };
-
-        BuildIndexesController ctrl = new BuildIndexesController(repo);
+        loadStations(lisbon, porto, madrid);
 
         List<Station> result = ctrl.queryByTimeZoneGroup("Europe/Lisbon");
 
-        assertSame(expected, result);
-        assertEquals("Europe/Lisbon", group[0]);
+        assertEquals(Arrays.asList(lisbon, porto), result);
     }
 
     @Test
     public void queryByTimeZoneAndCountry() {
-        final String[] tzHolder = new String[1];
-        final String[] cHolder = new String[1];
+        BuildIndexesController ctrl = new BuildIndexesController();
 
-        List<Station> expected = new ArrayList<>();
-        expected.add(new Station("A","PT",new Location(0,0),"EU",false,false,false));
+        Station madridA = station("Madrid Atocha", 0, 0, "Europe/Madrid", "ES");
+        Station madridB = station("Madrid Chamartin", 0, 0, "Europe/Madrid", "ES");
+        Station lisbon = station("Lisbon", 0, 0, "Europe/Lisbon", "PT");
 
-        StationRepository repo = new StationRepository() {
-            @Override public void loadAll(List<Station> s) {}
-            @Override public int getTotalLoadedCount() { return 0; }
-            @Override public int getTotalRejectedCount() { return 0; }
-
-            @Override public List<Station> findByLatitudeWindow(double a, double b) { return null; }
-            @Override public List<Station> findByLongitudeWindow(double a, double b) { return null; }
-            @Override public List<Station> findByTimeZoneGroup(String s) { return null; }
-
-            @Override
-            public List<Station> findByTimeZoneAndCountry(String tz, String country) {
-                tzHolder[0] = tz;
-                cHolder[0] = country;
-                return expected;
-            }
-        };
-
-        BuildIndexesController ctrl = new BuildIndexesController(repo);
+        loadStations(madridA, madridB, lisbon);
 
         List<Station> result = ctrl.queryByTimeZoneAndCountry("Europe/Madrid", "ES");
 
-        assertSame(expected, result);
-        assertEquals("Europe/Madrid", tzHolder[0]);
-        assertEquals("ES", cHolder[0]);
+        assertEquals(Arrays.asList(madridA, madridB), result);
+    }
+
+    private StationRepository resetRepositorySingleton() {
+        try {
+            Field instanceField = StationRepository.class.getDeclaredField("instance");
+            instanceField.setAccessible(true);
+            instanceField.set(null, null);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Unable to reset StationRepository singleton", e);
+        }
+        return StationRepository.getInstance();
+    }
+
+    private void loadStations(Station... stations) {
+        repository.loadAll(Arrays.asList(stations));
+    }
+
+    private Station station(String name, double latitude, double longitude, String tzGroup, String country) {
+        return new Station(name, country, new Location(latitude, longitude), tzGroup, false, false, false);
     }
 }
