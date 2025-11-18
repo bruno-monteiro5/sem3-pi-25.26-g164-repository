@@ -207,11 +207,11 @@ class StationType {
 
 
 RailLine *-- "*" LineSegment : composed of
-SingleTrackSegment "0..*" ---> "0..*" Siding : has crossing areas
+SingleTrackSegment "1" -- "0..*" Siding : has crossing areas
 RailLine "1" --> "1" Station : from
 RailLine "1" --> "1" Station : to
-Station "1" ---> "*" RefrigeratedArea : may include
-Station "1" ---> "*" GrainSilo : may include
+Station "1" *-- "0..*" RefrigeratedArea : may include
+Station "1" *-- "0..*" GrainSilo : may include
 Train "1" -- "1..*" Locomotive : is composed of >
 Train "1" -- "0..*" Wagon      : is composed of >
 Train "*" ---> "*" RailLine : run on >
@@ -222,35 +222,34 @@ Freight "1"--- "1..*" Wagon : consists of
 Freight "1" --> "1" Station : from >
 Freight "1" --> "1" Station : to   >
 Train "1"--- "1..*" Freight : transports >
-Path "1" -- "1..*" PathStep : consists of >
+Path "1" *-- "1..*" PathStep : consists of>
 PathStep "1" --> "1" LineSegment : via >
 PathStep "1" --> "1" Station : passes >
-Route "1" -- "1..*" Freight
-Station "1" -- "0..*" CirculationLine : may include >
-Station "1" -- "0..*" ParkingLine    : may include >
+Route "1" -- "1..*" Freight : groups >
+Station "1" *-- "0..*" CirculationLine : may include >
+Station "1" *-- "0..*" ParkingLine    : may include >
 Warehouse "1" -- "1..*" Aisle : organized in >
 Aisle     "1" -- "1..*" Bay : has >
 Bay "1" -- "0..*" Box : stores >
 Wagon "1" -- "0..*" Box : carries >
 Box "1" -- "1" Item : contains >
-Order "1" -- "1..*" OrderLine : has >
+Order "1" *-- "1..*" OrderLine : has >
 OrderLine "1" --> "1" Item : refers to >
-Return "1" --> "1" Item : returned product >
-LineSegment "0..*" --> "1" Gauge : has >
+LineSegment "1" --> "1" Gauge : has >
 PickPlan "1" --> "1" Trolley     : is loaded onto >
 PickPlan "1" --> "1" OrderLine   : fulfills >
 PickPlan "1" --> "1" Item        : picks >
 OrderLine "1" -- "*" PickPlan    : is split into >
 Trolley   "1" -- "*" PickPlan    : aggregates picks from >
 Quarantine "1" -- "1..*" Return : contains >
-Return "1" -- "1..*" InspectionLog : recorded in >
+Return "1" *-- "1..*" InspectionLog : recorded in >
 Return "1" --> "1" Item : refers to >
 Station "1" --> "1" Location : has >
 Siding "1" --> "1" Location : has >
 Wagon "1" --> "1" WagonType : has >
 Station "1" --> "1" StationType : has >
-Station "1" --> "0..*" Warehouse        : has >
-Warehouse "1" --> "0..*" UnloadingDock  : has >
+Station "1" *-- "0..*" Warehouse        : has >
+Warehouse "1" *--> "0..*" UnloadingDock  : has >
 Locomotive "1" -- "1..*" Gauge : supports >
 Wagon      "1" -- "1..*" Gauge : supports >
 
