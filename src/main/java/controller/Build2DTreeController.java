@@ -81,6 +81,62 @@ public class Build2DTreeController {
     }
 
     /**
+     * Return the requested geographical search with the extra filters
+     */
+
+    public String searchInArea(double minLatitude, double maxLatitude, double minLongitude, double maxLongitude, int isCity, int isMain, String country) {
+        String s = "";
+        return searchInArea(minLatitude, maxLatitude, minLongitude, maxLongitude, isCity, isMain, country, s, kdTree.getRoot());
+    }
+
+    public String searchInArea(double minLatitude, double maxLatiude, double minLongitude, double maxLongitude, int isCityNum, int isMainNum, String country, String s, KDNode node){
+        boolean isCityDelimited = (isCityNum == 1 || isCityNum == 0);
+        boolean isMainDelimited = (isMainNum == 1 || isMainNum == 0);
+        boolean isCity = false;
+        boolean isMain = false;
+        if(isCityDelimited){
+            isCity = (isCityNum == 0);
+        }
+        if(isMainDelimited){
+            isMain = (isMainNum == 0);
+        }
+        for(Station station : node.getStations()) {
+            if (isCityDelimited && isMainDelimited && !country.equals("all")) {
+                if (station.getLocation().getLatitude() >= minLatitude && station.getLocation().getLatitude() <= maxLatiude && station.getLocation().getLongitude() >= minLongitude && station.getLocation().getLongitude() <= maxLongitude && station.isCity() == isCity && station.isMainStation() == isMain && station.getCountry().toLowerCase().equals(country)) {
+                    s += station.toString();
+                }
+            }else if(isCityDelimited && isMainDelimited && country.equals("all")){
+                if(station.getLocation().getLatitude() >=  minLatitude && station.getLocation().getLatitude() <= maxLatiude && station.getLocation().getLongitude() >= minLongitude && station.getLocation().getLongitude() <= maxLongitude && station.isCity() == isCity && station.isMainStation() == isMain){
+                    s += station.toString();
+                }
+            } else if(isCityDelimited && !country.equals("all")){
+                if(station.getLocation().getLatitude() >=  minLatitude && station.getLocation().getLatitude() <= maxLatiude && station.getLocation().getLongitude() >= minLongitude && station.getLocation().getLongitude() <= maxLongitude && station.isCity() == isCity && station.getCountry().toLowerCase().equals(country)){
+                    s += station.toString();
+                }
+            } else if(isCityDelimited && country.equals("all")){
+                if(station.getLocation().getLatitude() >=  minLatitude && station.getLocation().getLatitude() <= maxLatiude && station.getLocation().getLongitude() >= minLongitude && station.getLocation().getLongitude() <= maxLongitude && station.isCity() == isCity){
+                    s += station.toString();
+                }
+            } else if(isMainDelimited && !country.equals("all")){
+                if(station.getLocation().getLatitude() >=  minLatitude && station.getLocation().getLatitude() <= maxLatiude && station.getLocation().getLongitude() >= minLongitude && station.getLocation().getLongitude() <= maxLongitude && station.isMainStation() == isMain && station.getCountry().toLowerCase().equals(country)){
+                    s += station.toString();
+                }
+            } else{
+                if(station.getLocation().getLatitude() >=  minLatitude && station.getLocation().getLatitude() <= maxLatiude && station.getLocation().getLongitude() >= minLongitude && station.getLocation().getLongitude() <= maxLongitude && station.isMainStation() == isMain){
+                    s += station.toString();
+                }
+            }
+        }
+        if(node.getLeft()!= null){
+            return searchInArea(minLatitude, maxLatiude, minLongitude, maxLongitude, isCityNum, isMainNum, country, s, node.getLeft());
+        }
+        if(node.getRight()!= null){
+            return searchInArea(minLatitude, maxLatiude, minLongitude, maxLongitude, isCityNum, isMainNum, country, s, node.getRight());
+        }
+        return s;
+    }
+
+    /**
      * Returns the built 2D-Tree.
      */
     public KDTree2D getKDTree() {
