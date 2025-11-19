@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import repository.KDTreeRepository;
+
 
 /**
  * Controller for proximity search queries (USEI09).
@@ -17,14 +19,14 @@ import java.util.List;
 public class ProximitySearchController {
 
     private final StationRepository repository;
-    private final Build2DTreeController treeController;
+    private final KDTreeRepository kdTreeRepository;
 
     /**
      * Creates a controller using the singleton repository.
      */
     public ProximitySearchController(Build2DTreeController treeController) {
         this.repository = StationRepository.getInstance();
-        this.treeController = treeController;
+        this.kdTreeRepository = KDTreeRepository.getInstance();
     }
 
     /**
@@ -57,20 +59,20 @@ public class ProximitySearchController {
      */
     public ProximitySearchResult findNearestN(double targetLat, double targetLon,
                                               int n, TimeZoneFilter filter) {
-        if (!treeController.isBuilt()) {
+        if (!kdTreeRepository.isBuilt()) {
             throw new IllegalStateException("2D-Tree must be built first (run USEI07)");
         }
         if (n <= 0) {
             throw new IllegalArgumentException("n must be > 0");
         }
         if (filter == null) {
-            filter = new TimeZoneFilter(); // Default to no filtering
+            filter = new TimeZoneFilter();
         }
 
         long startNanos = System.nanoTime();
 
         ProximitySearchResult result = new ProximitySearchResult(targetLat, targetLon, n, filter);
-        KDTree2D tree = treeController.getKDTree();
+        KDTree2D tree = kdTreeRepository.getKDTree();
 
         List<Station> candidates = new ArrayList<>();
         collectAllStations(tree.getRoot(), candidates);
@@ -112,8 +114,6 @@ public class ProximitySearchController {
             result.addResult(sd.station, sd.distance);
         }
 
-        // se houver, incluir todas as estações extra que
-        // tenham as mesmas coordenadas que a estação na posição N, resposta do cliente
         if (baseCount > 0 && baseCount < distances.size()) {
             StationWithDistance boundary = distances.get(baseCount - 1);
             double boundaryDistance = boundary.distance;
