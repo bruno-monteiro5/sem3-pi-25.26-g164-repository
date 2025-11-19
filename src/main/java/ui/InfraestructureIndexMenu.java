@@ -22,16 +22,18 @@ public class InfraestructureIndexMenu implements Runnable {
         System.out.println("                       INFRASTRUCTURE INDEX MENU");
         System.out.println(line(72) + RESET);
 
-        Option[] options = new Option[4];
+        Option[] options = new Option[5];
         Runnable tzIndex = new BuildIndexesUI();
         Runnable build2DTree = new Build2DTreeUI();
         Runnable proximity = new ProximitySearchUI();
+        Runnable search = new Search2DTreeUI();
         Runnable main    = new MainMenu();
 
         options[0] = new Option("Time-Zone Index & Windowed Queries (USEI06)", tzIndex);
-        options[1] = new Option("Build 2D-Tree (USEI07 && USEI08)", build2DTree);
-        options[2] = new Option("Proximity Search - Nearest-N (USEI09)", proximity);
-        options[3] = new Option("Go Back", main);
+        options[1] = new Option("Build 2D-Tree (USEI07)", build2DTree);
+        options[2] = new Option("Perform a localized search in the former US's 2D-tree(USEI08)", search);
+        options[3] = new Option("Proximity Search - Nearest-N (USEI09)", proximity);
+        options[4] = new Option("Go Back", main);
 
         Utils.listAndSelect(options);
     }

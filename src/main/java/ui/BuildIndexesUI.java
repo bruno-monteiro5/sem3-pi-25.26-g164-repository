@@ -86,8 +86,14 @@ public class BuildIndexesUI implements Runnable {
     private void latitudeWindowAction() {
         if (!requireBuilt()) return;
 
-        double minLat = askDouble("Min latitude", 37.0);
-        double maxLat = askDouble("Max latitude", 39.0);
+        double minLat = askLatitude("Min latitude (-90 to 90)");
+        double maxLat = askLatitude("Max latitude (-90 to 90)");
+
+        while (minLat > maxLat) {
+            System.out.println("Min latitude cannot be greater than max latitude.");
+            minLat = askLatitude("Min latitude (-90 to 90)");
+            maxLat = askLatitude("Max latitude (-90 to 90)");
+        }
 
         List<Station> list = controller.queryByLatitude(minLat, maxLat);
 
@@ -102,8 +108,14 @@ public class BuildIndexesUI implements Runnable {
     private void longitudeWindowAction() {
         if (!requireBuilt()) return;
 
-        double minLon = askDouble("Min longitude", -10.0);
-        double maxLon = askDouble("Max longitude", -8.0);
+        double minLon = askLongitude("Min longitude (-180 to 180)");
+        double maxLon = askLongitude("Max longitude (-180 to 180)");
+
+        while (minLon > maxLon) {
+            System.out.println("Min longitude cannot be greater than max longitude.");
+            minLon = askLongitude("Min longitude (-180 to 180)");
+            maxLon = askLongitude("Max longitude (-180 to 180)");
+        }
 
         List<Station> list = controller.queryByLongitude(minLon, maxLon);
 
@@ -114,6 +126,7 @@ public class BuildIndexesUI implements Runnable {
         pause();
         menu();
     }
+
 
     private void tzGroupAction() {
         if (!requireBuilt()) return;
@@ -184,11 +197,25 @@ public class BuildIndexesUI implements Runnable {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
-
     private String line(int n) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < n; i++) sb.append(SEP);
+        for (int i = 0; i < n; i++) {
+            sb.append(SEP);
+        }
         return sb.toString();
+    }
+
+
+    private String askLine(String label) {
+        Scanner scanner = new Scanner(System.in);
+        String text = scanner.nextLine().trim();
+
+        while (text.isEmpty()) {
+            System.out.println("Input cannot be empty.");
+            System.out.print(label + ": ");
+            text = scanner.nextLine().trim();
+        }
+        return text;
     }
 
     private String askLine(String label, String defaultValue) {
@@ -198,17 +225,44 @@ public class BuildIndexesUI implements Runnable {
         return text.isEmpty() ? defaultValue : text;
     }
 
-    private double askDouble(String label, double defaultValue) {
-        System.out.print(label + " [" + defaultValue + "]: ");
+    private double askDouble(String label) {
         Scanner scanner = new Scanner(System.in);
-        String text = scanner.nextLine().trim();
-        if (text.isEmpty())
-            return defaultValue;
-        try {
-            return Double.parseDouble(text);
-        } catch (NumberFormatException ex) {
-            System.out.println("Invalid number. Using default value.");
-            return defaultValue;
+
+        String text = null;
+        boolean valid = false;
+        double result = 0;
+
+        while (!valid) {
+            System.out.print(label + ": ");
+            text = scanner.nextLine().trim();
+
+            try {
+                result = Double.parseDouble(text);
+                valid = true;     // <- condição de saída
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid number. Please enter a valid numeric value.");
+            }
         }
+        return result;
+    }
+
+    private double askLatitude(String label) {
+        double value = askDouble(label);
+
+        while (value < -90 || value > 90) {
+            System.out.println("Latitude must be between -90 and 90 degrees.");
+            value = askDouble(label);
+        }
+        return value;
+    }
+
+    private double askLongitude(String label) {
+        double value = askDouble(label);
+
+        while (value < -180 || value > 180) {
+            System.out.println("Longitude must be between -180 and 180 degrees.");
+            value = askDouble(label);
+        }
+        return value;
     }
 }
