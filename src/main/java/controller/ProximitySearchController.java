@@ -1,14 +1,18 @@
 package controller;
 
-import domain.*;
+import domain.HaversineDistance;
+import domain.KDNode;
+import domain.KDTree2D;
+import domain.Location;
+import domain.ProximitySearchResult;
+import domain.Station;
+import domain.TimeZoneFilter;
+import repository.KDTreeRepository;
 import repository.StationRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import repository.KDTreeRepository;
-
 
 /**
  * Controller for proximity search queries (USEI09).
@@ -69,8 +73,6 @@ public class ProximitySearchController {
             filter = new TimeZoneFilter();
         }
 
-        long startNanos = System.nanoTime();
-
         ProximitySearchResult result = new ProximitySearchResult(targetLat, targetLon, n, filter);
         KDTree2D tree = kdTreeRepository.getKDTree();
 
@@ -87,33 +89,22 @@ public class ProximitySearchController {
         }
 
         if (distances.isEmpty()) {
-            long endNanos = System.nanoTime();
-            double elapsedSeconds = (endNanos - startNanos) / 1e9;
             System.out.printf(
-                    "Proximity search finished. Target=(%.4f, %.4f), Found=0/%d, Time=%.3f s%n",
-                    targetLat, targetLon, n, elapsedSeconds
+                    "Proximity search finished. Target=(%.4f, %.4f), Found=0/%d%n",
+                    targetLat, targetLon, n
             );
             return result;
         }
 
-        Collections.sort(distances, new Comparator<StationWithDistance>() {
-            @Override
-            public int compare(StationWithDistance sd1, StationWithDistance sd2) {
-                int distCompare = Double.compare(sd1.distance, sd2.distance);
-                if (distCompare != 0) {
-                    return distCompare;
-                }
-                return sd1.station.getName().compareTo(sd2.station.getName());
-            }
-        });
+        Collections.sort(distances);
 
         int baseCount = Math.min(n, distances.size());
-
         for (int i = 0; i < baseCount; i++) {
             StationWithDistance sd = distances.get(i);
             result.addResult(sd.station, sd.distance);
         }
 
+        // 5) Incluir empates à distância N se tiverem as mesmas coordenadas
         if (baseCount > 0 && baseCount < distances.size()) {
             StationWithDistance boundary = distances.get(baseCount - 1);
             double boundaryDistance = boundary.distance;
@@ -124,32 +115,26 @@ public class ProximitySearchController {
             for (int i = baseCount; i < distances.size(); i++) {
                 StationWithDistance sd = distances.get(i);
 
-                if (Double.compare(sd.distance, boundaryDistance) != 0) {
-                    break;
-                }
-
-                Location loc = sd.station.getLocation();
-                if (loc != null &&
-                        loc.getLatitude() == boundaryLat &&
-                        loc.getLongitude() == boundaryLon) {
-                    result.addResult(sd.station, sd.distance);
+                if (Double.compare(sd.distance, boundaryDistance) == 0) {
+                    Location loc = sd.station.getLocation();
+                    if (loc != null &&
+                            loc.getLatitude() == boundaryLat &&
+                            loc.getLongitude() == boundaryLon) {
+                        result.addResult(sd.station, sd.distance);
+                    }
                 }
             }
         }
 
         result.sortResults();
 
-        long endNanos = System.nanoTime();
-        double elapsedSeconds = (endNanos - startNanos) / 1e9;
-
         System.out.printf(
-                "Proximity search finished. Target=(%.4f, %.4f), Found=%d/%d, Time=%.3f s%n",
-                targetLat, targetLon, result.getResultCount(), n, elapsedSeconds
+                "Proximity search finished. Target=(%.4f, %.4f), Found=%d/%d%n",
+                targetLat, targetLon, result.getResultCount(), n
         );
 
         return result;
     }
-
 
     /**
      * Recursively collects all stations from the 2D-Tree.
@@ -173,14 +158,27 @@ public class ProximitySearchController {
 
     /**
      * Helper class to pair a station with its calculated distance.
+     * Natural ordering: distance ASC, then station name ASC.
      */
-    private static class StationWithDistance {
+    private static class StationWithDistance implements Comparable<StationWithDistance> {
         final Station station;
         final double distance;
 
         StationWithDistance(Station station, double distance) {
             this.station = station;
             this.distance = distance;
+        }
+
+        @Override
+        public int compareTo(StationWithDistance other) {
+            int distCompare = Double.compare(this.distance, other.distance);
+            if (distCompare != 0) {
+                return distCompare;
+            }
+
+            String name1 = this.station.getName();
+            String name2 = other.station.getName();
+            return name1.compareTo(name2);
         }
     }
 }
