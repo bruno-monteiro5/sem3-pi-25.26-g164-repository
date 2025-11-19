@@ -17,6 +17,7 @@ public class BST<E extends Comparable<E>> implements BSTInterface<E> {
         private E element;          // an element stored at this node
         private Node<E> left;       // a reference to the left child (if any)
         private Node<E> right;      // a reference to the right child (if any)
+        private int height;
 
         /**
          * Constructs a node with the given element and neighbors.
@@ -29,17 +30,20 @@ public class BST<E extends Comparable<E>> implements BSTInterface<E> {
             element = e;
             left = leftChild;
             right = rightChild;
+            height = 0;
         }
 
         // accessor methods
         public E getElement() { return element; }
         public Node<E> getLeft() { return left; }
         public Node<E> getRight() { return right; }
+        public int getHeight() { return height; }
 
         // update methods
         public void setElement(E e) { element = e; }
         public void setLeft(Node<E> leftChild) { left = leftChild; }
         public void setRight(Node<E> rightChild) { right = rightChild; }
+        public void setHeight(int h) { height = h; }
     }
 
     //----------- end of nested Node class -----------

@@ -14,12 +14,15 @@ public class AVL <E extends Comparable<E>> extends BST<E> {
 
 
     private int nodeHeight(Node<E> node) {
-        if (node == null) return -1;
-        int hl = node.getLeft()  == null ? -1 : nodeHeight(node.getLeft());
-        int hr = node.getRight() == null ? -1 : nodeHeight(node.getRight());
-        return 1 + Math.max(hl, hr);
+        return node == null ? -1 : node.getHeight();
     }
 
+    private void updateHeight(Node<E> node) {
+        if (node == null) return;
+        int hl = nodeHeight(node.getLeft());
+        int hr = nodeHeight(node.getRight());
+        node.setHeight(1 + Math.max(hl, hr));
+    }
 
     private int balanceFactor(Node<E> node){
         if (node == null) return 0; // por convenção, FB de null é 0
@@ -32,16 +35,18 @@ public class AVL <E extends Comparable<E>> extends BST<E> {
         Node<E> leftson = node.getLeft();
         node.setLeft(leftson.getRight());
         leftson.setRight(node);
-        node = leftson;
-        return node;
+        updateHeight(node);
+        updateHeight(leftson);
+        return leftson;
     }
 
     private Node<E> leftRotation(Node<E> node){
         Node<E> rightson = node.getRight();
         node.setRight(rightson.getLeft());
         rightson.setLeft(node);
-        node = rightson;
-        return node;
+        updateHeight(node);
+        updateHeight(rightson);
+        return rightson;
     }
 
     private Node<E> twoRotations(Node<E> node){
@@ -57,29 +62,31 @@ public class AVL <E extends Comparable<E>> extends BST<E> {
     private Node<E> balanceNode(Node<E> node){
         if (node == null) return null;
 
-        int bf = balanceFactor(node); // FB = h(esq) - h(dir)
+        int bf = balanceFactor(node);
 
-        // Caso LEFT-HEAVY (FB > 1)
         if (bf > 1) {
-            // Se o filho esquerdo for RIGHT-HEAVY, é caso LR: primeiro rotação à esquerda no filho
             if (balanceFactor(node.getLeft()) < 0) {
-                node.setLeft(leftRotation(node.getLeft())); // LR: resolve o zig-zag
+                node.setLeft(leftRotation(node.getLeft()));
+                updateHeight(node.getLeft());
             }
-            // Depois rotação à direita no próprio nó (LL ou LR já resolvido)
-            return rightRotation(node);
+            node = rightRotation(node);
+            updateHeight(node.getRight());
+            updateHeight(node);
+            return node;
         }
 
-        // Caso RIGHT-HEAVY (FB < -1)
         if (bf < -1) {
-            // Se o filho direito for LEFT-HEAVY, é caso RL: primeiro rotação à direita no filho
             if (balanceFactor(node.getRight()) > 0) {
-                node.setRight(rightRotation(node.getRight())); // RL: resolve o zig-zag
+                node.setRight(rightRotation(node.getRight()));
+                updateHeight(node.getRight());
             }
-            // Depois rotação à esquerda no próprio nó (RR ou RL já resolvido)
-            return leftRotation(node);
+            node = leftRotation(node);
+            updateHeight(node.getLeft());
+            updateHeight(node);
+            return node;
         }
 
-        // Já equilibrado (-1, 0, +1)
+        updateHeight(node);
         return node;
     }
 
