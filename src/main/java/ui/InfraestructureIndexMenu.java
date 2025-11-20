@@ -4,10 +4,7 @@ package ui;
 
 import domain.Option;
 import domain.Utils;
-import ui.InfrastructureIndex.Build2DTreeUI;
-import ui.InfrastructureIndex.BuildIndexesUI;
-import ui.InfrastructureIndex.ProximitySearchUI;
-import ui.InfrastructureIndex.RadiusSearchUI;
+import ui.InfrastructureIndex.*;
 
 public class InfraestructureIndexMenu implements Runnable {
 

@@ -281,7 +281,7 @@ public class RadiusSearchUI implements Runnable {
         double value = 0;
 
         do {
-            System.out.print("Target latitude (decimal degrees): ");
+            System.out.print("Target latitude (-90 to 90): ");
             String text = sc.nextLine().trim();
 
             if (text.isEmpty()) {
@@ -310,7 +310,7 @@ public class RadiusSearchUI implements Runnable {
         double value = 0;
 
         do {
-            System.out.print("Target longitude (decimal degrees): ");
+            System.out.print("Target longitude (-180 to 180): ");
             String text = sc.nextLine().trim();
 
             if (text.isEmpty()) {
