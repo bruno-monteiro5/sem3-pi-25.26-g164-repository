@@ -85,5 +85,7 @@ public class Search2DTreeUI implements Runnable {
         }else {
             System.out.println(treeController.searchInArea(minLat, maxLat, minLon, maxLon));
         }
+        BuildIndexesUI run = new BuildIndexesUI();
+        run.run();
     }
 }
