@@ -164,6 +164,8 @@ CREATE TABLE Siding (
                         position number(10) NOT NULL,
                         PRIMARY KEY (segment,
                                      length));
+
+ALTER table Multiple_Tracks add CONSTRAINT chk_multiple_tracks_gt1 CHECK (number_tracks = 2 OR number_tracks = 4);
 ALTER TABLE Line ADD CONSTRAINT FKLine262396 FOREIGN KEY (owner) REFERENCES Owner (vat);
 ALTER TABLE Line_Segment ADD CONSTRAINT FKLine_Segme425123 FOREIGN KEY (line) REFERENCES Line (id);
 ALTER TABLE Line ADD CONSTRAINT FKLine635842 FOREIGN KEY (endpoint_a) REFERENCES Endpoint (id);
@@ -199,3 +201,34 @@ ALTER TABLE Train ADD CONSTRAINT FKTrain920945 FOREIGN KEY ("end") REFERENCES En
 ALTER TABLE Single_Track ADD CONSTRAINT FKSingle_Tra576121 FOREIGN KEY (segment) REFERENCES Line_Segment (id);
 ALTER TABLE Multiple_Tracks ADD CONSTRAINT FKMultiple_T771125 FOREIGN KEY (segment) REFERENCES Line_Segment (id);
 ALTER TABLE Siding ADD CONSTRAINT FKSiding869925 FOREIGN KEY (segment) REFERENCES Single_Track (segment);
+
+--CHECKS
+
+ALTER TABLE Line_Segment
+    ADD CONSTRAINT CHK_LineSegment_Electrified CHECK (is_electrified IN ('Y', 'N'));
+
+ALTER TABLE Line_Segment
+    ADD CONSTRAINT CHK_LineSegment_PositiveWeight CHECK (max_weight > 0);
+
+ALTER TABLE Line_Segment
+    ADD CONSTRAINT CHK_LineSegment_PositiveLength CHECK (length > 0);
+
+-- LOCOMOTIVE
+ALTER TABLE Locomotive
+    ADD CONSTRAINT CHK_Locomotive_PositivePower CHECK (power > 0);
+
+ALTER TABLE Locomotive
+    ADD CONSTRAINT CHK_Locomotive_PositiveWeight CHECK (total_weight > 0);
+
+ALTER TABLE Locomotive
+    ADD CONSTRAINT CHK_Locomotive_PositiveDimensions CHECK (
+        length > 0 AND width > 0 AND height > 0
+        );
+
+
+-- WAGON_MODEL
+ALTER TABLE Wagon_Model
+    ADD CONSTRAINT CHK_WagonModel_PositiveVolume CHECK (volume > 0);
+
+ALTER TABLE Wagon_Model
+    ADD CONSTRAINT CHK_WagonModel_PositiveWeight CHECK (weight > 0);
