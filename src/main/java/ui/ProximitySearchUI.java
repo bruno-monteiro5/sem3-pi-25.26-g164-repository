@@ -326,7 +326,7 @@ public class ProximitySearchUI implements Runnable {
                 try {
                     value = Double.parseDouble(text);
                     if (value < -90.0 || value > 90.0) {
-                        System.out.println(YELLOW + "Latitude must be between -90 and 90 degrees." + RESET);
+                        System.out.println(YELLOW + "Latitude must be between -90 and 90 degrees. Please try again." + RESET);
                     } else {
                         valid = true;
                     }
@@ -354,7 +354,7 @@ public class ProximitySearchUI implements Runnable {
                 try {
                     value = Double.parseDouble(text);
                     if (value < -180.0 || value > 180.0) {
-                        System.out.println(YELLOW + "Longitude must be between -180 and 180 degrees." + RESET);
+                        System.out.println(YELLOW + "Longitude must be between -180 and 180 degrees. Please try again." + RESET);
                     } else {
                         valid = true;
                     }
