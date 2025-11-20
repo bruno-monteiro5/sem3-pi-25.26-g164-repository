@@ -1,0 +1,70 @@
+country,time_zone,time_zone_group,station,latitude,longitude,is_city,is_main_station,is_airport
+CH,"('Europe/Zurich',)",CET,Winkel Scheidweg,47.496943,8.545137,False,False,False
+CH,"('Europe/Zurich',)",CET,Zurich HB,47.378186,8.539203,False,True,False
+CH,"('Europe/Zurich',)",CET,Zurich HB (Carpark Sihlquai),47.378186,8.539203,False,False,False
+CH,"('Europe/Zurich',)",CET,Zurich HB SZU,47.378186,8.539203,False,False,False
+CZ,"('Europe/Prague',)",CET,Milevsko,49.441731,14.377832,False,False,False
+DE,"('Europe/Berlin',)",CET,Aligse,52.403677,9.979356,False,False,False
+DE,"('Europe/Berlin',)",CET,Bargteheide,53.728202,10.269106,False,False,False
+DE,"('Europe/Berlin',)",CET,Elz (Limburg/Lahn) Sud,50.40871,8.032221,False,False,False
+DE,"('Europe/Berlin',)",CET,Grossengottern,51.144504,10.556041,False,False,False
+DE,"('Europe/Berlin',)",CET,Hornstorf,53.906691,11.53467,False,False,False
+DE,"('Europe/Berlin',)",CET,Hoxter Schulzentrum,51.774468,9.372764,True,False,False
+DE,"('Europe/Berlin',)",CET,Lichtenstein Hartensteiner Strasse,50.746066,12.63619,False,False,False
+DE,"('Europe/Berlin',)",CET,Lottschesee,52.815401,13.498498,False,False,False
+DE,"('Europe/Berlin',)",CET,Milzau,51.380822,11.90374,False,False,False
+DE,"('Europe/Berlin',)",CET,Mottingen,48.806805,10.597832,False,False,False
+DE,"('Europe/Berlin',)",CET,Olbernhau-Grunthal,50.649846,13.364856,False,False,False
+DE,"('Europe/Berlin',)",CET,Prosen Ost B101,51.424266,13.500988,False,False,False
+DE,"('Europe/Berlin',)",CET,Steinefrenz,50.448415,7.938886,False,False,False
+ES,"('Europe/Madrid',)",CET,Ablana,43.267616,-5.806411,False,False,False
+ES,"('Europe/Madrid',)",CET,Calzada,42.9831519,-3.2544351,True,False,False
+ES,"('Europe/Madrid',)",CET,Santa Eugenia,40.386861,-3.609204,False,False,False
+ES,"('Europe/Madrid',)",CET,Torre del Burgo,40.791755,-3.077229,True,False,False
+FR,"('Europe/Paris',)",CET,Anos PN,42.885206,0.625127,False,False,False
+FR,"('Europe/Paris',)",CET,Biriatou,43.340776,-1.752127,True,False,False
+FR,"('Europe/Paris',)",CET,Bouxwiller,48.82655254803982,7.478808760643005,False,False,False
+FR,"('Europe/Paris',)",CET,Bully-Grenay,50.44843,2.73317,False,False,False
+FR,"('Europe/Paris',)",CET,Dombasle-sur-Meurthe,48.623275,6.343478,False,False,False
+FR,"('Europe/Paris',)",CET,Lumes,49.7327973,4.7833571,False,False,False
+FR,"('Europe/Paris',)",CET,Lumes-secundary,49.7327973,4.7833571,False,False,False
+FR,"('Europe/Paris',)",CET,Lumes-third,49.7327973,4.7833571,False,False,False
+FR,"('Europe/Paris',)",CET,Mauleon,43.233333,-0.883333,False,False,False
+FR,"('Europe/Paris',)",CET,Mauleon Lycee,43.233333,-0.883333,False,False,False
+FR,"('Europe/Paris',)",CET,Mauleon Office de Tourisme,43.233333,-0.883333,False,False,False
+FR,"('Europe/Paris',)",CET,Naintre-Les Barres,46.7595303,0.4963446,False,False,False
+FR,"('Europe/Paris',)",CET,Revel,43.466667,2.0,False,False,False
+FR,"('Europe/Paris',)",CET,Revel Republique,43.466667,2.0,False,False,False
+FR,"('Europe/Paris',)",CET,Serres,44.433333,5.716667,True,False,False
+FR,"('Europe/Paris',)",CET,Serres Place de la Liberte,44.433333,5.716667,False,False,False
+FR,"('Europe/Paris',)",CET,Vonnas,46.2272852,4.9916677,False,False,False
+GB,"('Europe/London',)",WET/GMT,Carntyne,55.854412,-4.17898,False,False,False
+IT,"('Europe/Rome',)",CET,Diano,43.9252511,8.0731492,False,False,False
+IT,"('Europe/Rome',)",CET,Torre Orsaia,40.099072,15.481267,False,False,False
+PL,"('Europe/Warsaw',)",CET,Kluczbork,50.97281,18.21816,True,False,False
+PL,"('Europe/Warsaw',)",CET,Proszenie,51.461548,19.78127,True,False,False
+SE,"('Europe/Stockholm',)",CET,Arlanda Sky City terminal 5,59.64889,17.93,True,False,False
+SE,"('Europe/Stockholm',)",CET,Barsebackshamn,55.75667,12.90972,False,False,False
+SE,"('Europe/Stockholm',)",CET,Falun Central,60.60306,15.64139,True,False,False
+SE,"('Europe/Stockholm',)",CET,Kalmar Oland Airport,56.67722,16.28694,False,False,True
+SE,"('Europe/Stockholm',)",CET,Uppsala Tunabergsallen,59.87833,17.62278,False,False,False
+SK,"('Europe/Bratislava',)",CET,Sered,48.28608704,17.74057961,True,False,False
+FR,"('Europe/Paris',)",CET,,44.08179,6.001625,True,False,False
+,"('Europe/Paris',)",CET,Chateau-Arnoux-St-Auban,44.08179,6.001625,True,False,False
+FR,"('Europe/Paris',)",CET,Chateau-Arnoux-St-Auban,200.0,6.001625,True,False,False
+FR,"('Europe/Paris',)",CET,Chateau-Arnoux-St-Auban,44.08179,999.0,True,False,False
+FR,"('Europe/Paris',)",,Chateau-Arnoux-St-Auban,44.08179,6.001625,True,False,False
+FR,"('Europe/Paris',)",CET,Chateau-Arnoux-St-Auban,,6.001625,True,False,False
+FR,"('Europe/Paris',)",CET,Chateau-Arnoux-St-Auban,44.08179,,True,False,False
+FR,"('Europe/Paris',)",CET,,123.456,-987.654,True,False,False
+FR,,CET,Chateau-Arnoux-St-Auban,44.08179,6.001625,True,False,False
+,"('Europe/Paris',)",CET,Chateau-Arnoux-St-Auban,,,True,False,False
+PT,"('Europe/Lisboa',)",CET,Erro-teste-um,,,False,False,False
+PT,"('Europe/Lisboa',)",CET,Erro-teste-dois,,,False,False,False
+PT,"('Europe/Lisboa',)",CET,Erro-teste-tres,,,False,False,False
+PT,"('Europe/Lisboa',)",CET,Erro-teste-quatro,,,False,False,False
+PT,"('Europe/Lisboa',)",CET,Freamunde,25.69,25.6967,False,False,False
+PT,"('Europe/Lisboa',)",CET,Paredes,25.69,25.6967,False,False,False
+PT,"('Europe/Lisboa',)",CET,Penafiel,25.69,25.6967,False,False,False
+PT,"('Europe/Lisboa',)",CET,Haxixe,25.69,25.6967,False,False,False
+PT,"('Europe/Lisboa',)",CET,Erro-teste-cinco,100000000,100000000000,False,False,False
