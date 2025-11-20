@@ -20,10 +20,6 @@ INSERT INTO BuildingType (id, name) VALUES (8, 'Terminal');
 INSERT INTO BuildingType (id, name) VALUES (9, 'Freight Yard');
 INSERT INTO BuildingType (id, name) VALUES (10, 'Refrigerated Area');
 
--- Tabela TrackType
-INSERT INTO TrackType (id, name) VALUES (1, 'Double');
-INSERT INTO TrackType (id, name) VALUES (2, 'Quadruple');
-INSERT INTO TrackType (id, name) VALUES (3, 'Single');
 
 -- Tabela Gauge
 INSERT INTO Gauge (id, width) VALUES (1, 1435);
@@ -135,33 +131,64 @@ INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge) VALUES (22, 'R
 INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge) VALUES (23, 'Ramal São Mamede de Infesta - Leça do Balio', 'PT503933813', 45, 48, 2);
 INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge) VALUES (24, 'Ramal Leça do Balio - Leixões', 'PT503933813', 48, 50, 2);
 
--- Tabela Line_Segment
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (1, 'Y', 0, 8000, 2618, 1, 2);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (3, 'Y', 0, 8000, 2443, 2, 2);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (10, 'Y', 0, 8000, 26560, 3, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (11, 'Y', 0, 8000, 10000, 3, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (12, 'Y', 0, 8000, 12000, 5, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (13, 'Y', 0, 8000, 3100, 5, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (14, 'Y', 0, 8000, 10387, 5, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (15, 'Y', 0, 8000, 5286, 4, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (16, 'Y', 0, 8000, 6000, 4, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (18, 'Y', 0, 8000, 6000, 7, 3);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (20, 'Y', 0, 6400, 4890, 6, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (21, 'Y', 0, 8000, 5000, 7, 3);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (22, 'Y', 0, 8000, 12000, 7, 3);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (25, 'Y', 0, 8000, 20829, 8, 3);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (26, 'Y', 0, 8000, 4264, 9, 3);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (30, 'Y', 0, 8000, 3883, 21, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (31, 'Y', 0, 8000, 1174, 22, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (32, 'Y', 0, 8000, 2534, 22, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (33, 'Y', 0, 8000, 1566, 23, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (34, 'Y', 0, 8000, 1453, 23, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (35, 'Y', 0, 8000, 3597, 24, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (36, 'Y', 0, 8000, 4334, 24, 1);
+-- Tabela Line_Segment e depois os tracktypes
+
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (1, 'Y', 0, 8000, 2618, 1);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (3, 'Y', 0, 8000, 2443, 2);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (10, 'Y', 0, 8000, 26560, 3);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (11, 'Y', 0, 8000, 10000, 3);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (12, 'Y', 0, 8000, 12000, 5);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (13, 'Y', 0, 8000, 3100, 5);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (14, 'Y', 0, 8000, 10387, 5);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (15, 'Y', 0, 8000, 5286, 4);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (16, 'Y', 0, 8000, 6000, 4);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (18, 'Y', 0, 8000, 6000, 7);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (20, 'Y', 0, 6400, 4890, 6);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (21, 'Y', 0, 8000, 5000, 7);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (22, 'Y', 0, 8000, 12000, 7);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (25, 'Y', 0, 8000, 20829, 8);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (26, 'Y', 0, 8000, 4264, 9);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (30, 'Y', 0, 8000, 3883, 21);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (31, 'Y', 0, 8000, 1174, 22);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (32, 'Y', 0, 8000, 2534, 22);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (33, 'Y', 0, 8000, 1566, 23);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (34, 'Y', 0, 8000, 1453, 23);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (35, 'Y', 0, 8000, 3597, 24);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (36, 'Y', 0, 8000, 4334, 24);
+
+-- Tabela Multiple_Tracks
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (1, 4);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (3, 4);
+
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (10, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (11, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (12, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (13, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (14, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (15, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (16, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (20, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (30, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (31, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (32, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (33, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (34, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (35, 2);
+INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (36, 2);
+
+-- Tabela Single_Track
+INSERT INTO Single_Track (segment) VALUES (18);
+INSERT INTO Single_Track (segment) VALUES (21);
+INSERT INTO Single_Track (segment) VALUES (22);
+INSERT INTO Single_Track (segment) VALUES (25);
+INSERT INTO Single_Track (segment) VALUES (26);
+
+INSERT INTO Siding (segment, position, length) VALUES (21, 2000, 864);
+INSERT INTO Siding (segment, position, length) VALUES (25, 11000, 266);
 
 -- Tabela Path
-INSERT INTO Path (id) VALUES (1);
-INSERT INTO Path (id) VALUES (2);
+INSERT INTO Path (id, NAME) VALUES (1, 'Caminho Leixões-Valença');
+INSERT INTO Path (id, NAME)  VALUES (2, 'Caminho Valença-Leixões');
 
 -- Tabela Endpoint_Path
 INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (1, 1, 50, 'Y');
