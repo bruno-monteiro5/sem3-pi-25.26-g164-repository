@@ -138,8 +138,8 @@ public class ProximitySearchUI implements Runnable {
 
         Scanner sc = new Scanner(System.in);
 
-        double lat = askDouble(sc, "Target latitude");
-        double lon = askDouble(sc, "Target longitude");
+        double lat = askLatitude(sc);
+        double lon = askLongitude(sc);
         int n = askInt(sc, "Number of nearest neighbors (N)");
 
         System.out.println("\nSearching...");
@@ -165,8 +165,8 @@ public class ProximitySearchUI implements Runnable {
 
         Scanner sc = new Scanner(System.in);
 
-        double lat = askDouble(sc, "Target latitude");
-        double lon = askDouble(sc, "Target longitude");
+        double lat = askLatitude(sc);
+        double lon = askLongitude(sc);
         int n = askInt(sc, "Number of nearest neighbors (N)");
 
         System.out.print("Time zone group filter (e.g., 'Europe/Lisbon', or leave blank for no filter): ");
@@ -266,7 +266,6 @@ public class ProximitySearchUI implements Runnable {
         return value;
     }
 
-
     private int askInt(Scanner sc, String label) {
         boolean valid = false;
         int value = 0;
@@ -296,7 +295,6 @@ public class ProximitySearchUI implements Runnable {
         return value;
     }
 
-
     private void pause() {
         System.out.println("\nPress Enter to continue...");
         Scanner sc = new Scanner(System.in);
@@ -312,5 +310,63 @@ public class ProximitySearchUI implements Runnable {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++) sb.append(SEP);
         return sb.toString();
+    }
+
+    // ---- Métodos específicos para latitude/longitude com intervalo ----
+
+    private double askLatitude(Scanner sc) {
+        boolean valid = false;
+        double value = 0.0;
+
+        do {
+            System.out.print("Target latitude (-90 to 90): ");
+            String text = sc.nextLine().trim();
+
+            if (!text.isEmpty()) {
+                try {
+                    value = Double.parseDouble(text);
+                    if (value < -90.0 || value > 90.0) {
+                        System.out.println(YELLOW + "Latitude must be between -90 and 90 degrees." + RESET);
+                    } else {
+                        valid = true;
+                    }
+                } catch (NumberFormatException ex) {
+                    System.out.println(YELLOW + "Invalid number. Please enter a valid decimal value." + RESET);
+                }
+            } else {
+                System.out.println(YELLOW + "Value is required. Please enter a number." + RESET);
+            }
+
+        } while (!valid);
+
+        return value;
+    }
+
+    private double askLongitude(Scanner sc) {
+        boolean valid = false;
+        double value = 0.0;
+
+        do {
+            System.out.print("Target longitude (-180 to 180): ");
+            String text = sc.nextLine().trim();
+
+            if (!text.isEmpty()) {
+                try {
+                    value = Double.parseDouble(text);
+                    if (value < -180.0 || value > 180.0) {
+                        System.out.println(YELLOW + "Longitude must be between -180 and 180 degrees." + RESET);
+                    } else {
+                        valid = true;
+                    }
+                } catch (NumberFormatException ex) {
+                    System.out.println(YELLOW + "Invalid number. Please enter a valid decimal value." + RESET);
+                }
+            } else {
+                System.out.println(YELLOW + "Value is required. Please enter a number." + RESET);
+            }
+
+        } while (!valid);
+
+        return value;
     }
 }
