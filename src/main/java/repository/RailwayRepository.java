@@ -48,9 +48,8 @@ public class RailwayRepository {
         List<LineSegment> segments = new ArrayList<>();
         String query = """
             SELECT ls.id, ls.is_electrified, ls.speed_limit, ls.max_weight, 
-                   ls.length, ls.line, tt.name as track_type
+                   ls.length, ls.line
             FROM Line_Segment ls
-            JOIN TrackType tt ON ls.track_type = tt.id
             WHERE ls.line = ?
             ORDER BY ls.id
         """;
@@ -67,8 +66,7 @@ public class RailwayRepository {
                             rs.getInt("speed_limit"),
                             rs.getInt("max_weight"),
                             rs.getInt("length"),
-                            rs.getInt("line"),
-                            rs.getString("track_type")
+                            rs.getInt("line")
                     ));
                 }
             }
