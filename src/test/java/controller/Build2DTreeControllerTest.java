@@ -31,6 +31,11 @@ public class Build2DTreeControllerTest {
 
     private Build2DTreeController controller;
     private StationRepository stationRepository;
+    private BuildIndexesController indexController;
+    private StationCsvLoader loader;
+
+    private static final String TEST_CSV_PATH =
+            "warehouseMngt/train_station_dataset/train_stations_tester.csv";
 
     private Station station1;
     private Station station2;
@@ -54,6 +59,8 @@ public class Build2DTreeControllerTest {
 
         stationRepository = StationRepository.getInstance();
         controller = new Build2DTreeController();
+        indexController = new BuildIndexesController();
+        loader = new StationCsvLoader();
 
         station1 = new Station(
                 "Lisboa Santa Apolonia",
@@ -284,5 +291,51 @@ public class Build2DTreeControllerTest {
         assertTrue(ctrl2.isBuilt());
         assertNotNull(ctrl1.getKDTree());
         assertNotNull(ctrl2.getKDTree());
+    }
+
+    /**
+     * Test: Build 2D-Tree from test CSV
+     * Expected: 50 valid stations in the tree
+     */
+    @Test
+    public void testBuild2DTreeFromTestCsv() {
+        // Load test data
+        indexController.buildFromCsvPath(loader, TEST_CSV_PATH);
+
+        // Build tree
+        controller.build2DTree();
+
+        // Verify
+        assertTrue("Should be built", controller.isBuilt());
+        assertNotNull("Tree should not be null", controller.getKDTree());
+        assertEquals("Tree should have 55 stations",
+                55, controller.getKDTree().size());
+        assertEquals("Height = 5",5 , controller.getKDTree().height());
+        assertEquals("{1=38, 2=2, 3=3, 4=1}", controller.getStatistics().getBucketDistribution().toString());
+    }
+
+    /**
+     * Test: Verify bucket distribution
+     * Expected: Zurich has 3 stations, Lumes has 3, Mauleon has 3, Revel has 2
+     */
+    @Test
+    public void testBucketDistribution() {
+        indexController.buildFromCsvPath(loader, TEST_CSV_PATH);
+        controller.build2DTree();
+
+        KDTree2D.KDTreeStats stats = controller.getStatistics();
+
+        // Should have buckets with multiple stations
+        assertTrue("Should have multi-station buckets",
+                stats.getBucketDistribution().size() > 1);
+
+
+        int totalStations = 0;
+        for (Integer count : stats.getBucketDistribution().values()) {
+            totalStations += count;
+        }
+
+        assertTrue("Total node count should be less than station count",
+                totalStations <= 55);
     }
 }

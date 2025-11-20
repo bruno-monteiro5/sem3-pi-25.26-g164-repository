@@ -160,8 +160,8 @@ INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, l
 INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line, track_type) VALUES (36, 'Y', 0, 8000, 4334, 24, 1);
 
 -- Tabela Path
-INSERT INTO Path (id, "start", "end") VALUES (1, 50, 11);
-INSERT INTO Path (id, "start", "end") VALUES (2, 11, 50);
+INSERT INTO Path (id) VALUES (1);
+INSERT INTO Path (id) VALUES (2);
 
 -- Tabela Endpoint_Path
 INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (1, 1, 50, 'Y');
@@ -190,9 +190,9 @@ INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (2, 11, 48, 'Y
 INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (2, 12, 50, 'Y');
 
 -- Tabela Train
-INSERT INTO Train (id, operator, time, path, "date") VALUES (5421, 'PT509017800', TO_TIMESTAMP('09:45:00','HH24:MI:SS'), 1, TO_DATE('2025-10-03','YYYY-MM-DD'));
-INSERT INTO Train (id, operator, time, path, "date") VALUES (5435, 'PT509017800', TO_TIMESTAMP('18:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-03','YYYY-MM-DD'));
-INSERT INTO Train (id, operator, time, path, "date") VALUES (5437, 'PT509017800', TO_TIMESTAMP('10:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-06','YYYY-MM-DD'));
+INSERT INTO Train (id, operator, time, path, "date", "start", "end") VALUES (5421, 'PT509017800', TO_TIMESTAMP('09:45:00','HH24:MI:SS'), 1, TO_DATE('2025-10-03','YYYY-MM-DD'),50, 11);
+INSERT INTO Train (id, operator, time, path, "date", "start", "end") VALUES (5435, 'PT509017800', TO_TIMESTAMP('18:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-03','YYYY-MM-DD'),11, 50);
+INSERT INTO Train (id, operator, time, path, "date", "start", "end") VALUES (5437, 'PT509017800', TO_TIMESTAMP('10:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-06','YYYY-MM-DD'),11 ,50);
 
 -- Tabela Locomotive/Tipos/Gauge
 INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5621, 'Inês', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70, 300,'Bo-Bo');
