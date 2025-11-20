@@ -25,21 +25,27 @@ public class Search2DTreeController {
         return searchInArea(minLatitude, maxLatitude, minLongitude, maxLongitude, kdTree.getRoot(), s);
     }
 
-    public String searchInArea(double minLatitude, double maxLatitude, double minLongitude, double maxLongitude, KDNode node, String s) {
+    public String searchInArea(double minLatitude, double maxLatitude,
+                               double minLongitude, double maxLongitude,
+                               KDNode node, String s) {
         for(Station station : node.getStations()){
             if(station.getLocation().getLatitude() >= minLatitude &&
                     station.getLocation().getLatitude() <= maxLatitude &&
                     station.getLocation().getLongitude() >= minLongitude &&
                     station.getLocation().getLongitude() <= maxLongitude){
-                s += station.toString();
+                s += station.toString() + "\n";
             }
         }
-        if(node.getLeft()!= null){
-            return searchInArea(minLatitude, maxLatitude, minLongitude, maxLongitude, node.getLeft(), s);
+
+        if(node.getLeft() != null){
+            s = searchInArea(minLatitude, maxLatitude, minLongitude, maxLongitude,
+                    node.getLeft(), s);
         }
-        if(node.getRight()!= null){
-            return searchInArea(minLatitude, maxLatitude, minLongitude, maxLongitude, node.getRight(), s);
+        if(node.getRight() != null){
+            s = searchInArea(minLatitude, maxLatitude, minLongitude, maxLongitude,
+                    node.getRight(), s);
         }
+
         return s;
     }
 
