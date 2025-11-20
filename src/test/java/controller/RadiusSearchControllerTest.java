@@ -239,4 +239,49 @@ public class RadiusSearchControllerTest {
         assertFalse(controllerNotBuilt.isReady());
         assertTrue(controllerBuilt.isReady());
     }
+
+    /**
+     * Verifies that searchWithinRadius rejects latitudes outside [-90, 90].
+     *
+     * <p>Scenario:
+     *   - Tree is built; latitude = 123 (invalid); longitude and radius valid.
+     *
+     * <p>Expected:
+     *   - {@link IllegalArgumentException} is thrown.
+     *
+     * @see RadiusSearchController#searchWithinRadius(double, double, double)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void searchWithinRadius_invalidLatitude_throwsIllegalArgument() {
+        FakeBuild2DTreeController fakeTreeController =
+                new FakeBuild2DTreeController(true, null);
+
+        RadiusSearchController controller =
+                new RadiusSearchController(fakeTreeController);
+
+        controller.searchWithinRadius(123.0, 0.0, 10.0);
+    }
+
+    /**
+     * Verifies that searchWithinRadius rejects longitudes outside [-180, 180].
+     *
+     * <p>Scenario:
+     *   - Tree is built; longitude = 999 (invalid); latitude and radius valid.
+     *
+     * <p>Expected:
+     *   - {@link IllegalArgumentException} is thrown.
+     *
+     * @see RadiusSearchController#searchWithinRadius(double, double, double)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void searchWithinRadius_invalidLongitude_throwsIllegalArgument() {
+        FakeBuild2DTreeController fakeTreeController =
+                new FakeBuild2DTreeController(true, null);
+
+        RadiusSearchController controller =
+                new RadiusSearchController(fakeTreeController);
+
+        controller.searchWithinRadius(0.0, 999.0, 10.0);
+    }
+
 }
