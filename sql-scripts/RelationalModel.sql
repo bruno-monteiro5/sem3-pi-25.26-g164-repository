@@ -124,6 +124,8 @@ CREATE TABLE Train (
                        time     timestamp(0) NOT NULL,
                        path     number(10) NOT NULL,
                        "date"   date NOT NULL,
+                       "start"  number(10) NOT NULL,
+                       "end"    number(10) NOT NULL,
                        PRIMARY KEY (id));
 CREATE TABLE Locomotive_Train (
                                   locomotive number(10) NOT NULL,
@@ -144,9 +146,8 @@ CREATE TABLE Wagon_Freight (
                                PRIMARY KEY (wagon,
                                             freight));
 CREATE TABLE Path (
-                      id      number(10) NOT NULL,
-                      "start" number(10) NOT NULL,
-                      "end"   number(10) NOT NULL,
+                      id   number(10) NOT NULL,
+                      name number(10) NOT NULL,
                       PRIMARY KEY (id));
 CREATE TABLE Endpoint_Path (
                                path      number(10) NOT NULL,
@@ -183,8 +184,8 @@ ALTER TABLE Wagon_Freight ADD CONSTRAINT FKWagon_Frei318629 FOREIGN KEY (freight
 ALTER TABLE Freight ADD CONSTRAINT FKFreight109531 FOREIGN KEY (origin) REFERENCES Endpoint (id);
 ALTER TABLE Freight ADD CONSTRAINT FKFreight881821 FOREIGN KEY (destination) REFERENCES Endpoint (id);
 ALTER TABLE Freight ADD CONSTRAINT FKFreight671762 FOREIGN KEY (train) REFERENCES Train (id);
-ALTER TABLE Path ADD CONSTRAINT FKPath989620 FOREIGN KEY ("start") REFERENCES Endpoint (id);
-ALTER TABLE Path ADD CONSTRAINT FKPath332544 FOREIGN KEY ("end") REFERENCES Endpoint (id);
 ALTER TABLE Train ADD CONSTRAINT FKTrain985667 FOREIGN KEY (path) REFERENCES Path (id);
 ALTER TABLE Endpoint_Path ADD CONSTRAINT FKEndpoint_P179752 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
 ALTER TABLE Endpoint_Path ADD CONSTRAINT FKEndpoint_P852905 FOREIGN KEY (path) REFERENCES Path (id);
+ALTER TABLE Train ADD CONSTRAINT FKTrain578022 FOREIGN KEY ("start") REFERENCES Endpoint (id);
+ALTER TABLE Train ADD CONSTRAINT FKTrain920945 FOREIGN KEY ("end") REFERENCES Endpoint (id);
