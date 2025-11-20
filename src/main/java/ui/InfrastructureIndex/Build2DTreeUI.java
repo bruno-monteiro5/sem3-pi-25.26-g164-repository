@@ -1,10 +1,11 @@
-package ui;
+package ui.InfrastructureIndex;
 
 import controller.Build2DTreeController;
 import controller.BuildIndexesController;
 import controller.StationCsvLoader;
 import domain.Option;
 import domain.Utils;
+import ui.InfraestructureIndexMenu;
 
 import java.io.File;
 import java.util.Scanner;

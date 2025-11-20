@@ -1,10 +1,11 @@
-package ui;
+package ui.WarehouseManagementFunctions;
 
 import domain.Aisle;
 import domain.Bay;
 import domain.Box;
 import domain.Warehouse;
 import repository.WarehouseRepository;
+import ui.WarehouseManagementMenu;
 
 import java.util.*;
 

@@ -1,10 +1,6 @@
 package ui;
 
-import WarehouseManagementFunctions.PickPathUI;
-import WarehouseManagementFunctions.PickingPlanUI;
-import WarehouseManagementFunctions.OrderEligibilityNdAllocationUI;
-import WarehouseManagementFunctions.WagonUnloadingUI;
-import WarehouseManagementFunctions.ReturnsInspectionUI;
+import ui.WarehouseManagementFunctions.*;
 import domain.Option;
 import domain.Utils;
 

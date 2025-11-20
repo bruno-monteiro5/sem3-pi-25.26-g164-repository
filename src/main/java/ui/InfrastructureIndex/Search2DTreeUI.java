@@ -1,8 +1,6 @@
-package ui;
+package ui.InfrastructureIndex;
 
 import controller.Search2DTreeController;
-import domain.KDTree2D;
-import repository.KDTreeRepository;
 
 import java.util.Scanner;
 

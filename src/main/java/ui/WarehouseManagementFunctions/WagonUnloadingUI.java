@@ -1,4 +1,4 @@
-package WarehouseManagementFunctions;
+package ui.WarehouseManagementFunctions;
 
 import controller.WagonUnloadingController;
 import domain.*;
