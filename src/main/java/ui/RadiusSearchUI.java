@@ -149,8 +149,8 @@ public class RadiusSearchUI implements Runnable {
 
         Scanner sc = new Scanner(System.in);
 
-        double lat = askDouble(sc, "Target latitude (decimal degrees)");
-        double lon = askDouble(sc, "Target longitude (decimal degrees)");
+        double lat = askLatitude(sc);
+        double lon = askLongitude(sc);
 
         double radiusKm;
         boolean validRadius = false;
@@ -163,6 +163,7 @@ public class RadiusSearchUI implements Runnable {
                 System.out.println(YELLOW + "Radius must be > 0. Please try again." + RESET);
             }
         } while (!validRadius);
+
 
         RadiusSearchResult result;
         try {
@@ -273,4 +274,63 @@ public class RadiusSearchUI implements Runnable {
         for (int i = 0; i < n; i++) sb.append(SEP);
         return sb.toString();
     }
+
+    private double askLatitude(Scanner sc) {
+        boolean valid = false;
+        double value = 0;
+
+        do {
+            System.out.print("Target latitude (decimal degrees): ");
+            String text = sc.nextLine().trim();
+
+            if (text.isEmpty()) {
+                System.out.println(YELLOW + "Latitude is required. Please enter a number." + RESET);
+                continue;
+            }
+
+            try {
+                value = Double.parseDouble(text);
+                if (value < -90.0 || value > 90.0) {
+                    System.out.println(YELLOW + "Latitude must be between -90 and 90 degrees. Please try again." + RESET);
+                } else {
+                    valid = true;
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println(YELLOW + "Invalid number. Please enter a valid decimal value." + RESET);
+            }
+
+        } while (!valid);
+
+        return value;
+    }
+
+    private double askLongitude(Scanner sc) {
+        boolean valid = false;
+        double value = 0;
+
+        do {
+            System.out.print("Target longitude (decimal degrees): ");
+            String text = sc.nextLine().trim();
+
+            if (text.isEmpty()) {
+                System.out.println(YELLOW + "Longitude is required. Please enter a number." + RESET);
+                continue;
+            }
+
+            try {
+                value = Double.parseDouble(text);
+                if (value < -180.0 || value > 180.0) {
+                    System.out.println(YELLOW + "Longitude must be between -180 and 180 degrees. Please try again." + RESET);
+                } else {
+                    valid = true;
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println(YELLOW + "Invalid number. Please enter a valid decimal value." + RESET);
+            }
+
+        } while (!valid);
+
+        return value;
+    }
+
 }

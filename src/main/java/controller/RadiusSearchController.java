@@ -60,12 +60,19 @@ public class RadiusSearchController {
      * @return search result with sorted tree and density summary
      * @throws IllegalStateException    if the 2D-Tree has not been built (USEI07)
      * @throws IllegalArgumentException if {@code radiusKm} is negative
+     *                                  or if latitude/longitude are out of bounds
      */
-    public RadiusSearchResult searchWithinRadius(double targetLat,
-                                                 double targetLon,
-                                                 double radiusKm) {
+    public RadiusSearchResult searchWithinRadius(double targetLat, double targetLon, double radiusKm) {
         if (!treeController.isBuilt()) {
             throw new IllegalStateException("2D-Tree must be built first (run USEI07)");
+        }
+
+        if (targetLat < -90.0 || targetLat > 90.0) {
+            throw new IllegalArgumentException("Latitude must be between -90 and 90 degrees");
+        }
+
+        if (targetLon < -180.0 || targetLon > 180.0) {
+            throw new IllegalArgumentException("Longitude must be between -180 and 180 degrees");
         }
 
         if (radiusKm < 0) {
