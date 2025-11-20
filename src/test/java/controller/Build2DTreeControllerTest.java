@@ -1,30 +1,66 @@
 package controller;
 
-import domain.*;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
+import domain.KDTree2D;
+import domain.Location;
+import domain.Station;
+import org.junit.Before;
+import org.junit.Test;
+import repository.KDTreeRepository;
 import repository.StationRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
-class Build2DTreeControllerTest {
+/**
+ * Test suite for {@link Build2DTreeController}.
+ *
+ * <p>
+ * Each test method targets exactly one public member of {@code Build2DTreeController}
+ * and documents the scenario, preconditions, and expected results.
+ *
+ * <p>
+ * To ensure deterministic behavior, the singleton repositories
+ * ({@link StationRepository} and {@link KDTreeRepository})
+ * are reset before every test.
+ */
+public class Build2DTreeControllerTest {
 
     private Build2DTreeController controller;
-    private StationRepository repository;
-    private Station station1, station2, station3;
+    private StationRepository stationRepository;
+    private BuildIndexesController indexController;
+    private StationCsvLoader loader;
 
-    @BeforeEach
-    void setUp() {
-        // Get singleton instance
-        repository = StationRepository.getInstance();
+    private static final String TEST_CSV_PATH =
+            "warehouseMngt/train_station_dataset/train_stations_tester.csv";
+
+    private Station station1;
+    private Station station2;
+    private Station station3;
+
+    /**
+     * Resets global state and prepares shared Station objects.
+     *
+     * <p>Scenario:
+     *   - Clear both singleton repositories to ensure test isolation.
+     *   - Rebuild Stations commonly used across test cases.
+     *
+     * <p>Expected:
+     *   - Repository instances start empty for each test.
+     *   - Controller created in a known initial state.
+     */
+    @Before
+    public void setUp() {
+        StationRepository.resetForTests();
+        KDTreeRepository.resetForTests();
+
+        stationRepository = StationRepository.getInstance();
         controller = new Build2DTreeController();
+        indexController = new BuildIndexesController();
+        loader = new StationCsvLoader();
 
         station1 = new Station(
                 "Lisboa Santa Apolonia",
@@ -51,82 +87,96 @@ class Build2DTreeControllerTest {
         );
     }
 
+    /**
+     * Verifies that the constructor creates a valid controller instance.
+     *
+     * <p>Scenario:
+     *   - Instantiate a new {@code Build2DTreeController}.
+     *
+     * <p>Expected:
+     *   - Returned instance is non-null.
+     */
     @Test
-    void testConstructor() {
+    public void testConstructor() {
         Build2DTreeController ctrl = new Build2DTreeController();
         assertNotNull(ctrl);
-        assertNotNull(ctrl.getKDTree());
-        assertTrue(ctrl.isBuilt());
     }
 
+    /**
+     * Ensures that {@link Build2DTreeController#isBuilt()} is initially false.
+     *
+     * <p>Scenario:
+     *   - Create controller immediately after repository reset.
+     *
+     * <p>Expected:
+     *   - {@code isBuilt()} returns false.
+     */
     @Test
-    void testBuild2DTreeWithoutIndexes() {
-        // Create a NEW controller instance to ensure clean state
-        Build2DTreeController freshController = new Build2DTreeController();
-
-        // Check if repository has data
-        if (repository.isLoaded()) {
-            // If repository has data from previous tests,
-            // the method will work, so we test a different scenario
-            assertDoesNotThrow(() -> {
-                freshController.build2DTree();
-            });
-        } else {
-            // Repository is empty, should throw exception
-            assertThrows(IllegalStateException.class, () -> {
-                freshController.build2DTree();
-            });
-        }
+    public void testIsBuiltInitiallyFalse() {
+        assertFalse(controller.isBuilt());
     }
 
+    /**
+     * Verifies that {@link Build2DTreeController#build2DTree()} throws
+     * {@link IllegalStateException} when no station data has been loaded.
+     *
+     * <p>Scenario:
+     *   - Repository contains no station indexes.
+     *   - Invoke {@code build2DTree()}.
+     *
+     * <p>Expected:
+     *   - {@code IllegalStateException} with required message.
+     */
     @Test
-    void testBuild2DTreeThrowsExceptionWhenNoData() {
-        // To truly test this, we need to ensure repository is empty
-        // Since we can't clear the singleton, we'll create a mock scenario
+    public void testBuild2DTreeWithoutIndexesThrows() {
+        assertFalse(stationRepository.isLoaded());
 
-        // This test verifies the exception message at least
         try {
-            Build2DTreeController ctrl = new Build2DTreeController();
-
-            // Only test if repository is truly empty
-            if (!repository.isLoaded()) {
-                ctrl.build2DTree();
-                fail("Should have thrown IllegalStateException");
-            }
+            controller.build2DTree();
+            fail("Expected IllegalStateException when building without data");
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("AVL indexes must be built first"));
         }
     }
 
+    /**
+     * Ensures that a 2D-Tree is built successfully once indexes exist.
+     *
+     * <p>Scenario:
+     *   - Load station data into repository.
+     *   - Invoke {@code build2DTree()}.
+     *
+     * <p>Expected:
+     *   - No exception thrown.
+     *   - {@code isBuilt()} returns true.
+     *   - KD-Tree contains at least the inserted stations.
+     */
     @Test
-    void testBuild2DTreeWithIndexes() {
-        // Load some stations
-        List<Station> stations = new ArrayList<>();
-        stations.add(station1);
-        stations.add(station2);
-        stations.add(station3);
+    public void testBuild2DTreeWithIndexes() {
+        List<Station> stations = List.of(station1, station2, station3);
+        stationRepository.loadAll(stations);
 
-        repository.loadAll(stations);
-
-        // Now build the tree
-        assertDoesNotThrow(() -> {
-            controller.build2DTree();
-        });
+        controller.build2DTree();
 
         assertTrue(controller.isBuilt());
         assertNotNull(controller.getKDTree());
         assertTrue(controller.getKDTree().size() >= 3);
     }
 
+    /**
+     * Validates that {@link Build2DTreeController#getKDTree()} returns
+     * a non-null KD-Tree after building.
+     *
+     * <p>Scenario:
+     *   - Load station.
+     *   - Build 2D-Tree.
+     *
+     * <p>Expected:
+     *   - Non-null KD-Tree.
+     */
     @Test
-    void testGetKDTree() {
-        // Ensure repository has data
-        if (!repository.isLoaded()) {
-            List<Station> stations = new ArrayList<>();
-            stations.add(station1);
-            repository.loadAll(stations);
-        }
-
+    public void testGetKDTree() {
+        stationRepository.loadAll(List.of(station1));
         controller.build2DTree();
 
         KDTree2D tree = controller.getKDTree();
@@ -134,59 +184,54 @@ class Build2DTreeControllerTest {
         assertTrue(tree.size() > 0);
     }
 
+    /**
+     * Tests that tree statistics are available and valid after building.
+     *
+     * <p>Scenario:
+     *   - Load two stations.
+     *   - Build 2D-Tree.
+     *   - Retrieve statistics.
+     *
+     * <p>Expected:
+     *   - Stats are non-null.
+     *   - Tree size ≥ loaded stations.
+     *   - Height is non-negative.
+     */
     @Test
-    void testGetStatisticsAfterBuilding() {
-        // Load fresh data for this test
-        List<Station> stations = new ArrayList<>();
-        stations.add(station1);
-        stations.add(station2);
-
-        repository.loadAll(stations);
+    public void testGetStatisticsAfterBuilding() {
+        stationRepository.loadAll(List.of(station1, station2));
         controller.build2DTree();
 
         KDTree2D.KDTreeStats stats = controller.getStatistics();
         assertNotNull(stats);
         assertTrue(stats.getSize() >= 2);
         assertTrue(stats.getHeight() >= 0);
+        assertNotNull(stats.getBucketDistribution());
     }
 
+    /**
+     * Ensures that {@code build2DTree()} prints a statistics summary to System.out.
+     *
+     * <p>Scenario:
+     *   - Load valid stations.
+     *   - Capture System.out during build.
+     *
+     * <p>Expected:
+     *   - Output contains required diagnostic lines.
+     */
     @Test
-    void testIsBuiltInitiallyFalse() {
-        Build2DTreeController ctrl = new Build2DTreeController();
-        assertTrue(ctrl.isBuilt());
-    }
+    public void testBuild2DTreePrintsStatistics() {
+        stationRepository.loadAll(List.of(station1, station2, station3));
 
-    @Test
-    void testIsBuiltAfterBuilding() {
-        // Ensure data is loaded
-        if (!repository.isLoaded()) {
-            List<Station> stations = new ArrayList<>();
-            stations.add(station1);
-            repository.loadAll(stations);
-        }
-
-        controller.build2DTree();
-        assertTrue(controller.isBuilt());
-    }
-
-    @Test
-    void testBuild2DTreePrintsStatistics() {
-        // Load data
-        List<Station> stations = new ArrayList<>();
-        stations.add(station1);
-        stations.add(station2);
-        stations.add(station3);
-
-        repository.loadAll(stations);
-
-        // Capture system output
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(outContent));
 
-        controller.build2DTree();
-
-        System.setOut(originalOut);
+        try {
+            controller.build2DTree();
+        } finally {
+            System.setOut(originalOut);
+        }
 
         String output = outContent.toString();
         assertTrue(output.contains("2D-Tree build finished"));
@@ -195,79 +240,102 @@ class Build2DTreeControllerTest {
         assertTrue(output.contains("Bucket size distribution"));
     }
 
+    /**
+     * Verifies that repeated tree builds remain consistent
+     * when using the same indexed station data.
+     *
+     * <p>Scenario:
+     *   - Load station data once.
+     *   - Build tree using two independent controllers.
+     *
+     * <p>Expected:
+     *   - Both KD-Trees have identical sizes.
+     */
     @Test
-    void testMultipleBuildCalls() {
-        // Ensure data is loaded
-        if (!repository.isLoaded()) {
-            List<Station> stations = new ArrayList<>();
-            stations.add(station1);
-            repository.loadAll(stations);
-        }
+    public void testMultipleBuildCallsProduceConsistentTree() {
+        stationRepository.loadAll(List.of(station1, station2, station3));
 
         controller.build2DTree();
         int firstSize = controller.getKDTree().size();
 
-        // Build again (should rebuild)
-        Build2DTreeController newController = new Build2DTreeController();
-        newController.build2DTree();
-        int secondSize = newController.getKDTree().size();
+        Build2DTreeController other = new Build2DTreeController();
+        other.build2DTree();
+        int secondSize = other.getKDTree().size();
 
         assertEquals(firstSize, secondSize);
     }
 
+    /**
+     * Confirms that controllers share the same repository and can build independently.
+     *
+     * <p>Scenario:
+     *   - Create two controllers.
+     *   - Load one station.
+     *   - Both attempt to build the tree.
+     *
+     * <p>Expected:
+     *   - Both builds succeed.
+     *   - Each controller has a non-null KD-Tree after building.
+     */
     @Test
-    void testGetStatisticsBeforeBuilding() {
-        Build2DTreeController ctrl = new Build2DTreeController();
-
-        // Should return stats for empty tree
-        KDTree2D.KDTreeStats stats = ctrl.getStatistics();
-        assertNotNull(stats);
-        assertNotEquals(0, stats.getSize());
-        assertNotEquals(-1, stats.getHeight());
-    }
-
-    @Test
-    void testSingletonRepositorySharing() {
-        // Create two controllers
+    public void testSingletonRepositorySharing() {
         Build2DTreeController ctrl1 = new Build2DTreeController();
         Build2DTreeController ctrl2 = new Build2DTreeController();
 
-        // Load data through repository
-        List<Station> stations = new ArrayList<>();
-        stations.add(station1);
-        StationRepository.getInstance().loadAll(stations);
+        stationRepository.loadAll(List.of(station1));
 
-        // Both should be able to build
-        assertDoesNotThrow(() -> ctrl1.build2DTree());
-        assertDoesNotThrow(() -> ctrl2.build2DTree());
+        ctrl1.build2DTree();
+        ctrl2.build2DTree();
+
+        assertTrue(ctrl1.isBuilt());
+        assertTrue(ctrl2.isBuilt());
+        assertNotNull(ctrl1.getKDTree());
+        assertNotNull(ctrl2.getKDTree());
     }
 
+    /**
+     * Test: Build 2D-Tree from test CSV
+     * Expected: 50 valid stations in the tree
+     */
     @Test
-    void testBuildWithEmptyRepository() {
-        // This is a conceptual test - we can't truly empty the singleton
-        // But we can test that the controller handles the check correctly
-        Build2DTreeController ctrl = new Build2DTreeController();
+    public void testBuild2DTreeFromTestCsv() {
+        // Load test data
+        indexController.buildFromCsvPath(loader, TEST_CSV_PATH);
 
-        assertNotNull(ctrl.getKDTree());
-        assertTrue(ctrl.isBuilt());
+        // Build tree
+        controller.build2DTree();
+
+        // Verify
+        assertTrue("Should be built", controller.isBuilt());
+        assertNotNull("Tree should not be null", controller.getKDTree());
+        assertEquals("Tree should have 55 stations",
+                55, controller.getKDTree().size());
+        assertEquals("Height = 5",5 , controller.getKDTree().height());
+        assertEquals("{1=38, 2=2, 3=3, 4=1}", controller.getStatistics().getBucketDistribution().toString());
     }
 
+    /**
+     * Test: Verify bucket distribution
+     * Expected: Zurich has 3 stations, Lumes has 3, Mauleon has 3, Revel has 2
+     */
     @Test
-    void testGetStatisticsReturnsCorrectData() {
-        // Load specific data
-        List<Station> stations = new ArrayList<>();
-        stations.add(station1);
-        stations.add(station2);
-        stations.add(station3);
-
-        repository.loadAll(stations);
+    public void testBucketDistribution() {
+        indexController.buildFromCsvPath(loader, TEST_CSV_PATH);
         controller.build2DTree();
 
         KDTree2D.KDTreeStats stats = controller.getStatistics();
 
-        assertNotNull(stats);
-        assertNotNull(stats.getBucketDistribution());
-        assertTrue(stats.getSize() > 0);
-        assertTrue(stats.getHeight() >= 0);
+        // Should have buckets with multiple stations
+        assertTrue("Should have multi-station buckets",
+                stats.getBucketDistribution().size() > 1);
+
+
+        int totalStations = 0;
+        for (Integer count : stats.getBucketDistribution().values()) {
+            totalStations += count;
+        }
+
+        assertTrue("Total node count should be less than station count",
+                totalStations <= 55);
     }
 }

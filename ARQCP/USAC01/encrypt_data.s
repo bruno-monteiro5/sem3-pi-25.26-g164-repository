@@ -2,7 +2,7 @@
     .global encrypt_data
 encrypt_data:
     li t0, 0
-    blt a1, t0, fail
+    ble a1, t0, fail
     li t0, 26
     bgt a1, t0, fail
 
@@ -10,12 +10,12 @@ loop:
     loop:
     lbu t0, 0(a0)
     beqz t0, done
-
-    #Validates if the letter is upercase
+    
+    # Validate if the letter is uppercase
     li t2, 'A'
-    blt t0, t2, fail    # If < 'A', skips to failiure
+    blt t0, t2, fail    # If < 'A', skip to failure procedure
     li t2, 'Z'
-    bgt t0, t2, fail    # If > 'Z', skips to failure
+    bgt t0, t2, fail    # If > 'Z', skip to failure procedure
 
     add t1, t0, a1
     li t2, 'Z'

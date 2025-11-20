@@ -18,7 +18,7 @@ public class KDTreeRepository {
     /**
      * Returns the singleton instance of KDTreeRepository.
      */
-    public static synchronized KDTreeRepository getInstance() {
+    public static KDTreeRepository getInstance() {
         if (instance == null) {
             instance = new KDTreeRepository();
         }
@@ -51,5 +51,9 @@ public class KDTreeRepository {
      */
     public void clear() {
         this.kdTree = null;
+    }
+
+    public static void resetForTests() {
+        instance = new KDTreeRepository();
     }
 }

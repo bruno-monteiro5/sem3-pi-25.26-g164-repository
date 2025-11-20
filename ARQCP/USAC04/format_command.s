@@ -3,177 +3,202 @@
 .global format_command
 
 format_command:
-	li t0, 'A'
-	li t1, 'Z'
-	li t2, 32          # Para converter minúscula->maiúscula
-	li t4, 0           # Return value
+	# a0 = input string (op)
+	# a1 = number (n)
+	# a2 = output string (cmd)
 
-loop:
-	lb t6, 0(a0)
-	beqz t6, invalid       # Se fim da string, inválido
+skip_leading_spaces:
+	lb t0, 0(a0)
+	beqz t0, invalid       # Empty string = invalid
+	li t1, ' '
+	bne t0, t1, check_command_start
+	addi a0, a0, 1         # Skip space
+	j skip_leading_spaces
+
+check_command_start:
+	# Check if we have at least 2 characters for a command
+	lb t0, 0(a0)           # First letter
+	beqz t0, invalid
+	lb t1, 1(a0)           # Second letter
+	beqz t1, invalid
+	lb t2, 2(a0)           # Third letter (might be space or letter)
+	
+	# Convert first letter to uppercase (in register only)
+	li t3, 'a'
+	blt t0, t3, first_upper
+	li t3, 'z'
+	bgt t0, t3, invalid    # Not a letter
+	addi t0, t0, -32       # Convert to uppercase
+
+first_upper:
+	# Check if first letter is uppercase now
+	li t3, 'A'
+	blt t0, t3, invalid
+	li t3, 'Z'
+	bgt t0, t3, invalid
+
+	# Convert second letter to uppercase (in register only)
+	li t3, 'a'
+	blt t1, t3, second_upper
+	li t3, 'z'
+	bgt t1, t3, invalid    # Not a letter
+	addi t1, t1, -32       # Convert to uppercase
+
+second_upper:
+	# Check if second letter is uppercase now
+	li t3, 'A'
+	blt t1, t3, invalid
+	li t3, 'Z'
+	bgt t1, t3, invalid
+
+	# Now check if it's a 3-letter command
+	beqz t2, check_2letter  # Null terminator = 2-letter command
 	li t3, ' '
-	beq t6, t3, skip_space # Se é espaço, pula
-	j check_commands       # Se é letra, processa
+	beq t2, t3, check_2letter  # Space = 2-letter command
+	
+	# It's a 3-letter command - convert third letter
+	li t3, 'a'
+	blt t2, t3, third_upper
+	li t3, 'z'
+	bgt t2, t3, invalid    # Not a letter
+	addi t2, t2, -32       # Convert to uppercase
 
-skip_space:
-	addi a0, a0, 1
-	j loop
-
-check_commands:
-	lb t3, 2(a0)       # Carregar 3º caractere
-	beqz t3, check_command_2_letter
-	li t6, ' '
-	beq t3, t6, check_command_2_letter  # Se é espaço, comando de 2 letras
-	j check_command_3_letter            # Caso contrário, 3 letras
-
-check_command_2_letter:
-	lb t5, 0(a0)       # Carregar 1ª letra
-	bgt t5, t1, increase_first_letter
-	lb t5, 1(a0)       # Carregar 2ª letra
-	bgt t5, t1, increase_second_letter
-
-	lb t5, 0(a0)
-	li t3, 'R'
-	beq t5, t3, check_rb
+third_upper:
+	# Check if third letter is uppercase now
+	li t3, 'A'
+	blt t2, t3, invalid
+	li t3, 'Z'
+	bgt t2, t3, invalid
+	
+	# Check if it's GTH
 	li t3, 'G'
-	beq t5, t3, check_ge
-	li t3, 'Y'
-	beq t5, t3, check_ye
-	j invalid
-
-increase_first_letter:
-	lb t5, 0(a0)
-	sub t5, t5, t2
-	sb t5, 0(a0)
-	j check_command_2_letter
-
-increase_second_letter:
-	lb t5, 1(a0)
-	sub t5, t5, t2
-	sb t5, 1(a0)
-	j check_command_2_letter
-
-check_rb:
-	lb t5, 1(a0)
-	li t3, 'B'
-	bne t5, t3, check_rg
-	j validate_rb
-
-check_rg:
-	lb t5, 1(a0)
-	li t3, 'G'
-	beq t5, t3, validate_rg
-	j invalid
-
-check_ge:
-	lb t5, 1(a0)
-	li t3, 'E'
-	beq t5, t3, validate_ge
-	j invalid
-
-check_ye:
-	lb t5, 1(a0)
-	li t3, 'E'
-	beq t5, t3, validate_ye
-	j invalid
-
-validate_rb:
-validate_rg:
-validate_ge:
-validate_ye:
-	lb t5, 0(a0)
-	sb t5, 0(a2)
-	addi a2, a2, 1
-	lb t5, 1(a0)
-	sb t5, 0(a2)
-	addi a2, a2, 1
-	li t3, 100
-	blt a1, t3, represent
-	j invalid
-
-
-check_command_3_letter:
-	lb t5, 0(a0)
-	bgt t5, t1, increase_first_letter_3
-	lb t5, 1(a0)
-	bgt t5, t1, increase_second_letter_3
-	lb t5, 2(a0)
-	bgt t5, t1, increase_third_letter
-
-	lb t5, 0(a0)
-	li t3, 'G'
-	beq t5, t3, check_t
-	j invalid
-
-check_t:
-	lb t5, 1(a0)
+	bne t0, t3, invalid
 	li t3, 'T'
-	beq t5, t3, check_h
-	j invalid
-
-check_h:
-	lb t5, 2(a0)
+	bne t1, t3, invalid
 	li t3, 'H'
-	beq t5, t3, validate_gth
+	bne t2, t3, invalid
+	
+	# Validate rest of string is only spaces
+	addi a0, a0, 3
+	j validate_trailing_gth
+
+check_2letter:
+	# Check valid 2-letter commands: RB, RG, RE, GE, YE
+	li t3, 'R'
+	beq t0, t3, check_r_commands
+	li t3, 'G'
+	beq t0, t3, check_g_commands
+	li t3, 'Y'
+	beq t0, t3, check_y_commands
 	j invalid
 
-increase_first_letter_3:
-	lb t5, 0(a0)
-	sub t5, t5, t2
-	sb t5, 0(a0)
-	j check_command_3_letter
+check_r_commands:
+	li t3, 'B'
+	beq t1, t3, valid_2letter
+	li t3, 'G'
+	beq t1, t3, valid_2letter
+	li t3, 'E'
+	beq t1, t3, valid_2letter
+	j invalid
 
-increase_second_letter_3:
-	lb t5, 1(a0)
-	sub t5, t5, t2
-	sb t5, 1(a0)
-	j check_command_3_letter
+check_g_commands:
+	li t3, 'E'
+	beq t1, t3, valid_2letter
+	j invalid
 
-increase_third_letter:
-	lb t5, 2(a0)
-	sub t5, t5, t2
-	sb t5, 2(a0)
-	j check_command_3_letter
+check_y_commands:
+	li t3, 'E'
+	beq t1, t3, valid_2letter
+	j invalid
 
-
-validate_gth:
-	lb t5, 0(a0)
-	sb t5, 0(a2)
+valid_2letter:
+	# Validate number range (0-99)
+	li t3, 0
+	blt a1, t3, invalid
+	li t3, 100
+	bge a1, t3, invalid
+	
+	# Write command letters to output
+	sb t0, 0(a2)
 	addi a2, a2, 1
-	lb t5, 1(a0)
-	sb t5, 0(a2)
+	sb t1, 0(a2)
 	addi a2, a2, 1
-	lb t5, 2(a0)
-	sb t5, 0(a2)
+	
+	# Validate rest of string is only spaces
+	addi a0, a0, 2
+	j validate_trailing_2letter
+
+validate_trailing_2letter:
+	lb t0, 0(a0)
+	beqz t0, format_number    # End of string, proceed
+	li t1, ' '
+	bne t0, t1, invalid       # Not a space = invalid
+	addi a0, a0, 1
+	j validate_trailing_2letter
+
+validate_trailing_gth:
+	lb t0, 0(a0)
+	beqz t0, write_gth        # End of string, valid
+	li t1, ' '
+	bne t0, t1, invalid       # Not a space = invalid
+	addi a0, a0, 1
+	j validate_trailing_gth
+
+write_gth:
+	# Write GTH to output
+	li t0, 'G'
+	sb t0, 0(a2)
+	addi a2, a2, 1
+	li t0, 'T'
+	sb t0, 0(a2)
+	addi a2, a2, 1
+	li t0, 'H'
+	sb t0, 0(a2)
 	addi a2, a2, 1
 	sb zero, 0(a2)     # Null terminator
-	li t4, 1
-	j return
+	li a0, 1           # Success
+	ret
 
-represent:
-	li t3, ','
-	sb t3, 0(a2)
+format_number:
+	# Add comma
+	li t0, ','
+	sb t0, 0(a2)
 	addi a2, a2, 1
-	li t3, 10
-	div t5, a1, t3     # Dezena
-	li t3, '0'
-	add t5, t5, t3     # Converter para ASCII
-	sb t5, 0(a2)
+	
+	# Format number with leading zero if needed
+	li t0, 10
+	bge a1, t0, two_digits
+	
+	# Single digit: add leading zero
+	li t0, '0'
+	sb t0, 0(a2)
 	addi a2, a2, 1
-	li t3, 10
-	rem t5, a1, t3     # Unidade
-	li t3, '0'
-	add t5, t5, t3     # Converter para ASCII
-	sb t5, 0(a2)
+	add t0, a1, t0     # Convert digit to ASCII
+	sb t0, 0(a2)
 	addi a2, a2, 1
+	j finish_number
+
+two_digits:
+	# Two digits
+	li t0, 10
+	div t1, a1, t0     # Tens digit
+	rem t2, a1, t0     # Ones digit
+	
+	li t0, '0'
+	add t1, t1, t0     # Convert tens to ASCII
+	sb t1, 0(a2)
+	addi a2, a2, 1
+	
+	add t2, t2, t0     # Convert ones to ASCII
+	sb t2, 0(a2)
+	addi a2, a2, 1
+
+finish_number:
 	sb zero, 0(a2)     # Null terminator
-	li t4, 1
-	j return
+	li a0, 1           # Success
+	ret
 
 invalid:
-	sb zero, 0(a2)     # Limpar output
-	li t4, 0
-
-return:
-	mv a0, t4
+	sb zero, 0(a2)     # Empty output string
+	li a0, 0           # Failure
 	ret

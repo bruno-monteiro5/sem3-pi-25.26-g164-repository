@@ -32,7 +32,7 @@ public class StationRepository {
     /**
      * Returns the singleton instance of StationRepository.
      */
-    public static synchronized StationRepository getInstance() {
+    public static StationRepository getInstance() {
         if (instance == null) {
             instance = new StationRepository();
         }
@@ -121,7 +121,10 @@ public class StationRepository {
     public void clear() {
         totalLoadedCount = 0;
         totalRejectedCount = 0;
-        // Note: StationIndexes doesn't have a clear method,
-        // stationIndexes = new StationIndexes();
+    }
+
+
+    public static void resetForTests() {
+        instance = new StationRepository();
     }
 }

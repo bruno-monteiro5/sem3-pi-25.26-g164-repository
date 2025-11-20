@@ -170,7 +170,6 @@ public class BuildIndexesUI implements Runnable {
     }
 
     private void printStations(List<Station> stationList) {
-        int count = 0;
         for (Station st : stationList) {
             System.out.printf("%-42s %-6s [%.5f, %.5f]  %s%n",
                     st.getName(),
@@ -178,14 +177,10 @@ public class BuildIndexesUI implements Runnable {
                     st.getLocation().getLatitude(),
                     st.getLocation().getLongitude(),
                     st.getTimeZoneGroup());
-            count++;
-            if (count >= 20 && stationList.size() > 20) {
-                System.out.println("... (showing first 20 of " + stationList.size() + " results)");
-                break;
-            }
         }
         System.out.println("Total: " + stationList.size());
     }
+
 
     private void pause() {
         System.out.println("\nPress Enter to continue...");
