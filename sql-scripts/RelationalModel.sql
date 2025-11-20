@@ -18,7 +18,6 @@ CREATE TABLE Line_Segment (
                               max_weight     number(10) NOT NULL,
                               length         number(10) NOT NULL,
                               line           number(10) NOT NULL,
-                              track_type     number(10) NOT NULL,
                               PRIMARY KEY (id));
 CREATE TABLE Gauge (
                        id    number(10) NOT NULL,
@@ -109,10 +108,6 @@ CREATE TABLE BuildingType (
                               id   number(10) NOT NULL,
                               name varchar2(255) NOT NULL,
                               PRIMARY KEY (id));
-CREATE TABLE TrackType (
-                           id   number(10) NOT NULL,
-                           name varchar2(255) NOT NULL UNIQUE,
-                           PRIMARY KEY (id));
 CREATE TABLE Wagon_Model_Gauge (
                                    Wagon_Modelid number(10) NOT NULL,
                                    Gaugeid       number(10) NOT NULL,
@@ -147,7 +142,7 @@ CREATE TABLE Wagon_Freight (
                                             freight));
 CREATE TABLE Path (
                       id   number(10) NOT NULL,
-                      name number(10) NOT NULL,
+                      name varchar2(255) NOT NULL,
                       PRIMARY KEY (id));
 CREATE TABLE Endpoint_Path (
                                path      number(10) NOT NULL,
@@ -156,6 +151,19 @@ CREATE TABLE Endpoint_Path (
                                must_stop varchar2(1) NOT NULL,
                                PRIMARY KEY (path,
                                             seq));
+CREATE TABLE Single_Track (
+                              segment number(10) NOT NULL,
+                              PRIMARY KEY (segment));
+CREATE TABLE Multiple_Tracks (
+                                 segment       number(10) NOT NULL,
+                                 number_tracks number(10) NOT NULL,
+                                 PRIMARY KEY (segment));
+CREATE TABLE Siding (
+                        segment  number(10) NOT NULL,
+                        length   number(10) NOT NULL,
+                        position number(10) NOT NULL,
+                        PRIMARY KEY (segment,
+                                     length));
 ALTER TABLE Line ADD CONSTRAINT FKLine262396 FOREIGN KEY (owner) REFERENCES Owner (vat);
 ALTER TABLE Line_Segment ADD CONSTRAINT FKLine_Segme425123 FOREIGN KEY (line) REFERENCES Line (id);
 ALTER TABLE Line ADD CONSTRAINT FKLine635842 FOREIGN KEY (endpoint_a) REFERENCES Endpoint (id);
@@ -171,7 +179,6 @@ ALTER TABLE Building ADD CONSTRAINT FKBuilding121622 FOREIGN KEY (facility) REFE
 ALTER TABLE Endpoint ADD CONSTRAINT FKEndpoint305011 FOREIGN KEY (metafacility) REFERENCES Metafacility (id);
 ALTER TABLE Facility ADD CONSTRAINT FKFacility704827 FOREIGN KEY (id) REFERENCES Metafacility (id);
 ALTER TABLE Freightyard ADD CONSTRAINT FKFreightyar260042 FOREIGN KEY (id) REFERENCES Metafacility (id);
-ALTER TABLE Line_Segment ADD CONSTRAINT FKLine_Segme515959 FOREIGN KEY (track_type) REFERENCES TrackType (id);
 ALTER TABLE Wagon ADD CONSTRAINT FKWagon8744 FOREIGN KEY (operator) REFERENCES Operator (vat);
 ALTER TABLE Wagon_Model_Gauge ADD CONSTRAINT FKWagon_Mode599476 FOREIGN KEY (Wagon_Modelid) REFERENCES Wagon_Model (id);
 ALTER TABLE Wagon_Model_Gauge ADD CONSTRAINT FKWagon_Mode72765 FOREIGN KEY (Gaugeid) REFERENCES Gauge (id);
@@ -189,3 +196,6 @@ ALTER TABLE Endpoint_Path ADD CONSTRAINT FKEndpoint_P179752 FOREIGN KEY (endpoin
 ALTER TABLE Endpoint_Path ADD CONSTRAINT FKEndpoint_P852905 FOREIGN KEY (path) REFERENCES Path (id);
 ALTER TABLE Train ADD CONSTRAINT FKTrain578022 FOREIGN KEY ("start") REFERENCES Endpoint (id);
 ALTER TABLE Train ADD CONSTRAINT FKTrain920945 FOREIGN KEY ("end") REFERENCES Endpoint (id);
+ALTER TABLE Single_Track ADD CONSTRAINT FKSingle_Tra576121 FOREIGN KEY (segment) REFERENCES Line_Segment (id);
+ALTER TABLE Multiple_Tracks ADD CONSTRAINT FKMultiple_T771125 FOREIGN KEY (segment) REFERENCES Line_Segment (id);
+ALTER TABLE Siding ADD CONSTRAINT FKSiding869925 FOREIGN KEY (segment) REFERENCES Single_Track (segment);
