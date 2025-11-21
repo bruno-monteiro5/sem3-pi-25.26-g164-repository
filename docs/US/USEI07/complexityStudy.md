@@ -79,6 +79,4 @@ The program uses:
 ## 6. Conclusion
 The `Build2DTreeController.java` file presents a **time complexity set in O(n)**, as they process `n` station entries sequentially. The **space complexity** is **O(n²)**, proportional to the size of the station entries stored in memory and their insertions in the 2DTree.
 
-The `ReturnsInspectionController.java` and the `StationRepository.java` files also exhibit a **time complexity of O(n)** for `n` operations, as each controller method executes in **O(1)** time for a single entry.
-
 The algorithm is **efficient for small to medium datasets**. For larger datasets, the sequential architecture scales linearly, and improvements could focus on optimizing CSV loading and Station updates when necessary.
