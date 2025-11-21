@@ -23,19 +23,21 @@ public class InfraestructureIndexMenu implements Runnable {
         System.out.println("                       INFRASTRUCTURE INDEX MENU");
         System.out.println(line(72) + RESET);
 
-        Option[] options = new Option[5];
+        Option[] options = new Option[6];
 
         Runnable tzIndex    = new BuildIndexesUI();
         Runnable build2DTree = new Build2DTreeUI();
+        Runnable search = new Search2DTreeUI();
         Runnable proximity  = new ProximitySearchUI();
         Runnable radius     = new RadiusSearchUI();
         Runnable main       = new MainMenu();
 
         options[0] = new Option("Time-Zone Index & Windowed Queries (USEI06)", tzIndex);
         options[1] = new Option("Build 2D-Tree (USEI07)", build2DTree);
-        options[2] = new Option("Proximity Search - Nearest-N (USEI09)", proximity);
-        options[3] = new Option("Radius Search & Density (USEI10)", radius);
-        options[4] = new Option("Go Back", main);
+        options[2] = new Option("Search 2D-Tree (USEI08)", search);
+        options[3] = new Option("Proximity Search - Nearest-N (USEI09)", proximity);
+        options[4] = new Option("Radius Search & Density (USEI10)", radius);
+        options[5] = new Option("Go Back", main);
 
         Utils.listAndSelect(options);
     }

@@ -33,7 +33,8 @@ public class Search2DTreeController {
                     station.getLocation().getLatitude() <= maxLatitude &&
                     station.getLocation().getLongitude() >= minLongitude &&
                     station.getLocation().getLongitude() <= maxLongitude){
-                s += station.toString() + "\n";
+                s += station.toString();
+                System.out.println(station.toString());
             }
         }
 
@@ -83,6 +84,7 @@ public class Search2DTreeController {
                         station.isMainStation() == isMain &&
                         station.getCountry().toLowerCase().equals(country)) {
                     s += station.toString();
+                    System.out.println(station.toString());
                 }
             }else if(isCityDelimited && isMainDelimited && country.equals("all")){
                 if(station.getLocation().getLatitude() >= minLatitude &&
@@ -92,6 +94,7 @@ public class Search2DTreeController {
                         station.isCity() == isCity &&
                         station.isMainStation() == isMain){
                     s += station.toString();
+                    System.out.println(station.toString());
                 }
             } else if(isCityDelimited && !country.equals("all")){
                 if(station.getLocation().getLatitude() >= minLatitude &&
@@ -101,6 +104,7 @@ public class Search2DTreeController {
                         station.isCity() == isCity &&
                         station.getCountry().toLowerCase().equals(country)){
                     s += station.toString();
+                    System.out.println(station.toString());
                 }
             } else if(isCityDelimited && country.equals("all")){
                 if(station.getLocation().getLatitude() >= minLatitude &&
@@ -118,6 +122,7 @@ public class Search2DTreeController {
                         station.isMainStation() == isMain &&
                         station.getCountry().toLowerCase().equals(country)){
                     s += station.toString();
+                    System.out.println(station.toString());
                 }
             } else{
                 if(station.getLocation().getLatitude() >= minLatitude &&
@@ -126,6 +131,7 @@ public class Search2DTreeController {
                         station.getLocation().getLongitude() <= maxLongitude &&
                         station.isMainStation() == isMain){
                     s += station.toString();
+                    System.out.println(station.toString());
                 }
             }
         }
