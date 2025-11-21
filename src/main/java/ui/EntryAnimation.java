@@ -7,7 +7,7 @@ public class EntryAnimation {
         showBanner();
     }
 
-    // COMBOIO
+
     private static final String[] TRAIN = {
             "                   _-====-__-======-__-========-_____-============-__          ",
             "                 _(                                                 _)         ",
@@ -23,11 +23,10 @@ public class EntryAnimation {
             " /-OO----OO\"\"=\"OO--OO\"=\"OO--------OO\"=\"OO-------OO\"=\"OO-------OO\"=P  "
     };
 
-    // LINHA / CARRIS (fixa)
-    private static final String GROUND =
-            "##########################################################################################################################################################################";
 
-    // BANNER
+    private static final String GROUND =
+            "#########################################################################################################################################################################################################################################";
+
     private static final String[] BANNER = {
             " /$$                           /$$             /$$     /$$                            /$$$$$$                  /$$$$$$$            /$$ /$$                 ",
             "| $$                          |__/            | $$    |__/                           /$$__  $$                | $$__  $$          |__/| $$                 ",
@@ -43,49 +42,43 @@ public class EntryAnimation {
     };
 
     private static void animateTrain() {
-        int maxOffset = 80;      // onde começa (direita)
-        int trainHeight = TRAIN.length;
 
-        clear(); // limpamos antes do primeiro frame
+        int maxOffset = 150;   // onde começa
+        int sleepMs   = 50;   // velocidade
+        clear();
 
-        for (int offset = maxOffset; offset >= 0; offset --) {
+        for (int offset = maxOffset; offset >= 0; offset--) {
+
+            clear();
+
             String spaces = " ".repeat(offset);
 
-            // 1) comboio
             for (String line : TRAIN) {
                 System.out.println(spaces + line);
             }
-            // 2) linha fixa
+
             System.out.println(GROUND);
 
-            sleep(30); // velocidade
-
-            // sobe o cursor para voltar ao topo do comboio + chão,
-            // excepto no último frame (offset == 0), para ele ficar visível
-            if (offset > 0) {
-                System.out.print("\033[" + (trainHeight + 1) + "A"); // A = move up
-            }
+            sleep(sleepMs);
         }
     }
 
+
     private static void showBanner() {
-        // pequena pausa para “saborear” o comboio parado (opcional)
         sleep(300);
 
         clear();
 
-        System.out.println(); // espaço antes do banner
+        System.out.println();
         for (String line : BANNER) {
             System.out.println(line);
         }
-        System.out.println(); // espaço depois do banner
+        System.out.println();
 
         sleep(1000);
     }
 
-    // ============================================================
-    // AUXILIARES
-    // ============================================================
+
 
     private static void clear() {
         System.out.print("\033[H\033[2J");
