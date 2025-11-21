@@ -1,6 +1,6 @@
-WITH                                                                        --quais sao os grain wagons
+WITH
 
-    freights_in_period AS (           --Freights num período específico                                        --quais freights ocorreram no periodo
+    freights_in_period AS (           --Freights num período específico
         SELECT *
             FROM Freight
             WHERE "date" BETWEEN DATE '2025-10-03' AND DATE '2025-10-06'
@@ -30,9 +30,3 @@ HAVING COUNT(DISTINCT freights_in_period.train) = (
     SELECT COUNT(DISTINCT trains_with_grain_wagons.train)
     FROM trains_with_grain_wagons
 )
-
-
-
---O que faltava de inserts, nos freights em os wagons foram usados nenhum era cereal
---INSERT INTO Freight (id, "date", origin, destination, train) VALUES (3000, DATE '2025-10-03', 50, 12, 5421);
---INSERT INTO Wagon_Freight (wagon, freight) VALUES (823046, 3000);

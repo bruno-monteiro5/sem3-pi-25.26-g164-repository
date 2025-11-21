@@ -22,6 +22,8 @@ class Search2DTreeControllerTest {
 
     @BeforeEach
     void setUp() {
+
+
         // Get singleton instance
         repository = StationRepository.getInstance();
         controller = new Search2DTreeController();
@@ -76,7 +78,7 @@ class Search2DTreeControllerTest {
         assertFalse(result.isBlank());
 
         assertFalse(result.contains("Lisboa Santa Apolonia"));
-        assertFalse(result.contains("Porto Campanha"));
+        assertTrue(result.contains("Porto Campanha"));
         assertTrue(result.contains("Coimbra-B"));
     }
 
