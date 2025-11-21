@@ -13,7 +13,7 @@ WITH                                                                        --qu
             WHERE LOWER(wagon_Model.type) LIKE '%cereal%'
     ),
 
-                                       --USO DISTINCT porque um train pode ter varios freights grain
+    --USO DISTINCT porque um train pode ter varios freights grain
     trains_with_grain_wagons AS (      --quais trains usaram pelo menos um grain wagon naquele periodo
         SELECT DISTINCT freights_in_period.train
         FROM freights_in_period

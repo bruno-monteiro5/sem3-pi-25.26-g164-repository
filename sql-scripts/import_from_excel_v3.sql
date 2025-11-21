@@ -387,3 +387,9 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563080, 2051);
 
 INSERT INTO Freight (id, "date", origin, destination, train) VALUES (3000, DATE '2025-10-03', 50, 12, 5421);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (823046, 3000);
+
+
+
+INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335006, 'Trovão', 'Stadler', 'E4000', 2019, 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
+INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (335006, 25, 50);
+INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width = 1668), 335006);
