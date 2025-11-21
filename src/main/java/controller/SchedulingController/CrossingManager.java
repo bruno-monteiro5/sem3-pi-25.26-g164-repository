@@ -1,4 +1,4 @@
-package service;
+package controller.SchedulingController;
 
 import domain.railway.*;
 import domain.scheduling.*;

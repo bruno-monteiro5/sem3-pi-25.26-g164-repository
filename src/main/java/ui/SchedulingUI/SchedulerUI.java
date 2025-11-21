@@ -1,10 +1,10 @@
-package ui;
+package ui.SchedulingUI;
 
 import domain.railway.*;
 import domain.scheduling.Schedule;
 import domain.scheduling.TrainSchedule;
 import repository.RailwayRepository;
-import service.TrainScheduler;
+import controller.SchedulingController.TrainScheduler;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
