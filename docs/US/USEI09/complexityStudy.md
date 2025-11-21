@@ -1,4 +1,4 @@
-# Complexity Study - BuildIndexesControler.java
+# Complexity Study - ProximitySearchControler.java
 
 ## 1. Identification
 **File:** `ProximitySearchController.java`
