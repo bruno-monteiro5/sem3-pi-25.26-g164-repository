@@ -1,4 +1,4 @@
-# Complexity Study - BuildIndexesControler.java
+# Complexity Study - Build2DTreeControler.java
 
 ## 1. Identification
 **File:** `Build2DTreeController.java`
