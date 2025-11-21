@@ -8,7 +8,6 @@ FROM Train
          JOIN Endpoint ON Endpoint.id = Endpoint_Path.endpoint
 WHERE Train.id = 5437                        -- choose the train here
   AND Endpoint_Path.must_stop = 'N'
--- ORDER BY Endpoint_Path.seq;
 
 -- Possible train ids:
 -- 5421
