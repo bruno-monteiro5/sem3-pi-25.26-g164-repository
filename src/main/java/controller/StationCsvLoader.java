@@ -55,7 +55,6 @@ public class StationCsvLoader {
                         Location loc = new Location(latitude, longitude);
                         list.add(new Station(station, country, loc, tzGroup, isCity, isMain, isAir));
                     } catch (Exception ignore) {
-                        list.add(null);
                     }
                 }
             }
