@@ -41,6 +41,27 @@ public class Train {
     public List<Locomotive> getLocomotives() { return locomotives; }
     public List<Freight> getFreights() { return freights; }
 
+    public void setPath(Path path) {
+        this.path = path;
+    }
+
+    public void setStartEndpoint(Endpoint startEndpoint) {
+        this.startEndpoint = startEndpoint;
+    }
+
+    public void setEndEndpoint(Endpoint endEndpoint) {
+        this.endEndpoint = endEndpoint;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public void setDepartureTime(LocalTime departureTime) {
+        this.departureTime = departureTime;
+    }
+
+
     public void addLocomotive(Locomotive locomotive) {
         this.locomotives.add(locomotive);
     }

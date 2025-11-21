@@ -436,32 +436,55 @@ public class RailwayRepository {
     }
 
     private void loadTrainFreights(Train train) throws SQLException {
+        // Record temporário para evitar conflito de conexão aninhada (Connection Closed error)
+        record FreightDto(int id, LocalDate date, int originId, int destinationId) {}
+        List<FreightDto> dtos = new ArrayList<>();
+
         String query = """
-            SELECT f.id, f.date, f.origin, f.destination
+            SELECT f.id, f."date", f.origin, f.destination
             FROM Freight f
             WHERE f.train = ?
         """;
 
+        // PASSO 1: Extrair apenas os dados básicos
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, train.getId());
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Freight freight = new Freight(
+                    dtos.add(new FreightDto(
                             rs.getInt("id"),
                             rs.getDate("date").toLocalDate(),
-                            getEndpointById(rs.getInt("origin")),
-                            getEndpointById(rs.getInt("destination"))
-                    );
-                    loadFreightWagons(freight);
-                    train.addFreight(freight);
+                            rs.getInt("origin"),
+                            rs.getInt("destination")
+                    ));
                 }
             }
+        } // A conexão fecha aqui com segurança
+
+        // PASSO 2: Hidratar os objetos (cada método abrirá sua própria conexão sem conflito)
+        for (FreightDto dto : dtos) {
+            Freight freight = new Freight(
+                    dto.id(),
+                    dto.date(),
+                    getEndpointById(dto.originId()),
+                    getEndpointById(dto.destinationId())
+            );
+            loadFreightWagons(freight);
+            train.addFreight(freight);
         }
     }
 
     private void loadFreightWagons(Freight freight) throws SQLException {
+        // Record temporário para armazenar dados brutos e libertar a conexão antes de processar dependências
+        record WagonRawData(int id, int serviceYear, String operator,
+                            String model, String maker, int bogies, int length,
+                            int width, int height, double weight, int maxSpeed,
+                            double payload, double volume, String type) {}
+
+        List<WagonRawData> rawDataList = new ArrayList<>();
+
         String query = """
             SELECT w.id, w.service_year, w.operator, wm.*
             FROM Wagon_Freight wf
@@ -470,14 +493,18 @@ public class RailwayRepository {
             WHERE wf.freight = ?
         """;
 
+        // PASSO 1: Extrair dados brutos (Connection aberta apenas aqui)
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, freight.getId());
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    WagonModel model = new WagonModel(
+                    // Armazenamos apenas os dados primitivos
+                    rawDataList.add(new WagonRawData(
                             rs.getInt("id"),
+                            rs.getInt("service_year"),
+                            rs.getString("operator"),
                             rs.getString("model"),
                             rs.getString("maker"),
                             rs.getInt("number_bogies"),
@@ -488,19 +515,40 @@ public class RailwayRepository {
                             rs.getInt("max_speed"),
                             rs.getDouble("payload"),
                             rs.getDouble("volume"),
-                            rs.getString("type"),
-                            getWagonGauge(rs.getInt("id"))
-                    );
-
-                    Wagon wagon = new Wagon(
-                            rs.getInt("id"),
-                            rs.getInt("service_year"),
-                            model,
-                            rs.getString("operator")
-                    );
-                    freight.addWagon(wagon);
+                            rs.getString("type")
+                    ));
                 }
             }
+        } // Conexão fecha aqui com segurança
+
+        // PASSO 2: Hidratar objetos (agora é seguro chamar métodos que abrem novas conexões)
+        for (WagonRawData data : rawDataList) {
+            // getWagonGauge agora pode abrir/fechar sua própria conexão sem afetar o loop anterior
+            Object gaugeInfo = getWagonGauge(data.id());
+
+            WagonModel model = new WagonModel(
+                    data.id(),
+                    data.model(),
+                    data.maker(),
+                    data.bogies(),
+                    data.length(),
+                    data.width(),
+                    data.height(),
+                    data.weight(),
+                    data.maxSpeed(),
+                    data.payload(),
+                    data.volume(),
+                    data.type(),
+                    (Integer) gaugeInfo
+            );
+
+            Wagon wagon = new Wagon(
+                    data.id(),
+                    data.serviceYear(),
+                    model,
+                    data.operator()
+            );
+            freight.addWagon(wagon);
         }
     }
 
@@ -524,4 +572,82 @@ public class RailwayRepository {
         }
         return 1668; // default gauge
     }
+
+
+
+
+
+
+
+    /**
+     * Cria um novo Path com um nome dado.
+     * Gera o ID como MAX(id)+1.
+     */
+    public Path createPath(String name) throws SQLException {
+        int newId;
+
+        String getMaxId = "SELECT NVL(MAX(id), 0) AS max_id FROM Path";
+        String insertPath = "INSERT INTO Path (id, name) VALUES (?, ?)";
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+
+            // 1) Calcular novo ID
+            try (PreparedStatement ps = conn.prepareStatement(getMaxId);
+                 ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                newId = rs.getInt("max_id") + 1;
+            }
+
+            // 2) Inserir path
+            try (PreparedStatement ps = conn.prepareStatement(insertPath)) {
+                ps.setInt(1, newId);
+                ps.setString(2, name);
+                ps.executeUpdate();
+            }
+        }
+
+        return new Path(newId, name);
+    }
+
+    /**
+     * Adiciona um endpoint à tabela Endpoint_Path para um path.
+     */
+    public void addEndpointToPath(int pathId, int seq, int endpointId, boolean mustStop) throws SQLException {
+        String sql = "INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, pathId);
+            ps.setInt(2, seq);
+            ps.setInt(3, endpointId);
+            ps.setString(4, mustStop ? "Y" : "N");
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Atualiza o path e os endpoints de início/fim de um train.
+     */
+    public void updateTrainRoute(int trainId, int pathId, int startEndpointId, int endEndpointId) throws SQLException {
+        String sql = """
+            UPDATE Train
+            SET path = ?, "start" = ?, "end" = ?
+            WHERE id = ?
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, pathId);
+            ps.setInt(2, startEndpointId);
+            ps.setInt(3, endEndpointId);
+            ps.setInt(4, trainId);
+
+            ps.executeUpdate();
+        }
+    }
+
+
+
 }
