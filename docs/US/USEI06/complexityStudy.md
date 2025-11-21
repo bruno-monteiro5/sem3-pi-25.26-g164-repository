@@ -11,6 +11,11 @@ The `BuildIndexesController` class includes:
 - A method that runs its class:
     - Retrieves and processes Station information from a CSV file.
     - Calls operations based on the `StationRepository.java` file.
+- A method that builds the AVL indexes from a csv file:
+    - Reads all n lines of the CSV file and turns them into Station objects.
+    - Calls the `StationRepository.java` file to add the stations.
+- 4 diffrent methods that query the indexes in Latitude, Longitude, Time Zone Group and Country:
+    - Calls the `StationRepository.java` file to query the indexes.
 
 The `StationRepository` class includes:
 - A method that runs its class:
@@ -26,8 +31,8 @@ The code follows an **iterative** structure, with no explicit recursion. The ove
 ### 3.1 Main Structure (Inspection)
 **Complexity:**
 
-Loading return entries from the CSV file:
-- Reads and enqueues all return entries from the `warehouseMngt/train_station_dataset/train_stations_europe.csv`.
+Loading Station entries from the CSV file:
+- Reads and enqueues all Station entries from the `warehouseMngt/train_station_dataset/train_stations_europe.csv`.
 
 **Complexity:**
 - Best case: O(n) — where `n` is the number of rows in the file, all correctly formatted.
@@ -71,7 +76,7 @@ The program uses:
 - A collection (likely a queue) in the `StationRepository` class to store the Station information.
 
 **Space Complexity:**
-- Storing `n` return entries: O(n).
+- Storing `n` `Station` entries of size: O(n).
 - Simple variables and temporary objects: O(1).  
   **Total:** O(n).
 
@@ -87,8 +92,6 @@ The program uses:
 ---
 
 ## 6. Conclusion
-The `BuildIndexesController.java` and the `StationRepository.java` files present a **time complexity set in O(n)**, as they process `n` return entries sequentially. The **space complexity** is **O(n)**, proportional to the size of the return entries stored in memory.
-
-The `ReturnsInspectionController.java` and the `StationRepository.java` files also exhibit a **time complexity of O(n)** for `n` operations, as each controller method executes in **O(1)** time for a single entry.
+The `BuildIndexesController.java` and the `StationRepository.java` files present a **time complexity set in O(n)**, as they process `n` return entries sequentially. The **space complexity** is **O(n)**, proportional to the size of the StationIndexes entries stored in memory.
 
 The algorithm is **efficient for small to medium datasets**. For larger datasets, the sequential architecture scales linearly, and improvements could focus on optimizing CSV loading and Station updates when necessary.
