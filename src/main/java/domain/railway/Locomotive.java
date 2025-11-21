@@ -5,19 +5,21 @@ public class Locomotive {
     private String name;
     private String make;
     private String model;
-    private int maxSpeed;
-    private int opSpeed;
+    private int power;          // kW - ADICIONADO para USLP07
+    private int maxSpeed;       // km/h
+    private int opSpeed;        // km/h
     private String tractionType; // "ELECTRIC" or "DIESEL"
-    private int totalWeight;
-    private int gauge;
+    private int totalWeight;    // toneladas
+    private int gauge;          // mm
 
     public Locomotive(int id, String name, String make, String model,
-                      int maxSpeed, int opSpeed, String tractionType,
+                      int power, int maxSpeed, int opSpeed, String tractionType,
                       int totalWeight, int gauge) {
         this.id = id;
         this.name = name;
         this.make = make;
         this.model = model;
+        this.power = power;
         this.maxSpeed = maxSpeed;
         this.opSpeed = opSpeed;
         this.tractionType = tractionType;
@@ -28,6 +30,9 @@ public class Locomotive {
     // Getters
     public int getId() { return id; }
     public String getName() { return name; }
+    public String getMake() { return make; }
+    public String getModel() { return model; }
+    public int getPower() { return power; }          // NOVO
     public int getMaxSpeed() { return maxSpeed; }
     public int getOpSpeed() { return opSpeed; }
     public String getTractionType() { return tractionType; }
@@ -40,7 +45,7 @@ public class Locomotive {
 
     @Override
     public String toString() {
-        return String.format("%s (%s %s) - %s, Max: %dkm/h, Op: %dkm/h",
-                name, make, model, tractionType, maxSpeed, opSpeed);
+        return String.format("%s (%s %s) - %s, %dkW, Max: %dkm/h, Op: %dkm/h",
+                name, make, model, tractionType, power, maxSpeed, opSpeed);
     }
 }

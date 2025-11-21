@@ -10,7 +10,7 @@ public class LineSegment {
     private String trackType;
 
     public LineSegment(int id, boolean isElectrified, int speedLimit,
-                       int maxWeight, int length, int lineId, String trackType) {
+                       int maxWeight, int length, int lineId) {
         this.id = id;
         this.isElectrified = isElectrified;
         this.speedLimit = speedLimit;
