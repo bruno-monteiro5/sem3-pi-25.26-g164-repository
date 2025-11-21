@@ -383,3 +383,7 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563077, 2051);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563078, 2051);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563079, 2051);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563080, 2051);
+
+
+INSERT INTO Freight (id, "date", origin, destination, train) VALUES (3000, DATE '2025-10-03', 50, 12, 5421);
+INSERT INTO Wagon_Freight (wagon, freight) VALUES (823046, 3000);
