@@ -1,0 +1,103 @@
+package domain.railway;
+
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Train {
+    private int id;
+    private String operatorVat;
+    private LocalTime departureTime;
+    private LocalDate date;
+    private Path path;
+    private Endpoint startEndpoint;
+    private Endpoint endEndpoint;
+    private List<Locomotive> locomotives;
+    private List<Freight> freights;
+
+    public Train(int id, String operatorVat, LocalTime departureTime,
+                 LocalDate date, Path path, Endpoint startEndpoint,
+                 Endpoint endEndpoint) {
+        this.id = id;
+        this.operatorVat = operatorVat;
+        this.departureTime = departureTime;
+        this.date = date;
+        this.path = path;
+        this.startEndpoint = startEndpoint;
+        this.endEndpoint = endEndpoint;
+        this.locomotives = new ArrayList<>();
+        this.freights = new ArrayList<>();
+    }
+
+    public int getId() { return id; }
+    public String getOperatorVat() { return operatorVat; }
+    public LocalTime getDepartureTime() { return departureTime; }
+    public LocalDate getDate() { return date; }
+    public Path getPath() { return path; }
+    public Endpoint getStartEndpoint() { return startEndpoint; }
+    public Endpoint getEndEndpoint() { return endEndpoint; }
+    public List<Locomotive> getLocomotives() { return locomotives; }
+    public List<Freight> getFreights() { return freights; }
+
+    public void addLocomotive(Locomotive locomotive) {
+        this.locomotives.add(locomotive);
+    }
+
+    public void addFreight(Freight freight) {
+        this.freights.add(freight);
+    }
+
+    /**
+     * Calcula a potência total das locomotivas
+     */
+    public int getTotalPower() {
+        return locomotives.stream()
+                .mapToInt(Locomotive::getPower)
+                .sum();
+    }
+
+    /**
+     * Calcula o peso total do comboio (locomotivas + vagões carregados)
+     */
+    public int getTotalWeight() {
+        int locomotiveWeight = locomotives.stream()
+                .mapToInt(Locomotive::getTotalWeight)
+                .sum();
+
+        int wagonWeight = freights.stream()
+                .flatMap(f -> f.getWagons().stream())
+                .mapToInt(Wagon::getTotalWeight)
+                .sum();
+
+        return locomotiveWeight + wagonWeight;
+    }
+
+    /**
+     * Verifica se o comboio tem pelo menos uma locomotiva elétrica
+     */
+    public boolean hasElectricLocomotive() {
+        return locomotives.stream().anyMatch(Locomotive::isElectric);
+    }
+
+    /**
+     * Verifica se todas as locomotivas são elétricas
+     */
+    public boolean isFullyElectric() {
+        return !locomotives.isEmpty() &&
+                locomotives.stream().allMatch(Locomotive::isElectric);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Train %d: %s → %s at %s on %s (Locos: %d, Freights: %d)",
+                id,
+                startEndpoint.getName(),
+                endEndpoint.getName(),
+                departureTime,
+                date,
+                locomotives.size(),
+                freights.size());
+    }
+}

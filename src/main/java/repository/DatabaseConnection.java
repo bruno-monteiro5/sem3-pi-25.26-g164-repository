@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DatabaseConnection {
     private static final String URL = "jdbc:oracle:thin:@vsgate-s1.dei.isep.ipp.pt:10796:XE";
-    private static final String USER = "System"; // Substitui pelo teu user
+    private static final String USER = "C##LAPR3_G164"; // Substitui pelo teu user
     private static final String PASSWORD = "oracle"; // Substitui pela tua password
 
     private static Connection connection = null;

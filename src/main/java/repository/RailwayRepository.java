@@ -2,14 +2,62 @@ package repository;
 
 import domain.railway.*;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RailwayRepository {
 
-    /**
-     * Obtém todas as linhas com conexões diretas
-     */
+    // ==================== ENDPOINTS ====================
+
+    public List<Endpoint> getAllEndpoints() throws SQLException {
+        List<Endpoint> endpoints = new ArrayList<>();
+        String query = """
+            SELECT id, name, metafacility
+            FROM Endpoint
+            ORDER BY name
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                endpoints.add(new Endpoint(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getInt("metafacility")
+                ));
+            }
+        }
+        return endpoints;
+    }
+
+    public Endpoint getEndpointById(int id) throws SQLException {
+        String query = "SELECT id, name, metafacility FROM Endpoint WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Endpoint(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getInt("metafacility")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+
+    // ==================== LINES ====================
+
     public List<Line> getAllLines() throws SQLException {
         List<Line> lines = new ArrayList<>();
         String query = """
@@ -41,16 +89,14 @@ public class RailwayRepository {
         return lines;
     }
 
-    /**
-     * Obtém todos os segmentos de uma linha específica
-     */
+    // ==================== LINE SEGMENTS ====================
+
     public List<LineSegment> getLineSegments(int lineId) throws SQLException {
         List<LineSegment> segments = new ArrayList<>();
         String query = """
             SELECT ls.id, ls.is_electrified, ls.speed_limit, ls.max_weight, 
-                   ls.length, ls.line, tt.name as track_type
+                   ls.length, ls.line
             FROM Line_Segment ls
-            JOIN TrackType tt ON ls.track_type = tt.id
             WHERE ls.line = ?
             ORDER BY ls.id
         """;
@@ -67,8 +113,7 @@ public class RailwayRepository {
                             rs.getInt("speed_limit"),
                             rs.getInt("max_weight"),
                             rs.getInt("length"),
-                            rs.getInt("line"),
-                            rs.getString("track_type")
+                            rs.getInt("line")
                     ));
                 }
             }
@@ -77,12 +122,76 @@ public class RailwayRepository {
     }
 
     /**
-     * Obtém todas as locomotivas
+     * Obtém o tipo de via de um segmento (Single/Multiple Track)
      */
+    public TrackType getTrackType(int segmentId) throws SQLException {
+        // Primeiro verifica se é Multiple Track
+        String queryMultiple = """
+            SELECT number_tracks 
+            FROM Multiple_Tracks 
+            WHERE segment = ?
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(queryMultiple)) {
+
+            stmt.setInt(1, segmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new MultipleTrack(segmentId, rs.getInt("number_tracks"));
+                }
+            }
+        }
+
+        // Se não for Multiple, verifica Single Track
+        String querySingle = "SELECT segment FROM Single_Track WHERE segment = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(querySingle)) {
+
+            stmt.setInt(1, segmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    // Verifica se tem Siding
+                    return getSidingInfo(segmentId);
+                }
+            }
+        }
+
+        return null; // Não encontrado
+    }
+
+    private SingleTrack getSidingInfo(int segmentId) throws SQLException {
+        String query = """
+            SELECT position, length 
+            FROM Siding 
+            WHERE segment = ?
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, segmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new SingleTrack(
+                            segmentId,
+                            rs.getInt("position"),
+                            rs.getInt("length")
+                    );
+                }
+            }
+        }
+
+        // Single Track sem siding
+        return new SingleTrack(segmentId);
+    }
+
+    // ==================== LOCOMOTIVES ====================
+
     public List<Locomotive> getAllLocomotives() throws SQLException {
         List<Locomotive> locomotives = new ArrayList<>();
         String query = """
-            SELECT l.id, l.name, l.make, l.model, l.max_speed, l.op_speed, 
+            SELECT l.id, l.name, l.make, l.model, l.power, l.max_speed, l.op_speed, 
                    l.total_weight, lg.gauge,
                    CASE WHEN el.locomotive IS NOT NULL THEN 'ELECTRIC'
                         WHEN dl.locomotive IS NOT NULL THEN 'DIESEL'
@@ -104,6 +213,7 @@ public class RailwayRepository {
                         rs.getString("name"),
                         rs.getString("make"),
                         rs.getString("model"),
+                        rs.getInt("power"),
                         rs.getInt("max_speed"),
                         rs.getInt("op_speed"),
                         rs.getString("traction_type"),
@@ -113,5 +223,305 @@ public class RailwayRepository {
             }
         }
         return locomotives;
+    }
+
+    // ==================== PATHS ====================
+
+    public List<Path> getAllPaths() throws SQLException {
+        List<Path> paths = new ArrayList<>();
+        String queryPaths = "SELECT id, name FROM Path ORDER BY name";
+
+        // Passo 1: Carregar os objetos básicos (ID e Nome)
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(queryPaths);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Path path = new Path(
+                        rs.getInt("id"),
+                        rs.getString("name")
+                );
+                // Removido: loadPathEndpoints(path); - Causa conflito de conexão dentro do loop
+                paths.add(path);
+            }
+        }
+
+        // Passo 2: Carregar os detalhes (Endpoints) fora do contexto do ResultSet anterior
+        // Isto permite que o método loadPathEndpoints gerencie a sua própria conexão sem fechar a do loop principal
+        for (Path path : paths) {
+            loadPathEndpoints(path);
+        }
+
+        return paths;
+    }
+
+    public Path getPathById(int pathId) throws SQLException {
+        String query = "SELECT id, name FROM Path WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, pathId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Path path = new Path(
+                            rs.getInt("id"),
+                            rs.getString("name")
+                    );
+                    loadPathEndpoints(path);
+                    return path;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void loadPathEndpoints(Path path) throws SQLException {
+        String query = """
+            SELECT ep.seq, ep.endpoint, ep.must_stop, e.name, e.metafacility
+            FROM Endpoint_Path ep
+            JOIN Endpoint e ON ep.endpoint = e.id
+            WHERE ep.path = ?
+            ORDER BY ep.seq
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, path.getId());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Endpoint endpoint = new Endpoint(
+                            rs.getInt("endpoint"),
+                            rs.getString("name"),
+                            rs.getInt("metafacility")
+                    );
+
+                    Path.PathEndpoint pathEndpoint = new Path.PathEndpoint(
+                            rs.getInt("seq"),
+                            endpoint,
+                            "Y".equals(rs.getString("must_stop"))
+                    );
+
+                    path.addEndpoint(pathEndpoint);
+                }
+            }
+        }
+    }
+
+    // ==================== TRAINS ====================
+
+    // Record auxiliar para armazenar dados temporários e libertar a conexão rapidamente
+    private record TrainDto(int id, String operator, LocalTime time, LocalDate date, int pathId, int startId, int endId) {}
+
+    public List<Train> getAllTrains() throws SQLException {
+        List<TrainDto> dtos = new ArrayList<>();
+        String query = """
+            SELECT t.id, t.operator, t.time, t."date", t.path, t."start", t."end"
+                                   FROM Train t
+                                   ORDER BY t."date", t.time
+        """;
+
+        // PASSO 1: Extrair apenas os dados básicos e IDs
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                dtos.add(mapToTrainDto(rs));
+            }
+        } // A conexão é fechada aqui, o que é seguro.
+
+        // PASSO 2: Hidratar os objetos (carregar dependências)
+        List<Train> trains = new ArrayList<>();
+        for (TrainDto dto : dtos) {
+            Train train = hydrateTrain(dto);
+            loadTrainLocomotives(train);
+            loadTrainFreights(train);
+            trains.add(train);
+        }
+        return trains;
+    }
+
+    public Train getTrainById(int trainId) throws SQLException {
+        String query = """
+            SELECT t.id, t.operator, t.time, t.date, t.path, t.start, t.end
+            FROM Train t
+            WHERE t.id = ?
+        """;
+
+        TrainDto dto = null;
+
+        // PASSO 1: Extrair dados básicos
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, trainId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    dto = mapToTrainDto(rs);
+                }
+            }
+        }
+
+        // PASSO 2: Hidratar se encontrado
+        if (dto != null) {
+            Train train = hydrateTrain(dto);
+            loadTrainLocomotives(train);
+            loadTrainFreights(train);
+            return train;
+        }
+        return null;
+    }
+
+    private TrainDto mapToTrainDto(ResultSet rs) throws SQLException {
+        return new TrainDto(
+                rs.getInt("id"),
+                rs.getString("operator"),
+                rs.getTime("time").toLocalTime(),
+                rs.getDate("date").toLocalDate(),
+                rs.getInt("path"),
+                rs.getInt("start"),
+                rs.getInt("end")
+        );
+    }
+
+    private Train hydrateTrain(TrainDto dto) throws SQLException {
+        // Agora é seguro chamar estes métodos, pois eles abrem/fecham as suas próprias conexões
+        Path path = getPathById(dto.pathId());
+        Endpoint start = getEndpointById(dto.startId());
+        Endpoint end = getEndpointById(dto.endId());
+
+        return new Train(dto.id(), dto.operator(), dto.time(), dto.date(), path, start, end);
+    }
+
+    private void loadTrainLocomotives(Train train) throws SQLException {
+        String query = """
+            SELECT l.id, l.name, l.make, l.model, l.power, l.max_speed, l.op_speed,
+                   l.total_weight, lg.gauge,
+                   CASE WHEN el.locomotive IS NOT NULL THEN 'ELECTRIC'
+                        WHEN dl.locomotive IS NOT NULL THEN 'DIESEL'
+                        ELSE 'UNKNOWN' END as traction_type
+            FROM Locomotive_Train lt
+            JOIN Locomotive l ON lt.locomotive = l.id
+            LEFT JOIN Electric_Locomotive el ON l.id = el.locomotive
+            LEFT JOIN Diesel_Locomotive dl ON l.id = dl.locomotive
+            JOIN Locomotive_Gauge lg ON l.id = lg.locomotive
+            WHERE lt.train = ?
+            ORDER BY lt.position
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, train.getId());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Locomotive loco = new Locomotive(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("make"),
+                            rs.getString("model"),
+                            rs.getInt("power"),
+                            rs.getInt("max_speed"),
+                            rs.getInt("op_speed"),
+                            rs.getString("traction_type"),
+                            rs.getInt("total_weight"),
+                            rs.getInt("gauge")
+                    );
+                    train.addLocomotive(loco);
+                }
+            }
+        }
+    }
+
+    private void loadTrainFreights(Train train) throws SQLException {
+        String query = """
+            SELECT f.id, f.date, f.origin, f.destination
+            FROM Freight f
+            WHERE f.train = ?
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, train.getId());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Freight freight = new Freight(
+                            rs.getInt("id"),
+                            rs.getDate("date").toLocalDate(),
+                            getEndpointById(rs.getInt("origin")),
+                            getEndpointById(rs.getInt("destination"))
+                    );
+                    loadFreightWagons(freight);
+                    train.addFreight(freight);
+                }
+            }
+        }
+    }
+
+    private void loadFreightWagons(Freight freight) throws SQLException {
+        String query = """
+            SELECT w.id, w.service_year, w.operator, wm.*
+            FROM Wagon_Freight wf
+            JOIN Wagon w ON wf.wagon = w.id
+            JOIN Wagon_Model wm ON w.wagon_model = wm.id
+            WHERE wf.freight = ?
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, freight.getId());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    WagonModel model = new WagonModel(
+                            rs.getInt("id"),
+                            rs.getString("model"),
+                            rs.getString("maker"),
+                            rs.getInt("number_bogies"),
+                            rs.getInt("length"),
+                            rs.getInt("width"),
+                            rs.getInt("height"),
+                            rs.getDouble("weight"),
+                            rs.getInt("max_speed"),
+                            rs.getDouble("payload"),
+                            rs.getDouble("volume"),
+                            rs.getString("type"),
+                            getWagonGauge(rs.getInt("id"))
+                    );
+
+                    Wagon wagon = new Wagon(
+                            rs.getInt("id"),
+                            rs.getInt("service_year"),
+                            model,
+                            rs.getString("operator")
+                    );
+                    freight.addWagon(wagon);
+                }
+            }
+        }
+    }
+
+    private int getWagonGauge(int wagonModelId) throws SQLException {
+        String query = """
+            SELECT Gaugeid 
+            FROM Wagon_Model_Gauge 
+            WHERE Wagon_Modelid = ?
+            FETCH FIRST 1 ROW ONLY
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, wagonModelId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("Gaugeid");
+                }
+            }
+        }
+        return 1668; // default gauge
     }
 }
