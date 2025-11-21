@@ -1,8 +1,8 @@
-package ui;
+package ui.RailwayUI;
 
 import controller.TravelTimeController;
 import domain.railway.*;
-import domain.Utils;
+import ui.MainMenu;
 
 import java.sql.SQLException;
 import java.util.List;

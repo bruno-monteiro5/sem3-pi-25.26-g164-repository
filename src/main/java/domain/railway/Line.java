@@ -28,6 +28,8 @@ public class Line {
     public int getGauge() { return gauge; }
     public String getEndpointAName() { return endpointAName; }
     public String getEndpointBName() { return endpointBName; }
+    public int getEndpointA() { return endpointA; }
+    public int getEndpointB() { return endpointB; }
 
     @Override
     public String toString() {

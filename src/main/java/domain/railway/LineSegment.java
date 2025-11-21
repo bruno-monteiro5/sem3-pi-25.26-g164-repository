@@ -24,6 +24,7 @@ public class LineSegment {
     public int getSpeedLimit() { return speedLimit; }
     public int getMaxWeight() { return maxWeight; }
     public int getLength() { return length; }
+    public int getLineId() { return lineId; }
 
     @Override
     public String toString() {
