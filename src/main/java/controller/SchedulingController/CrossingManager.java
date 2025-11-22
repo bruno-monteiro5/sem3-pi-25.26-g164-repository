@@ -221,7 +221,10 @@ public class CrossingManager {
      */
     private boolean checkTemporalOverlap(LocalDateTime start1, LocalDateTime end1,
                                          LocalDateTime start2, LocalDateTime end2) {
-        return start1.isBefore(end2) && start2.isBefore(end1);
+        LocalDateTime end1Adjusted = end1.plusMinutes(SAFETY_MARGIN_MINUTES);
+        LocalDateTime end2Adjusted = end2.plusMinutes(SAFETY_MARGIN_MINUTES);
+
+        return start1.isBefore(end2Adjusted) && start2.isBefore(end1Adjusted);
     }
 
     /**
@@ -272,22 +275,30 @@ public class CrossingManager {
             passingPassage = existingPassage;
         }
 
-        // Determine where crossing occurs
         CrossingOperation.CrossingType crossingType;
         Endpoint crossingLocation;
 
-        if (waitingPassage.requiresStop()) {
-            // Prefer station (stop endpoint)
+        if (waitingPassage.requiresStop() && isStation(waitingPassage.getArrivalEndpoint())) {
+            // ✅ Validated station
             crossingType = CrossingOperation.CrossingType.AT_STATION;
             crossingLocation = waitingPassage.getArrivalEndpoint();
+
         } else if (singleTrack.hasSiding()) {
-            // Use siding
+            // ✅ Has siding
             crossingType = CrossingOperation.CrossingType.AT_SIDING;
             crossingLocation = waitingPassage.getDepartureEndpoint();
+
         } else {
-            // Force wait at previous station
-            crossingType = CrossingOperation.CrossingType.AT_STATION;
-            crossingLocation = waitingPassage.getDepartureEndpoint();
+            // ❌ NO VALID CROSSING LOCATION!
+            throw new IllegalStateException(
+                    String.format(
+                            "Cannot resolve crossing between trains %d and %d on segment %d: " +
+                                    "no valid crossing location (station or siding) available!",
+                            waitingSchedule.getTrain().getId(),
+                            passingSchedule.getTrain().getId(),
+                            waitingPassage.getSegment().getId()
+                    )
+            );
         }
 
         // Calculate wait time
@@ -303,5 +314,9 @@ public class CrossingManager {
                 waitStart,
                 waitEnd
         );
+    }
+
+    private boolean isStation(Endpoint endpoint) {
+        return endpoint.getMetafacilityId() > 0;
     }
 }

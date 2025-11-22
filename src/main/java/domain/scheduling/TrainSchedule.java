@@ -21,6 +21,7 @@ import java.util.List;
 public class TrainSchedule {
     private Train train;
     private LocalDateTime scheduledDeparture;
+    private LocalDateTime actualDeparture;
     private LocalDateTime estimatedArrival;
     private List<SegmentPassage> passages;
     private List<CrossingOperation> crossingOperations;
@@ -36,6 +37,7 @@ public class TrainSchedule {
     public TrainSchedule(Train train, LocalDateTime scheduledDeparture) {
         this.train = train;
         this.scheduledDeparture = scheduledDeparture;
+        this.actualDeparture = scheduledDeparture;
         this.passages = new ArrayList<>();
         this.crossingOperations = new ArrayList<>();
         this.totalTravelTimeMinutes = 0;
@@ -92,19 +94,25 @@ public class TrainSchedule {
         if (passages.isEmpty()) {
             this.totalTravelTimeMinutes = 0;
             this.estimatedArrival = scheduledDeparture;
+            this.actualDeparture = scheduledDeparture;
             return;
         }
 
-        // Get actual times from first and last passage
         SegmentPassage firstPassage = passages.get(0);
         SegmentPassage lastPassage = passages.get(passages.size() - 1);
 
-        LocalDateTime actualDeparture = firstPassage.getDepartureTime();
-        LocalDateTime actualArrival = lastPassage.getArrivalTime();
+        this.actualDeparture = firstPassage.getDepartureTime();
+        this.estimatedArrival = lastPassage.getArrivalTime();
 
-        this.estimatedArrival = actualArrival;
+        // Total time = desde o horário AGENDADO
         this.totalTravelTimeMinutes = java.time.Duration.between(
-                actualDeparture, actualArrival).toMinutes();
+                scheduledDeparture,
+                estimatedArrival
+        ).toMinutes();
+    }
+
+    public LocalDateTime getActualDeparture() {
+        return actualDeparture;
     }
 
     // Getters
@@ -135,6 +143,12 @@ public class TrainSchedule {
                 train.getStartEndpoint().getName(),
                 train.getEndEndpoint().getName()));
         sb.append(String.format("Scheduled Departure: %s\n", scheduledDeparture));
+        if (!actualDeparture.equals(scheduledDeparture)) {
+            sb.append(String.format("Actual Departure: %s (delayed by %d min)\n",
+                    actualDeparture,
+                    java.time.Duration.between(scheduledDeparture, actualDeparture).toMinutes()));
+        }
+
         sb.append(String.format("Estimated Arrival: %s\n", estimatedArrival));
         sb.append(String.format("Total Travel Time: %d min (Effective: %d min, Wait: %d min)\n",
                 totalTravelTimeMinutes, getEffectiveTravelTimeMinutes(), totalWaitTimeMinutes));
