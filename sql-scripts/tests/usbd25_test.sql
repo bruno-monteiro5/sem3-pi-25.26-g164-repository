@@ -6,8 +6,14 @@ endpointsList   SYS_REFCURSOR;
     v_endpoint_id   Endpoint.id%TYPE;
     v_endpoint_name Endpoint.name%TYPE;
 BEGIN
-    -- testar com um train que existe
+
+    -- Choose the train here:
     endpointsList := f_usbd25_endpoints_no_stop(5437);
+    -- Possible train ids:
+    -- 5421
+    -- 5435
+    -- 5437
+
 
     DBMS_OUTPUT.PUT_LINE('USBD25 - Endpoints (must_stop = N) for train 5437');
     DBMS_OUTPUT.PUT_LINE('-------------------------------------------------');

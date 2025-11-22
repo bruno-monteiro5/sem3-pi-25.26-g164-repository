@@ -7,7 +7,12 @@ percList        SYS_REFCURSOR;
     v_electric_loco NUMBER;
     v_percentage    NUMBER;
 BEGIN
-    percList := f_usbd29_electric_percentage('CapTrain');
+
+    -- Choose the operator short_name here:
+    percList := f_usbd29_electric_percentage('Captrain');
+     -- Possible operator short_names:
+    -- 'Medway'
+    -- 'Captrain'
 
     DBMS_OUTPUT.PUT_LINE('USBD29 - Percentage of electric locomotives');
     DBMS_OUTPUT.PUT_LINE('-------------------------------------------');
