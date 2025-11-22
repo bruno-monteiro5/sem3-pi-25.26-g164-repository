@@ -11,25 +11,34 @@ import java.util.List;
 /**
  * Manages train crossing operations on single track segments.
  *
+ * <p><b>NEW in v2.0:</b> Now applies delays to train schedules when crossings occur.
+ *
  * <p>Rules:
  * <ul>
  *   <li>Crossings only occur on single tracks</li>
  *   <li>Can occur at stations or sidings</li>
  *   <li>The train that arrives first waits for the opposite direction train</li>
+ *   <li><b>Delays are propagated to all subsequent passages</b></li>
  * </ul>
  *
  * @author G164
- * @version 1.0
+ * @version 2.0
  */
 public class CrossingManager {
+
+    /** Safety margin added after a train passes (in minutes) */
+    private static final int SAFETY_MARGIN_MINUTES = 2;
 
     /**
      * Detects and resolves crossings between a new train and already scheduled trains.
      *
-     * @param newSchedule The schedule of the new train
+     * <p><b>IMPORTANT:</b> This method now modifies the schedules by applying delays
+     * when crossings are detected.
+     *
+     * @param newSchedule The schedule of the new train (will be modified if delays occur)
      * @param existingSchedules Schedules already processed
      * @param scheduler Main scheduler (to access TrackTypes)
-     * @return List of necessary crossing operations
+     * @return List of crossing operations that were applied
      * @throws SQLException if database access fails
      */
     public List<CrossingOperation> detectAndResolveCrossings(
@@ -43,9 +52,11 @@ public class CrossingManager {
         for (int i = 0; i < newSchedule.getPassages().size(); i++) {
             SegmentPassage newPassage = newSchedule.getPassages().get(i);
 
+            // Check if it's single track
             TrackType trackType = scheduler.getTrackType(newPassage.getSegment());
 
             if (trackType != null && trackType.isSingleTrack()) {
+                // Look for conflicts with existing trains
                 for (int j = 0; j < existingSchedules.size(); j++) {
                     TrainSchedule existingSchedule = existingSchedules.get(j);
                     CrossingOperation crossing = detectCrossingOnSegment(
@@ -57,6 +68,9 @@ public class CrossingManager {
 
                     if (crossing != null) {
                         crossings.add(crossing);
+
+                        // 🔧 NEW: Apply the delay immediately
+                        applyDelayToSchedule(newSchedule, crossing);
                     }
                 }
             }
@@ -87,14 +101,14 @@ public class CrossingManager {
         );
 
         if (existingPassage == null) {
-            return null;
+            return null; // No crossing - trains don't use the same segment
         }
 
         // Check if trains travel in opposite directions
         boolean oppositeDirections = areOppositeDirections(newPassage, existingPassage);
 
         if (!oppositeDirections) {
-            return null;
+            return null; // Same direction - no crossing
         }
 
         // Check temporal overlap
@@ -106,9 +120,10 @@ public class CrossingManager {
         );
 
         if (!temporalOverlap) {
-            return null;
+            return null; // No overlap - trains pass at different times
         }
 
+        // CONFLICT! Resolve crossing
         return resolveCrossing(
                 newSchedule,
                 newPassage,
@@ -116,6 +131,54 @@ public class CrossingManager {
                 existingPassage,
                 singleTrack
         );
+    }
+
+    /**
+     * Applies a delay to all passages in a schedule starting from a specific crossing point.
+     *
+     * <p>This method:
+     * <ol>
+     *   <li>Finds the passage where the crossing occurs</li>
+     *   <li>Calculates the required delay</li>
+     *   <li>Applies the delay to that passage and all subsequent passages</li>
+     *   <li>Updates the schedule's estimated arrival time</li>
+     * </ol>
+     *
+     * @param schedule The train schedule to modify
+     * @param crossing The crossing operation containing delay information
+     */
+    private void applyDelayToSchedule(TrainSchedule schedule, CrossingOperation crossing) {
+        // Only apply delay if this schedule is the one waiting
+        if (schedule.getTrain().getId() != crossing.getWaitingTrainId()) {
+            return;
+        }
+
+        // Calculate delay duration in minutes
+        long delayMinutes = java.time.Duration.between(
+                crossing.getWaitStartTime(),
+                crossing.getWaitEndTime()
+        ).toMinutes();
+
+        // Find the passage on the crossing segment
+        List<SegmentPassage> passages = schedule.getPassages();
+        boolean foundCrossing = false;
+
+        for (int i = 0; i < passages.size(); i++) {
+            SegmentPassage passage = passages.get(i);
+
+            // Check if this is the crossing segment
+            if (passage.getSegment().getId() == crossing.getSegment().getId()) {
+                foundCrossing = true;
+            }
+
+            // Apply delay to this passage and all subsequent ones
+            if (foundCrossing) {
+                passage.applyDelay(delayMinutes);
+            }
+        }
+
+        // Update total travel time
+        schedule.updateTotalTravelTime();
     }
 
     /**
@@ -158,12 +221,7 @@ public class CrossingManager {
      */
     private boolean checkTemporalOverlap(LocalDateTime start1, LocalDateTime end1,
                                          LocalDateTime start2, LocalDateTime end2) {
-
-        // Margem de segurança de 1 minuto
-        LocalDateTime end1Adjusted = end1.plusMinutes(1);
-        LocalDateTime end2Adjusted = end2.plusMinutes(1);
-
-        return start1.isBefore(end2Adjusted) && start2.isBefore(end1Adjusted);
+        return start1.isBefore(end2) && start2.isBefore(end1);
     }
 
     /**
@@ -174,6 +232,7 @@ public class CrossingManager {
      *   <li>Prefer stations over sidings</li>
      *   <li>The train that arrives later waits</li>
      *   <li>If there's a siding, can wait there</li>
+     *   <li>Calculate exact wait time including safety margin</li>
      * </ol>
      *
      * @param newSchedule Schedule of the new train
@@ -224,7 +283,7 @@ public class CrossingManager {
         } else if (singleTrack.hasSiding()) {
             // Use siding
             crossingType = CrossingOperation.CrossingType.AT_SIDING;
-            crossingLocation = waitingPassage.getDepartureEndpoint(); // approximation
+            crossingLocation = waitingPassage.getDepartureEndpoint();
         } else {
             // Force wait at previous station
             crossingType = CrossingOperation.CrossingType.AT_STATION;
@@ -233,7 +292,7 @@ public class CrossingManager {
 
         // Calculate wait time
         LocalDateTime waitStart = waitingPassage.getDepartureTime();
-        LocalDateTime waitEnd = passingPassage.getArrivalTime().plusMinutes(2); // safety margin
+        LocalDateTime waitEnd = passingPassage.getArrivalTime().plusMinutes(SAFETY_MARGIN_MINUTES);
 
         return new CrossingOperation(
                 waitingSchedule.getTrain().getId(),
