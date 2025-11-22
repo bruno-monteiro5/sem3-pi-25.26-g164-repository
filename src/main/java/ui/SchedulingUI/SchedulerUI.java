@@ -17,20 +17,37 @@ import java.util.Scanner;
  * Interface de utilizador text-based para o Train Scheduler
  * USLP07 - As Freight Manager, I want to use a scheduler
  */
-public class SchedulerUI {
+public class SchedulerUI implements Runnable{
 
-    private final RailwayNetwork network;
-    private final TrainScheduler scheduler;
+    private RailwayNetwork network;
+    private TrainScheduler scheduler;
     private final Scanner scanner;
 
-    public SchedulerUI(RailwayNetwork network) {
-        this.network = network;
-        this.scheduler = new TrainScheduler(network);
+    // ANSI colors (matching MainMenu style)
+    private static final boolean COLOR_ON = true;
+    private static final String RESET = COLOR_ON ? "\u001B[0m" : "";
+    private static final String CYAN = COLOR_ON ? "\u001B[36m" : "";
+    private static final String RED = COLOR_ON ? "\u001B[31m" : "";
+    private static final String GREEN = COLOR_ON ? "\u001B[32m" : "";
+    private static final String SEP = "─";
+
+    public SchedulerUI() {
         this.scanner = new Scanner(System.in);
     }
 
-
+    /**
+     * Main entry point when called from menu.
+     * Loads network if not already loaded.
+     */
+    @Override
     public void run() {
+        // Lazy load: only load network when first entering scheduler
+        if (network == null) {
+            if (!loadNetwork()) {
+                return; // Failed to load, return to main menu
+            }
+        }
+
         boolean exit = false;
 
         while (!exit) {
@@ -45,35 +62,79 @@ public class SchedulerUI {
                 case 5 -> defineTrainRoute();
                 case 6 -> createNewPathInMemory();
                 case 7 -> editTrainDeparture();
+                case 8 -> reloadNetwork();
                 case 0 -> exit = true;
-                default -> System.out.println("❌ Invalid option!");
+                default -> System.out.println(RED + "❌ Invalid option!" + RESET);
             }
-
-
-
         }
 
-        System.out.println("\n👋 Goodbye!");
+        // Return to main menu (don't exit application)
+        System.out.println(GREEN + "\n✓ Returning to main menu..." + RESET);
+    }
+
+    /**
+     * Loads the railway network from database.
+     *
+     * @return true if successful, false otherwise
+     */
+    private boolean loadNetwork() {
+        System.out.println(CYAN + "\n⏳ Loading railway network from database..." + RESET);
+        long startTime = System.currentTimeMillis();
+
+        try {
+            RailwayRepository repository = new RailwayRepository();
+            network = RailwayNetwork.loadFromDatabase(repository);
+            scheduler = new TrainScheduler(network);
+
+            long duration = System.currentTimeMillis() - startTime;
+
+            System.out.printf(GREEN + "✅ Network loaded successfully in %.2f seconds\n" + RESET,
+                    duration / 1000.0);
+            System.out.printf("   • %d endpoints\n", network.getEndpoints().size());
+            System.out.printf("   • %d trains\n", network.getTrains().size());
+            System.out.printf("   • %d paths\n", network.getPaths().size());
+
+            return true;
+
+        } catch (SQLException e) {
+            System.err.println(RED + "❌ Failed to load network: " + e.getMessage() + RESET);
+            System.out.println(RED + "⚠️  Returning to main menu..." + RESET);
+            return false;
+        }
+    }
+
+    /**
+     * Reloads the network from database, discarding in-memory changes.
+     */
+    private void reloadNetwork() {
+        System.out.println(RED + "\n⚠️  This will discard any in-memory changes (new paths, etc)." + RESET);
+        System.out.print("➤ Are you sure? (y/n): ");
+
+        if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+            network = null;
+            scheduler = null;
+            loadNetwork();
+        } else {
+            System.out.println(GREEN + "✓ Reload cancelled." + RESET);
+        }
     }
 
     private void printMainMenu() {
-        System.out.println("\n" + "═".repeat(70));
-        System.out.println("║" + " ".repeat(20) + "TRAIN SCHEDULER - USLP07" + " ".repeat(25) + "║");
-        System.out.println("═".repeat(70));
-        System.out.println("║ 1. Schedule a single train                                      ║");
-        System.out.println("║ 2. Schedule multiple trains (manual selection)                  ║");
-        System.out.println("║ 3. Schedule ALL trains                                          ║");
-        System.out.println("║ 4. View train details                                           ║");
-        System.out.println("║ 5. Define/change train route (Path)                             ║");
-        System.out.println("║ 6. Create new path                                              ║");
-        System.out.println("║ 7. Edit train departure date & time                             ║");
-        System.out.println("║ 0. Exit                                                         ║");
-        System.out.println("═".repeat(70));
+        System.out.println("\n" + CYAN + line(72));
+        System.out.println("                    TRAIN SCHEDULER - USLP07");
+        System.out.println(line(72) + RESET);
+        System.out.println("║ 1. Schedule a single train                                    ║");
+        System.out.println("║ 2. Schedule multiple trains (manual selection)                ║");
+        System.out.println("║ 3. Schedule ALL trains                                        ║");
+        System.out.println("║ 4. View train details                                         ║");
+        System.out.println("║ 5. Define/change train route (Path)                           ║");
+        System.out.println("║ 6. Create new path                                            ║");
+        System.out.println("║ 7. Edit train departure date & time                           ║");
+        System.out.println("║ 8. Reload network from database                               ║");
+        System.out.println("║ 0. " + RED + "Return to main menu" + RESET + "                                       ║");
+        System.out.println(CYAN + line(72) + RESET);
         System.out.print("➤ Select option: ");
     }
-
-
-
 
     private int readOption() {
         try {
@@ -81,6 +142,12 @@ public class SchedulerUI {
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    private static String line(int n) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; i++) sb.append(SEP);
+        return sb.toString();
     }
 
     private void scheduleSingleTrain() {
@@ -588,19 +655,4 @@ public class SchedulerUI {
         System.out.println("   New date: " + train.getDate());
         System.out.println("   New time: " + train.getDepartureTime());
     }
-
-
-
-    public static void main(String[] args) {
-        try {
-            RailwayRepository repository = new RailwayRepository();
-            RailwayNetwork network = RailwayNetwork.loadFromDatabase(repository);
-
-            SchedulerUI ui = new SchedulerUI(network);
-            ui.run();
-        } catch (SQLException e) {
-            System.err.println("❌ Failed to load railway data: " + e.getMessage());
-        }
-    }
-
 }

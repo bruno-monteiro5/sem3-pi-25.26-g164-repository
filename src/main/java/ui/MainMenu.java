@@ -3,6 +3,7 @@ package ui;
 import domain.Option;
 import domain.Utils;
 import ui.RailwayUI.TravelTimeCalculatorUI;
+import ui.SchedulingUI.SchedulerUI;
 
 public class MainMenu implements Runnable {
 
@@ -23,16 +24,18 @@ public class MainMenu implements Runnable {
         System.out.println("                                MAIN MENU");
         System.out.println(line(72 )+ RESET);
 
-        Option[] options = new Option[4];
+        Option[] options = new Option[5];
         Runnable warehouse = new WarehouseManagementMenu();
         Runnable travelTime = new TravelTimeCalculatorUI();
         Runnable infraIndex  = new InfraestructureIndexMenu();
+        Runnable scheduler = new SchedulerUI();
         Runnable exit = new Runnable() { public void run() { System.exit(0); } };
 
         options[0] = new Option("Warehouse Management Functions", warehouse);
         options[1] = new Option("Infrastructure Index ", infraIndex);
-        options[2] = new Option("Calculate Travel Time (USLP03)" + RED, travelTime);
-        options[3] = new Option(RED   + "Exit" + RESET, exit);
+        options[2] = new Option("Calculate Travel Time (USLP03)" , travelTime);
+        options[3] = new Option("Train Dispatch Scheduler (USLP07)" , scheduler);
+        options[4] = new Option(RED   + "Exit" + RESET, exit);
 
         Utils.listAndSelect(options);
     }

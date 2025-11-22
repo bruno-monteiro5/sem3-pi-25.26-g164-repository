@@ -21,7 +21,7 @@ public class RailwayRepository {
             ORDER BY name
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -39,7 +39,7 @@ public class RailwayRepository {
     public Endpoint getEndpointById(int id) throws SQLException {
         String query = "SELECT id, name, metafacility FROM Endpoint WHERE id = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, id);
@@ -69,7 +69,7 @@ public class RailwayRepository {
             ORDER BY l.name
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -101,7 +101,7 @@ public class RailwayRepository {
             ORDER BY ls.id
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, lineId);
@@ -132,7 +132,7 @@ public class RailwayRepository {
             WHERE segment = ?
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(queryMultiple)) {
 
             stmt.setInt(1, segmentId);
@@ -145,7 +145,7 @@ public class RailwayRepository {
 
         // Se não for Multiple, verifica Single Track
         String querySingle = "SELECT segment FROM Single_Track WHERE segment = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(querySingle)) {
 
             stmt.setInt(1, segmentId);
@@ -167,7 +167,7 @@ public class RailwayRepository {
             WHERE segment = ?
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, segmentId);
@@ -203,7 +203,7 @@ public class RailwayRepository {
             ORDER BY l.name
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -232,7 +232,7 @@ public class RailwayRepository {
         String queryPaths = "SELECT id, name FROM Path ORDER BY name";
 
         // Passo 1: Carregar os objetos básicos (ID e Nome)
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(queryPaths);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -258,7 +258,7 @@ public class RailwayRepository {
     public Path getPathById(int pathId) throws SQLException {
         String query = "SELECT id, name FROM Path WHERE id = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, pathId);
@@ -285,7 +285,7 @@ public class RailwayRepository {
             ORDER BY ep.seq
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, path.getId());
@@ -323,7 +323,7 @@ public class RailwayRepository {
         """;
 
         // PASSO 1: Extrair apenas os dados básicos e IDs
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -353,7 +353,7 @@ public class RailwayRepository {
         TrainDto dto = null;
 
         // PASSO 1: Extrair dados básicos
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, trainId);
@@ -411,7 +411,7 @@ public class RailwayRepository {
             ORDER BY lt.position
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, train.getId());
@@ -447,7 +447,7 @@ public class RailwayRepository {
         """;
 
         // PASSO 1: Extrair apenas os dados básicos
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, train.getId());
@@ -494,7 +494,7 @@ public class RailwayRepository {
         """;
 
         // PASSO 1: Extrair dados brutos (Connection aberta apenas aqui)
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, freight.getId());
@@ -560,7 +560,7 @@ public class RailwayRepository {
             FETCH FIRST 1 ROW ONLY
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, wagonModelId);
@@ -589,7 +589,7 @@ public class RailwayRepository {
         String getMaxId = "SELECT NVL(MAX(id), 0) AS max_id FROM Path";
         String insertPath = "INSERT INTO Path (id, name) VALUES (?, ?)";
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = DatabaseConnectionPool.getConnection()) {
 
             // 1) Calcular novo ID
             try (PreparedStatement ps = conn.prepareStatement(getMaxId);
@@ -615,7 +615,7 @@ public class RailwayRepository {
     public void addEndpointToPath(int pathId, int seq, int endpointId, boolean mustStop) throws SQLException {
         String sql = "INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, pathId);
@@ -636,7 +636,7 @@ public class RailwayRepository {
             WHERE id = ?
         """;
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, pathId);
