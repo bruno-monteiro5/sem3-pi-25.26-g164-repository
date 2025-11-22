@@ -7,44 +7,60 @@ import domain.railway.Train;
 import java.util.List;
 
 /**
- * Calcula a velocidade efetiva de um comboio considerando:
- * - Limites de velocidade da via
- * - Potência das locomotivas
- * - Peso total do comboio
- * - Tipo de tração (elétrica vs diesel)
+ * Calculates the effective speed of a train considering:
+ * <ul>
+ *   <li>Track speed limits</li>
+ *   <li>Locomotive power</li>
+ *   <li>Total train weight</li>
+ *   <li>Traction type (electric vs diesel)</li>
+ * </ul>
+ *
+ * <p>Based on simplified railway physics principles.
+ *
+ * @author G164
+ * @version 1.0
  */
 public class SpeedCalculator {
 
-    // Constantes baseadas em física ferroviária simplificada
+    // Constants based on simplified railway physics
     private static final double RESISTANCE_COEFFICIENT = 0.003; // 3 N/ton
-    private static final double EFFICIENCY_ELECTRIC = 0.85;     // 85% eficiência elétrica
-    private static final double EFFICIENCY_DIESEL = 0.75;       // 75% eficiência diesel
-    private static final int MINIMUM_SPEED_KMH = 20;            // Velocidade mínima operacional
+    private static final double EFFICIENCY_ELECTRIC = 0.85;     // 85% electric efficiency
+    private static final double EFFICIENCY_DIESEL = 0.75;       // 75% diesel efficiency
+    private static final int MINIMUM_SPEED_KMH = 20;            // Minimum operational speed
 
     /**
-     * Calcula a velocidade efetiva do comboio num segmento
+     * Calculates the effective speed of a train on a segment.
      *
-     * @param train Comboio
-     * @param segment Segmento da linha
-     * @return Velocidade em km/h
+     * <p>The calculation considers:
+     * <ol>
+     *   <li>Track speed limit</li>
+     *   <li>Locomotive operational speed limit</li>
+     *   <li>Power-to-weight ratio</li>
+     *   <li>Electrification constraints</li>
+     * </ol>
+     *
+     * @param train The train
+     * @param segment The line segment
+     * @return Speed in km/h
+     * @throws IllegalStateException if train has only electric locomotives on non-electrified track
      */
     public int calculateSpeed(Train train, LineSegment segment) {
-        // 1. Limite da via
+        // 1. Track limit
         int trackSpeedLimit = segment.getSpeedLimit();
 
-        // 2. Limite das locomotivas (velocidade operacional)
+        // 2. Locomotive limit (operational speed)
         int locomotiveSpeedLimit = calculateLocomotiveSpeedLimit(train.getLocomotives());
 
-        // 3. Velocidade máxima permitida (menor entre via e locomotiva)
+        // 3. Maximum allowed speed (minimum of track and locomotive)
         int maxAllowedSpeed = Math.min(trackSpeedLimit, locomotiveSpeedLimit);
 
-        // 4. Verifica se há tração elétrica mas via não é eletrificada
+        // 4. Check if there's electric traction but track is not electrified
         if (train.hasElectricLocomotive() && !segment.isElectrified()) {
-            // Apenas locomotivas diesel podem operar
+            // Only diesel locomotives can operate
             return calculateDieselOnlySpeed(train, segment, maxAllowedSpeed);
         }
 
-        // 5. Calcula velocidade baseada na potência disponível vs peso
+        // 5. Calculate speed based on available power vs weight
         int calculatedSpeed = calculateSpeedFromPowerToWeight(
                 train.getTotalPower(),
                 train.getTotalWeight(),
@@ -56,24 +72,45 @@ public class SpeedCalculator {
     }
 
     /**
-     * Calcula o limite de velocidade das locomotivas (usa a operacional mais baixa)
+     * Calculates the speed limit of locomotives (uses the lowest operational speed).
+     *
+     * @param locomotives List of locomotives
+     * @return Speed limit in km/h
      */
     private int calculateLocomotiveSpeedLimit(List<Locomotive> locomotives) {
-        return locomotives.stream()
-                .mapToInt(Locomotive::getOpSpeed)
-                .min()
-                .orElse(80); // default conservador
+        int minSpeed = Integer.MAX_VALUE;
+
+        for (int i = 0; i < locomotives.size(); i++) {
+            Locomotive loco = locomotives.get(i);
+            int opSpeed = loco.getOpSpeed();
+            if (opSpeed < minSpeed) {
+                minSpeed = opSpeed;
+            }
+        }
+
+        return minSpeed == Integer.MAX_VALUE ? 80 : minSpeed; // conservative default
     }
 
     /**
-     * Caso especial: via não eletrificada com comboio híbrido
-     * Apenas locomotivas diesel contribuem
+     * Special case: non-electrified track with hybrid train.
+     * Only diesel locomotives contribute to power.
+     *
+     * @param train The train
+     * @param segment The segment
+     * @param maxSpeed Maximum allowed speed
+     * @return Speed in km/h
+     * @throws IllegalStateException if train has only electric locomotives
      */
     private int calculateDieselOnlySpeed(Train train, LineSegment segment, int maxSpeed) {
-        int dieselPower = train.getLocomotives().stream()
-                .filter(l -> !l.isElectric())
-                .mapToInt(Locomotive::getPower)
-                .sum();
+        int dieselPower = 0;
+        List<Locomotive> locomotives = train.getLocomotives();
+
+        for (int i = 0; i < locomotives.size(); i++) {
+            Locomotive loco = locomotives.get(i);
+            if (!loco.isElectric()) {
+                dieselPower += loco.getPower();
+            }
+        }
 
         if (dieselPower == 0) {
             throw new IllegalStateException(
@@ -90,16 +127,26 @@ public class SpeedCalculator {
     }
 
     /**
-     * Cálculo físico simplificado da velocidade baseado em potência/peso
+     * Simplified physical calculation of speed based on power/weight ratio.
      *
-     * Fórmula simplificada:
+     * <p>Simplified formula:
+     * <pre>
      * v = sqrt((P * η) / (m * R))
+     * </pre>
      *
-     * Onde:
-     * - P = potência total (kW)
-     * - η = eficiência (0.75-0.85)
-     * - m = massa total (toneladas)
-     * - R = coeficiente de resistência
+     * Where:
+     * <ul>
+     *   <li>P = total power (kW)</li>
+     *   <li>η = efficiency (0.75-0.85)</li>
+     *   <li>m = total mass (tonnes)</li>
+     *   <li>R = resistance coefficient</li>
+     * </ul>
+     *
+     * @param powerKw Total power in kW
+     * @param weightTons Total weight in tonnes
+     * @param isFullyElectric Whether all locomotives are electric
+     * @param maxSpeed Maximum allowed speed
+     * @return Calculated speed in km/h
      */
     private int calculateSpeedFromPowerToWeight(int powerKw,
                                                 int weightTons,
@@ -107,46 +154,70 @@ public class SpeedCalculator {
                                                 int maxSpeed) {
         double efficiency = isFullyElectric ? EFFICIENCY_ELECTRIC : EFFICIENCY_DIESEL;
 
-        // Potência útil em kW
+        // Useful power in kW
         double usefulPower = powerKw * efficiency;
 
-        // Relação potência/peso (kW por tonelada)
+        // Power-to-weight ratio (kW per tonne)
         double powerPerTon = usefulPower / weightTons;
 
-        // Cálculo simplificado da velocidade (baseado em modelos ferroviários)
-        // Fórmula empírica: v ≈ k * sqrt(P/m)
+        // Simplified speed calculation (based on railway models)
+        // Empirical formula: v ≈ k * sqrt(P/m)
         double theoreticalSpeed = 25 * Math.sqrt(powerPerTon);
 
-        // Aplica o limite máximo
+        // Apply maximum limit
         int finalSpeed = (int) Math.min(theoreticalSpeed, maxSpeed);
 
         return Math.max(finalSpeed, MINIMUM_SPEED_KMH);
     }
 
     /**
-     * Calcula o tempo de viagem num segmento (em minutos)
+     * Calculates travel time on a segment (in minutes).
+     *
+     * @param train The train
+     * @param segment The segment
+     * @return Travel time in minutes
      */
     public double calculateTravelTime(Train train, LineSegment segment) {
         int speed = calculateSpeed(train, segment);
         double lengthKm = segment.getLength() / 1000.0;
-        return (lengthKm / speed) * 60; // converte para minutos
+        return (lengthKm / speed) * 60; // convert to minutes
     }
 
     /**
-     * Verifica se o comboio pode atravessar o segmento
+     * Checks if the train can traverse the segment.
+     *
+     * <p>Verifies:
+     * <ul>
+     *   <li>Maximum track weight capacity</li>
+     *   <li>Adequate traction (electric track requires electric or hybrid locomotives)</li>
+     * </ul>
+     *
+     * @param train The train
+     * @param segment The segment
+     * @return true if train can traverse, false otherwise
      */
     public boolean canTraverse(Train train, LineSegment segment) {
-        // Verifica peso máximo da via
-        int trainWeightPerMeter = train.getTotalWeight() * 1000 / getTotalTrainLength(train);
+        // Check maximum track weight
+        double trainWeightPerMeter = (double) train.getTotalWeight() / getTotalTrainLength(train);
 
         if (trainWeightPerMeter > segment.getMaxWeight()) {
             return false;
         }
 
-        // Verifica se tem tração adequada
-        if (train.hasElectricLocomotive() && !train.getLocomotives().stream()
-                .anyMatch(l -> !l.isElectric())) {
-            // Apenas locomotivas elétricas, via deve ser eletrificada
+
+        // Check if has adequate traction
+        boolean hasOnlyElectric = true;
+        List<Locomotive> locomotives = train.getLocomotives();
+
+        for (int i = 0; i < locomotives.size(); i++) {
+            if (!locomotives.get(i).isElectric()) {
+                hasOnlyElectric = false;
+                break;
+            }
+        }
+
+        if (train.hasElectricLocomotive() && hasOnlyElectric) {
+            // Only electric locomotives, track must be electrified
             return segment.isElectrified();
         }
 
@@ -154,14 +225,21 @@ public class SpeedCalculator {
     }
 
     /**
-     * Estima o comprimento total do comboio (locomotivas + vagões)
-     * Aproximação: 20m por locomotiva, 15m por vagão
+     * Estimates the total train length (locomotives + wagons).
+     *
+     * <p>Approximation: 20m per locomotive, 15m per wagon
+     *
+     * @param train The train
+     * @return Total length in metres
      */
     private int getTotalTrainLength(Train train) {
         int locoLength = train.getLocomotives().size() * 20;
-        int wagonCount = train.getFreights().stream()
-                .mapToInt(f -> f.getWagons().size())
-                .sum();
+
+        int wagonCount = 0;
+        for (int i = 0; i < train.getFreights().size(); i++) {
+            wagonCount += train.getFreights().get(i).getWagons().size();
+        }
+
         int wagonLength = wagonCount * 15;
         return locoLength + wagonLength;
     }
