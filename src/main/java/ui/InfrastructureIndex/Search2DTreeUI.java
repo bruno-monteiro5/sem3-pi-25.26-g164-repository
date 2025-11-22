@@ -9,6 +9,7 @@ public class Search2DTreeUI implements Runnable {
 
     @Override
     public void run(){
+        String search = "";
         this.treeController = new Search2DTreeController();
         Search2DTreeController tree = new Search2DTreeController();
         System.out.println("Please select a minimum latitude");
@@ -77,11 +78,11 @@ public class Search2DTreeUI implements Runnable {
                 System.out.println("Invalid input. Please enter 'PT', 'ES' or 'all'");
                 country = sc.nextLine().toLowerCase();
             }
-            System.out.println(treeController.searchInArea(minLat, maxLat, minLon, maxLon, isCity, isMain, country));
+            search = treeController.searchInArea(minLat, maxLat, minLon, maxLon, isCity, isMain, country);
 
 
         }else {
-            System.out.println(treeController.searchInArea(minLat, maxLat, minLon, maxLon));
+            search = treeController.searchInArea(minLat, maxLat, minLon, maxLon);
         }
         BuildIndexesUI run = new BuildIndexesUI();
         run.run();
