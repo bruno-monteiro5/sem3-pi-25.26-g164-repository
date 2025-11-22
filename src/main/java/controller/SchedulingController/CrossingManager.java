@@ -43,11 +43,9 @@ public class CrossingManager {
         for (int i = 0; i < newSchedule.getPassages().size(); i++) {
             SegmentPassage newPassage = newSchedule.getPassages().get(i);
 
-            // Check if it's single track
             TrackType trackType = scheduler.getTrackType(newPassage.getSegment());
 
             if (trackType != null && trackType.isSingleTrack()) {
-                // Look for conflicts with existing trains
                 for (int j = 0; j < existingSchedules.size(); j++) {
                     TrainSchedule existingSchedule = existingSchedules.get(j);
                     CrossingOperation crossing = detectCrossingOnSegment(
@@ -89,14 +87,14 @@ public class CrossingManager {
         );
 
         if (existingPassage == null) {
-            return null; // No crossing - trains don't use the same segment
+            return null;
         }
 
         // Check if trains travel in opposite directions
         boolean oppositeDirections = areOppositeDirections(newPassage, existingPassage);
 
         if (!oppositeDirections) {
-            return null; // Same direction - no crossing
+            return null;
         }
 
         // Check temporal overlap
@@ -108,10 +106,9 @@ public class CrossingManager {
         );
 
         if (!temporalOverlap) {
-            return null; // No overlap - trains pass at different times
+            return null;
         }
 
-        // CONFLICT! Resolve crossing
         return resolveCrossing(
                 newSchedule,
                 newPassage,

@@ -214,7 +214,6 @@ public class SpeedCalculatorTest {
      */
     @Test
     public void testMinimumSpeedEnforced() {
-        // This test ensures minimum operational speed is always enforced
         int speed = calculator.calculateSpeed(testTrain, electrifiedSegment);
 
         assertTrue(speed >= 20, "Speed must never be below minimum operational speed (20 km/h)");

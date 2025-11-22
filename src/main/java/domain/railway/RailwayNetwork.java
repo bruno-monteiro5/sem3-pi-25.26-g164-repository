@@ -4,15 +4,16 @@ import repository.RailwayRepository;
 
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
- * Representa toda a rede ferroviária carregada em memória.
+ * Represents the entire railway network loaded in memory.
  *
- * A ideia é:
- *  - Carregar tudo uma vez da BD (no arranque)
- *  - A partir daí, o scheduler e o UI trabalham só com estes objetos
- *  - Criação de novos Paths / alteração de rotas NÃO é persistida na BD
+ * <p>Concept:
+ * <ul>
+ *   <li>Load all data once from the database at startup</li>
+ *   <li>The scheduler and UI work only with these in-memory objects</li>
+ *   <li>New paths or route changes are NOT persisted in the database</li>
+ * </ul>
  */
 public class RailwayNetwork {
 
@@ -29,9 +30,11 @@ public class RailwayNetwork {
     private final Map<Integer, Train> trainById;
     private final Map<Integer, TrackType> trackTypeBySegmentId;
 
-    // Para gerar IDs de paths em memória (que não existem na BD)
     private int nextPathId;
 
+    /**
+     * Private constructor: all data is injected already prepared.
+     */
     private RailwayNetwork(List<Endpoint> endpoints,
                            List<Line> lines,
                            List<LineSegment> segments,
@@ -45,31 +48,51 @@ public class RailwayNetwork {
         this.paths = paths;
         this.trains = trains;
 
-        this.endpointById = endpoints.stream()
-                .collect(Collectors.toMap(Endpoint::getId, e -> e));
+        // ========== Build Maps Manually (NO STREAMS) ==========
 
-        this.lineById = lines.stream()
-                .collect(Collectors.toMap(Line::getId, l -> l));
+        this.endpointById = new HashMap<>();
+        for (Endpoint e : endpoints) {
+            endpointById.put(e.getId(), e);
+        }
 
-        this.segmentsByLineId = segments.stream()
-                .collect(Collectors.groupingBy(LineSegment::getLineId));
+        this.lineById = new HashMap<>();
+        for (Line l : lines) {
+            lineById.put(l.getId(), l);
+        }
 
-        this.pathById = paths.stream()
-                .collect(Collectors.toMap(Path::getId, p -> p));
+        this.segmentsByLineId = new HashMap<>();
+        for (LineSegment seg : segments) {
+            int lineId = seg.getLineId();
+            if (!segmentsByLineId.containsKey(lineId)) {
+                segmentsByLineId.put(lineId, new ArrayList<>());
+            }
+            segmentsByLineId.get(lineId).add(seg);
+        }
 
-        this.trainById = trains.stream()
-                .collect(Collectors.toMap(Train::getId, t -> t));
+        this.pathById = new HashMap<>();
+        for (Path p : paths) {
+            pathById.put(p.getId(), p);
+        }
+
+        this.trainById = new HashMap<>();
+        for (Train t : trains) {
+            trainById.put(t.getId(), t);
+        }
 
         this.trackTypeBySegmentId = trackTypeBySegmentId;
 
-        this.nextPathId = paths.stream()
-                .mapToInt(Path::getId)
-                .max()
-                .orElse(0) + 1;
+        // Compute next path ID without streams
+        int maxId = 0;
+        for (Path p : paths) {
+            if (p.getId() > maxId) {
+                maxId = p.getId();
+            }
+        }
+        this.nextPathId = maxId + 1;
     }
 
     /**
-     * Carrega todos os dados necessários da BD uma vez.
+     * Loads all required railway data from the database one time.
      */
     public static RailwayNetwork loadFromDatabase(RailwayRepository repository) throws SQLException {
         List<Endpoint> endpoints = repository.getAllEndpoints();
@@ -83,11 +106,11 @@ public class RailwayNetwork {
         List<Path> paths = repository.getAllPaths();
         List<Train> trains = repository.getAllTrains();
 
-        // Carregar o tipo de via de cada segmento só uma vez
+        // Load track type for each segment
         Map<Integer, TrackType> trackTypeBySegmentId = new HashMap<>();
-        for (LineSegment segment : segments) {
-            TrackType type = repository.getTrackType(segment.getId());
-            trackTypeBySegmentId.put(segment.getId(), type);
+        for (LineSegment seg : segments) {
+            TrackType type = repository.getTrackType(seg.getId());
+            trackTypeBySegmentId.put(seg.getId(), type);
         }
 
         return new RailwayNetwork(
@@ -100,7 +123,7 @@ public class RailwayNetwork {
         );
     }
 
-    // ================== GETTERS BÁSICOS ==================
+    // ==================== BASIC GETTERS ====================
 
     public List<Train> getTrains() {
         return Collections.unmodifiableList(trains);
@@ -131,41 +154,45 @@ public class RailwayNetwork {
     }
 
     public List<LineSegment> getSegmentsForLine(int lineId) {
-        return segmentsByLineId.getOrDefault(lineId, List.of());
+        List<LineSegment> list = segmentsByLineId.get(lineId);
+        return list != null ? list : List.of();
     }
 
     public TrackType getTrackType(LineSegment segment) {
         return trackTypeBySegmentId.get(segment.getId());
     }
 
-    // ================== LÓGICA DE REDE ==================
+    // =================== NETWORK LOGIC ===================
 
     /**
-     * Encontrar o segmento entre dois endpoints, usando apenas dados em memória.
-     * Mantém a mesma lógica simplificada do TrainScheduler atual:
-     *  - procura a linha que liga os dois endpoints
-     *  - devolve o primeiro segmento dessa linha
+     * Finds the segment connecting two endpoints, using in-memory data only.
+     *
+     * <p>Logic:
+     * <ul>
+     *   <li>Find a line whose endpoints match A and B (in any direction)</li>
+     *   <li>Return the FIRST segment belonging to that line</li>
+     * </ul>
      */
     public LineSegment findSegmentBetween(int endpointAId, int endpointBId) {
         for (Line line : lines) {
-            boolean connectsAB =
+            boolean connects =
                     (line.getEndpointA() == endpointAId && line.getEndpointB() == endpointBId) ||
                             (line.getEndpointA() == endpointBId && line.getEndpointB() == endpointAId);
 
-            if (connectsAB) {
-                List<LineSegment> lineSegments = segmentsByLineId.getOrDefault(line.getId(), List.of());
-                if (!lineSegments.isEmpty()) {
-                    return lineSegments.get(0);
+            if (connects) {
+                List<LineSegment> segs = segmentsByLineId.get(line.getId());
+                if (segs != null && !segs.isEmpty()) {
+                    return segs.get(0);
                 }
             }
         }
         return null;
     }
 
-    // ================== OPERAÇÕES EM MEMÓRIA (Paths / Rotas) ==================
+    // =================== IN-MEMORY PATH OPERATIONS ===================
 
     /**
-     * Cria um Path NOVO só em memória (não é persistido na BD).
+     * Creates a new Path only in memory (not persisted).
      */
     public Path createInMemoryPath(String name) {
         int id = nextPathId++;
@@ -176,24 +203,30 @@ public class RailwayNetwork {
     }
 
     /**
-     * Adiciona um endpoint a um Path em memória.
+     * Adds an endpoint to an in-memory Path.
      */
     public void addEndpointToPath(Path path, Endpoint endpoint, boolean mustStop) {
         List<Path.PathEndpoint> ordered = path.getOrderedEndpoints();
-        int nextSeq = ordered.isEmpty()
-                ? 1
-                : ordered.get(ordered.size() - 1).getSequence() + 1;
+
+        int nextSeq;
+        if (ordered.isEmpty()) {
+            nextSeq = 1;
+        } else {
+            Path.PathEndpoint last = ordered.get(ordered.size() - 1);
+            nextSeq = last.getSequence() + 1;
+        }
 
         Path.PathEndpoint pe = new Path.PathEndpoint(nextSeq, endpoint, mustStop);
         path.addEndpoint(pe);
     }
 
     /**
-     * Atribui um Path (em memória) a um Train (também em memória).
-     * Atualiza path, startEndpoint e endEndpoint no objeto Train.
+     * Assigns an in-memory path to a train.
+     * Updates its path, startEndpoint, and endEndpoint.
      */
     public void assignPathToTrain(Train train, Path path) {
         List<Path.PathEndpoint> ordered = path.getOrderedEndpoints();
+
         if (ordered.isEmpty()) {
             throw new IllegalArgumentException("Path has no endpoints");
         }
