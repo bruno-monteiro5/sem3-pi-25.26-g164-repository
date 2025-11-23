@@ -191,17 +191,17 @@ public class RailwayRepository {
     public List<Locomotive> getAllLocomotives() throws SQLException {
         List<Locomotive> locomotives = new ArrayList<>();
         String query = """
-            SELECT l.id, l.name, l.make, l.model, l.power, l.max_speed, l.op_speed, 
-                   l.total_weight, lg.gauge,
-                   CASE WHEN el.locomotive IS NOT NULL THEN 'ELECTRIC'
-                        WHEN dl.locomotive IS NOT NULL THEN 'DIESEL'
-                        ELSE 'UNKNOWN' END as traction_type
-            FROM Locomotive l
-            LEFT JOIN Electric_Locomotive el ON l.id = el.locomotive
-            LEFT JOIN Diesel_Locomotive dl ON l.id = dl.locomotive
-            JOIN Locomotive_Gauge lg ON l.id = lg.locomotive
-            ORDER BY l.name
-        """;
+        SELECT l.id, l.name, l.make, l.model, l.power, l.max_speed, l.op_speed, 
+               l.total_weight, l.length, lg.gauge,  -- 🆕 adicionado l.length
+               CASE WHEN el.locomotive IS NOT NULL THEN 'ELECTRIC'
+                    WHEN dl.locomotive IS NOT NULL THEN 'DIESEL'
+                    ELSE 'UNKNOWN' END as traction_type
+        FROM Locomotive l
+        LEFT JOIN Electric_Locomotive el ON l.id = el.locomotive
+        LEFT JOIN Diesel_Locomotive dl ON l.id = dl.locomotive
+        JOIN Locomotive_Gauge lg ON l.id = lg.locomotive
+        ORDER BY l.name
+    """;
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
@@ -218,7 +218,8 @@ public class RailwayRepository {
                         rs.getInt("op_speed"),
                         rs.getString("traction_type"),
                         rs.getInt("total_weight"),
-                        rs.getInt("gauge")
+                        rs.getInt("gauge"),
+                        rs.getInt("length")
                 ));
             }
         }
@@ -397,19 +398,19 @@ public class RailwayRepository {
 
     private void loadTrainLocomotives(Train train) throws SQLException {
         String query = """
-            SELECT l.id, l.name, l.make, l.model, l.power, l.max_speed, l.op_speed,
-                   l.total_weight, lg.gauge,
-                   CASE WHEN el.locomotive IS NOT NULL THEN 'ELECTRIC'
-                        WHEN dl.locomotive IS NOT NULL THEN 'DIESEL'
-                        ELSE 'UNKNOWN' END as traction_type
-            FROM Locomotive_Train lt
-            JOIN Locomotive l ON lt.locomotive = l.id
-            LEFT JOIN Electric_Locomotive el ON l.id = el.locomotive
-            LEFT JOIN Diesel_Locomotive dl ON l.id = dl.locomotive
-            JOIN Locomotive_Gauge lg ON l.id = lg.locomotive
-            WHERE lt.train = ?
-            ORDER BY lt.position
-        """;
+        SELECT l.id, l.name, l.make, l.model, l.power, l.max_speed, l.op_speed,
+               l.total_weight, l.length, lg.gauge,  
+               CASE WHEN el.locomotive IS NOT NULL THEN 'ELECTRIC'
+                    WHEN dl.locomotive IS NOT NULL THEN 'DIESEL'
+                    ELSE 'UNKNOWN' END as traction_type
+        FROM Locomotive_Train lt
+        JOIN Locomotive l ON lt.locomotive = l.id
+        LEFT JOIN Electric_Locomotive el ON l.id = el.locomotive
+        LEFT JOIN Diesel_Locomotive dl ON l.id = dl.locomotive
+        JOIN Locomotive_Gauge lg ON l.id = lg.locomotive
+        WHERE lt.train = ?
+        ORDER BY lt.position
+    """;
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -427,7 +428,8 @@ public class RailwayRepository {
                             rs.getInt("op_speed"),
                             rs.getString("traction_type"),
                             rs.getInt("total_weight"),
-                            rs.getInt("gauge")
+                            rs.getInt("gauge"),
+                            rs.getInt("length")
                     );
                     train.addLocomotive(loco);
                 }
