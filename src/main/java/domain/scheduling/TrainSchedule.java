@@ -9,7 +9,6 @@ import java.util.List;
 /**
  * Represents the complete schedule of a specific train.
  *
- * <p><b>Version 2.0 changes:</b>
  * <ul>
  *   <li>Added updateTotalTravelTime() to recalculate after delays</li>
  *   <li>Improved delay tracking</li>
@@ -104,7 +103,6 @@ public class TrainSchedule {
         this.actualDeparture = firstPassage.getDepartureTime();
         this.estimatedArrival = lastPassage.getArrivalTime();
 
-        // Total time = desde o horário AGENDADO
         this.totalTravelTimeMinutes = java.time.Duration.between(
                 scheduledDeparture,
                 estimatedArrival
