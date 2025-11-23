@@ -17,18 +17,22 @@ class Search2DTreeControllerTest {
 
     private Search2DTreeController controller;
     private StationRepository repository;
+    private KDTreeRepository kdTreeRepository;
     private Station station1, station2, station3, station4;
     private Build2DTreeController buildController;
 
     @BeforeEach
     void setUp() {
 
+        repository.resetForTests(); // Assuming this method exists
 
-        // Get singleton instance
         repository = StationRepository.getInstance();
+        kdTreeRepository = KDTreeRepository.getInstance();
+
         controller = new Search2DTreeController();
         buildController = new Build2DTreeController();
 
+        // Create test stations
         station1 = new Station(
                 "Lisboa Santa Apolonia",
                 "PT",
@@ -76,7 +80,6 @@ class Search2DTreeControllerTest {
         String result = controller.searchInArea(39, 42, -11, -8);
 
         assertFalse(result.isBlank());
-
         assertFalse(result.contains("Lisboa Santa Apolonia"));
         assertTrue(result.contains("Porto Campanha"));
         assertTrue(result.contains("Coimbra-B"));
@@ -84,14 +87,11 @@ class Search2DTreeControllerTest {
 
     @Test
     void testSearchInArea1() {
-        // Load specific data
         List<Station> stations = new ArrayList<>();
         stations.add(station1);
         stations.add(station2);
         stations.add(station3);
         stations.add(station4);
-
-        KDTreeRepository repo = KDTreeRepository.getInstance();
 
         repository.loadAll(stations);
         buildController.build2DTree();
@@ -102,7 +102,6 @@ class Search2DTreeControllerTest {
 
     @Test
     void testSearchInArea2() {
-        // Load specific data
         List<Station> stations = new ArrayList<>();
         stations.add(station1);
         stations.add(station2);
@@ -114,12 +113,10 @@ class Search2DTreeControllerTest {
         String result = controller.searchInArea(39d, 42d, -10d, -8d);
 
         assertFalse(result.isBlank());
-
     }
 
     @Test
     void testSearchInArea3() {
-        // Load specific data
         List<Station> stations = new ArrayList<>();
         stations.add(station1);
         stations.add(station2);
@@ -131,7 +128,6 @@ class Search2DTreeControllerTest {
         String result = controller.searchInArea(39d, 42d, -11d, -8d, 0, 1, "PT");
 
         assertFalse(result.isBlank());
-
         assertFalse(result.contains("Lisboa Santa Apolonia"));
         assertFalse(result.contains("Porto Campanha"));
         assertFalse(result.contains("Coimbra-B"));
