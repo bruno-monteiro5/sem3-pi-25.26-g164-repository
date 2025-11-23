@@ -161,8 +161,8 @@ public class CrossingManagerTest {
         // Assert
         assertEquals("Should detect one crossing", 1, crossings.size());
         CrossingOperation crossing = crossings.get(0);
-        assertEquals("New train should wait (arrives later)", 101, crossing.getWaitingTrainId());
-        assertEquals("Existing train passes first", 102, crossing.getPassingTrainId());
+        assertEquals("Existing train should wait (arrives later)", 102, crossing.getWaitingTrainId());
+        assertEquals("New train passes first (arrives earlier)", 101, crossing.getPassingTrainId());
     }
 
     /**
