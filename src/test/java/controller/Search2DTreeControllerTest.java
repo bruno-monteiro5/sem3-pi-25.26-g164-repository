@@ -95,7 +95,7 @@ class Search2DTreeControllerTest {
 
         repository.loadAll(stations);
         buildController.build2DTree();
-        String result = controller.searchInArea(-89, -88, -10, -8, repo.getKDTree().getRoot(), "");
+        String result = controller.searchInArea(-89d, -88d, -10d, -8d);
 
         assertTrue(result.isBlank());
     }
@@ -111,7 +111,7 @@ class Search2DTreeControllerTest {
 
         repository.loadAll(stations);
         buildController.build2DTree();
-        String result = controller.searchInArea(39, 42, -10, -8, buildController.getKDTree().getRoot(), "");
+        String result = controller.searchInArea(39d, 42d, -10d, -8d);
 
         assertFalse(result.isBlank());
 
@@ -128,7 +128,7 @@ class Search2DTreeControllerTest {
 
         repository.loadAll(stations);
         buildController.build2DTree();
-        String result = controller.searchInArea(39, 42, -11, -8, 1, 0, "pt");
+        String result = controller.searchInArea(39d, 42d, -11d, -8d, 0, 1, "PT");
 
         assertFalse(result.isBlank());
 
