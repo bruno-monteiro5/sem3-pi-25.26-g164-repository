@@ -1,8 +1,6 @@
 package controller.SchedulingController;
 
-import domain.railway.LineSegment;
-import domain.railway.Locomotive;
-import domain.railway.Train;
+import domain.railway.*;
 
 import java.util.List;
 
@@ -197,13 +195,21 @@ public class SpeedCalculator {
      * @return true if train can traverse, false otherwise
      */
     public boolean canTraverse(Train train, LineSegment segment) {
-        // Check maximum track weight
-        double trainWeightPerMeter = (double) train.getTotalWeight() / getTotalTrainLength(train);
+        // Check maximum track weight (kg/m)
+        int totalLengthMeters = getTotalTrainLength(train); // já em metros
+
+        if (totalLengthMeters == 0) {
+            // Comboio sem comprimento definido - usar fallback
+            totalLengthMeters = train.getLocomotives().size() * 20 +
+                    countWagons(train) * 15;
+        }
+
+        // Peso por metro linear
+        double trainWeightPerMeter = (double) train.getTotalWeight() * 1000 / totalLengthMeters; // kg/m
 
         if (trainWeightPerMeter > segment.getMaxWeight()) {
             return false;
         }
-
 
         // Check if has adequate traction
         boolean hasOnlyElectric = true;
@@ -225,6 +231,17 @@ public class SpeedCalculator {
     }
 
     /**
+     * Helper: conta o número total de vagões
+     */
+    private int countWagons(Train train) {
+        int count = 0;
+        for (int i = 0; i < train.getFreights().size(); i++) {
+            count += train.getFreights().get(i).getWagons().size();
+        }
+        return count;
+    }
+
+    /**
      * Estimates the total train length (locomotives + wagons).
      *
      * <p>Approximation: 20m per locomotive, 15m per wagon
@@ -233,14 +250,21 @@ public class SpeedCalculator {
      * @return Total length in metres
      */
     private int getTotalTrainLength(Train train) {
-        int locoLength = train.getLocomotives().size() * 20;
-
-        int wagonCount = 0;
-        for (int i = 0; i < train.getFreights().size(); i++) {
-            wagonCount += train.getFreights().get(i).getWagons().size();
+        int locoLength = 0;
+        for (int i = 0; i < train.getLocomotives().size(); i++) {
+            Locomotive loco = train.getLocomotives().get(i);
+            locoLength += loco.getLength();
         }
 
-        int wagonLength = wagonCount * 15;
+        int wagonLength = 0;
+        for (int i = 0; i < train.getFreights().size(); i++) {
+            Freight freight = train.getFreights().get(i);
+            for (int j = 0; j < freight.getWagons().size(); j++) {
+                Wagon wagon = freight.getWagons().get(j);
+                wagonLength += wagon.getModel().getLength();
+            }
+        }
+
         return locoLength + wagonLength;
     }
 }

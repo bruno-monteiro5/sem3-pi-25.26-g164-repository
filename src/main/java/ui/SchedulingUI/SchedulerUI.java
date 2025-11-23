@@ -423,12 +423,24 @@ public class SchedulerUI implements Runnable{
         }
 
         // 6. Atribuir path ao train em memória
-        network.assignPathToTrain(train, selectedPath);
+        try {
+            network.assignPathToTrain(train, selectedPath);
+            System.out.printf("✅ Train %d route updated IN MEMORY to path '%s'.\n",
+                    train.getId(), selectedPath.getName());
+            System.out.println("   New start: " + train.getStartEndpoint().getName());
+            System.out.println("   New end:   " + train.getEndEndpoint().getName());
 
-        System.out.printf("✅ Train %d route updated IN MEMORY to path '%s'.\n",
-                train.getId(), selectedPath.getName());
-        System.out.println("   New start: " + train.getStartEndpoint().getName());
-        System.out.println("   New end:   " + train.getEndEndpoint().getName());
+        } catch (IllegalArgumentException e) {
+            System.out.println(RED + "❌ VALIDATION FAILED: " + e.getMessage() + RESET);
+            System.out.println("   Train route NOT changed.");
+
+            // Sugestões de ação
+            if (e.getMessage().contains("GAUGE")) {
+                System.out.println("\n💡 Possible solutions:");
+                System.out.println("   • Add locomotives supporting gauge " );
+                System.out.println("   • Choose a different path");
+            }
+        }
     }
 
 
