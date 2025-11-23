@@ -349,4 +349,12 @@ public class BST<E extends Comparable<E>> implements BSTInterface<E> {
         toStringRec(root.getLeft(), level+1, sb);
     }
 
+    /**
+     * Removes all elements from the tree.
+     * Sets the root to null, effectively clearing the entire tree.
+     */
+    public void clear() {
+        root = null;
+    }
+
 } //----------- end of BST class -----------

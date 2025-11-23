@@ -121,10 +121,16 @@ public class StationRepository {
     public void clear() {
         totalLoadedCount = 0;
         totalRejectedCount = 0;
+        stationIndexes.clear();
     }
 
-
+    /**
+     * Resets the repository for tests.
+     */
     public static void resetForTests() {
+        if (instance != null) {
+            instance.clear();
+        }
         instance = new StationRepository();
     }
 }
