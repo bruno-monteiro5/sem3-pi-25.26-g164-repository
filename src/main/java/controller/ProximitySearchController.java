@@ -1,12 +1,6 @@
 package controller;
 
-import domain.HaversineDistance;
-import domain.KDNode;
-import domain.KDTree2D;
-import domain.Location;
-import domain.ProximitySearchResult;
-import domain.Station;
-import domain.TimeZoneFilter;
+import domain.*;
 import repository.KDTreeRepository;
 import repository.StationRepository;
 
@@ -76,8 +70,7 @@ public class ProximitySearchController {
         ProximitySearchResult result = new ProximitySearchResult(targetLat, targetLon, n, filter);
         KDTree2D tree = kdTreeRepository.getKDTree();
 
-        List<Station> candidates = new ArrayList<>();
-        collectAllStations(tree.getRoot(), candidates);
+        List<Station> candidates = KDTreeUtil.collectAllStations(tree);
 
         List<StationWithDistance> distances = new ArrayList<>();
         for (int i = 0; i < candidates.size(); i++) {
@@ -136,25 +129,7 @@ public class ProximitySearchController {
         return result;
     }
 
-    /**
-     * Recursively collects all stations from the 2D-Tree.
-     *
-     * @param node current node
-     * @param accumulator list to accumulate stations
-     */
-    private void collectAllStations(KDNode node, List<Station> accumulator) {
-        if (node == null) {
-            return;
-        }
 
-        List<Station> bucket = node.getStations();
-        for (int i = 0; i < bucket.size(); i++) {
-            accumulator.add(bucket.get(i));
-        }
-
-        collectAllStations(node.getLeft(), accumulator);
-        collectAllStations(node.getRight(), accumulator);
-    }
 
     /**
      * Helper class to pair a station with its calculated distance.
