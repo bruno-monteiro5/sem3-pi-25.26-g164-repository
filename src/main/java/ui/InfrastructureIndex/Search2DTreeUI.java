@@ -13,38 +13,102 @@ public class Search2DTreeUI implements Runnable {
         this.treeController = new Search2DTreeController();
         Scanner sc = new Scanner(System.in);
 
-        // Get latitude range
-        System.out.println("Please select a minimum latitude (-90 to 90):");
-        double minLat = sc.nextDouble();
-        while(minLat < -90 || minLat > 90) {
-            System.out.println("Invalid latitude. Please try again (-90 to 90):");
-            minLat = sc.nextDouble();
+// Get latitude range – MIN
+        double minLat = 0.0;
+        while (true) {
+            System.out.print("Minimum latitude (-90 to 90): ");
+            String text = sc.nextLine().trim();
+
+            if (text.isEmpty()) {
+                System.out.println("Latitude is required. Please enter a number.");
+                continue;
+            }
+
+            try {
+                minLat = Double.parseDouble(text);
+                if (minLat < -90.0 || minLat > 90.0) {
+                    System.out.println("Latitude must be between -90 and 90 degrees. Please try again.");
+                } else {
+                    break;
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid number. Please enter a valid decimal value.");
+            }
         }
 
-        System.out.println("Please select a maximum latitude (-90 to 90):");
-        double maxLat = sc.nextDouble();
-        while(maxLat < -90 || maxLat > 90 || maxLat < minLat) {
-            System.out.println("Invalid latitude. Must be between -90 and 90, and >= minimum latitude. Please try again:");
-            maxLat = sc.nextDouble();
+// Get latitude range – MAX
+        double maxLat = 0.0;
+        while (true) {
+            System.out.print("Maximum latitude (-90 to 90, >= minimum latitude): ");
+            String text = sc.nextLine().trim();
+
+            if (text.isEmpty()) {
+                System.out.println("Latitude is required. Please enter a number.");
+                continue;
+            }
+
+            try {
+                maxLat = Double.parseDouble(text);
+                if (maxLat < -90.0 || maxLat > 90.0) {
+                    System.out.println("Latitude must be between -90 and 90 degrees. Please try again.");
+                } else if (maxLat < minLat) {
+                    System.out.println("Maximum latitude must be greater or equal to minimum latitude. Please try again.");
+                } else {
+                    break;
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid number. Please enter a valid decimal value.");
+            }
         }
 
-        // Get longitude range
-        System.out.println("Please select a minimum longitude (-180 to 180):");
-        double minLon = sc.nextDouble();
-        while(minLon < -180 || minLon > 180) {
-            System.out.println("Invalid longitude. Please try again (-180 to 180):");
-            minLon = sc.nextDouble();
+// Get longitude range – MIN
+        double minLon = 0.0;
+        while (true) {
+            System.out.print("Minimum longitude (-180 to 180): ");
+            String text = sc.nextLine().trim();
+
+            if (text.isEmpty()) {
+                System.out.println("Longitude is required. Please enter a number.");
+                continue;
+            }
+
+            try {
+                minLon = Double.parseDouble(text);
+                if (minLon < -180.0 || minLon > 180.0) {
+                    System.out.println("Longitude must be between -180 and 180 degrees. Please try again.");
+                } else {
+                    break;
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid number. Please enter a valid decimal value.");
+            }
         }
 
-        System.out.println("Please select a maximum longitude (-180 to 180):");
-        double maxLon = sc.nextDouble();
-        while(maxLon < -180 || maxLon > 180 || maxLon < minLon) {
-            System.out.println("Invalid longitude. Must be between -180 and 180, and >= minimum longitude. Please try again:");
-            maxLon = sc.nextDouble();
+// Get longitude range – MAX
+        double maxLon = 0.0;
+        while (true) {
+            System.out.print("Maximum longitude (-180 to 180, >= minimum longitude): ");
+            String text = sc.nextLine().trim();
+
+            if (text.isEmpty()) {
+                System.out.println("Longitude is required. Please enter a number.");
+                continue;
+            }
+
+            try {
+                maxLon = Double.parseDouble(text);
+                if (maxLon < -180.0 || maxLon > 180.0) {
+                    System.out.println("Longitude must be between -180 and 180 degrees. Please try again.");
+                } else if (maxLon < minLon) {
+                    System.out.println("Maximum longitude must be greater or equal to minimum longitude. Please try again.");
+                } else {
+                    break;
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid number. Please enter a valid decimal value.");
+            }
         }
 
-        // Clear buffer after nextDouble()
-        sc.nextLine();
 
         // Ask about additional filters
         System.out.println("Do you wish to add additional filters? (y/n)");
