@@ -242,7 +242,7 @@ public class RadiusSearchControllerTest {
      *
      * @see RadiusSearchController#searchWithinRadius(double, double, double)
      */
-    @Test
+    @Test (expected = IllegalArgumentException.class)
     public void searchWithinRadius_invalidLatitude_throwsIllegalArgument() {
         FakeBuild2DTreeController fakeTreeController = new FakeBuild2DTreeController(true, null);
 
@@ -262,7 +262,7 @@ public class RadiusSearchControllerTest {
      *
      * @see RadiusSearchController#searchWithinRadius(double, double, double)
      */
-    @Test
+    @Test (expected = IllegalArgumentException.class)
     public void searchWithinRadius_invalidLongitude_throwsIllegalArgument() {
         FakeBuild2DTreeController fakeTreeController = new FakeBuild2DTreeController(true, null);
 
