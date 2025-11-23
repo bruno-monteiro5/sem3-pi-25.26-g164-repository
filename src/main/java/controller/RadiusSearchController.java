@@ -67,13 +67,7 @@ public class RadiusSearchController {
             throw new IllegalStateException("2D-Tree must be built first (run USEI07)");
         }
 
-        if (targetLat < -90.0 || targetLat > 90.0) {
-            throw new IllegalArgumentException("Latitude must be between -90 and 90 degrees");
-        }
-
-        if (targetLon < -180.0 || targetLon > 180.0) {
-            throw new IllegalArgumentException("Longitude must be between -180 and 180 degrees");
-        }
+        KDTreeUtil.validateCoordinates(targetLat, targetLon);
 
         if (radiusKm < 0) {
             throw new IllegalArgumentException("Radius must be non-negative");
@@ -88,8 +82,7 @@ public class RadiusSearchController {
         int nonCityCount = 0;
 
         KDTree2D tree = treeController.getKDTree();
-        List<Station> candidates = new ArrayList<>();
-        collectAllStations(tree.getRoot(), candidates);
+        List<Station> candidates = KDTreeUtil.collectAllStations(tree);
 
         for (int i = 0; i < candidates.size(); i++) {
             Station station = candidates.get(i);
