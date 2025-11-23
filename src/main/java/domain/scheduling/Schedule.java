@@ -6,7 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Representa um agendamento completo com múltiplos comboios
+ * Represents a complete schedule with multiple trains
  */
 public class Schedule {
     private LocalDate date;
@@ -25,7 +25,7 @@ public class Schedule {
     public List<TrainSchedule> getTrainSchedules() { return trainSchedules; }
 
     /**
-     * Retorna os agendamentos ordenados por hora de partida
+     * Returns the schedules ordered by departure time
      */
     public List<TrainSchedule> getSchedulesByDeparture() {
         return trainSchedules.stream()

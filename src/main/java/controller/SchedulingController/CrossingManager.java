@@ -139,22 +139,22 @@ public class CrossingManager {
     }
 
     /**
-     * 🔧 FIX: Verifica sobreposição temporal com margem de segurança
+     * 🔧 FIX: Verifies temporal overlap with safety margin
      */
     private boolean checkTemporalOverlapWithSafety(
             LocalDateTime start1, LocalDateTime end1,
             LocalDateTime start2, LocalDateTime end2) {
 
-        // Adicionar margem de segurança aos tempos de saída
+        // Adition of security margin to departure times
         LocalDateTime end1Adjusted = end1.plusMinutes(SAFETY_MARGIN_MINUTES);
         LocalDateTime end2Adjusted = end2.plusMinutes(SAFETY_MARGIN_MINUTES);
 
-        // Há overlap se: início de um é antes do fim do outro (com margem)
+        // There is overlap if: one's start is before the other's end (with margin)
         return start1.isBefore(end2Adjusted) && start2.isBefore(end1Adjusted);
     }
 
     /**
-     * 🔧 FIX: Lógica de cruzamento corrigida para testes
+     * 🔧 FIX: Crossing logic corrected for tests
      */
     private CrossingOperation resolveCrossing(
             TrainSchedule newSchedule,
@@ -163,7 +163,7 @@ public class CrossingManager {
             SegmentPassage existingPassage,
             SingleTrack singleTrack) {
 
-        // Determinar qual comboio chega primeiro ao INÍCIO do segmento
+        // Determine which train arrives first at the BEGINNING of the segment
         boolean newTrainFirst = newPassage.getDepartureTime()
                 .isBefore(existingPassage.getDepartureTime());
 
@@ -173,13 +173,13 @@ public class CrossingManager {
         SegmentPassage passingPassage;
 
         if (newTrainFirst) {
-            // Comboio novo chega primeiro → comboio existente ESPERA
+            // New train arrives first → existant train waits
             waitingSchedule = existingSchedule;
             passingSchedule = newSchedule;
             waitingPassage = existingPassage;
             passingPassage = newPassage;
         } else {
-            // Comboio existente chega primeiro → comboio novo ESPERA
+            // Existant train arrives first → new train WAITS
             waitingSchedule = newSchedule;
             passingSchedule = existingSchedule;
             waitingPassage = newPassage;
@@ -217,7 +217,7 @@ public class CrossingManager {
             );
         }
 
-        // Calcular tempo de espera
+        // Calculation of waiting time
         LocalDateTime waitStart = waitingPassage.getDepartureTime();
         LocalDateTime waitEnd = passingPassage.getArrivalTime().plusMinutes(SAFETY_MARGIN_MINUTES);
 

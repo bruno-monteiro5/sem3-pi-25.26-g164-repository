@@ -199,12 +199,12 @@ public class SpeedCalculator {
         int totalLengthMeters = getTotalTrainLength(train); // já em metros
 
         if (totalLengthMeters == 0) {
-            // Comboio sem comprimento definido - usar fallback
+            // Train without a defined length - use fallback
             totalLengthMeters = train.getLocomotives().size() * 20 +
                     countWagons(train) * 15;
         }
 
-        // Peso por metro linear
+        // Weight by linear meter
         double trainWeightPerMeter = (double) train.getTotalWeight() * 1000 / totalLengthMeters; // kg/m
 
         if (trainWeightPerMeter > segment.getMaxWeight()) {
@@ -231,7 +231,7 @@ public class SpeedCalculator {
     }
 
     /**
-     * Helper: conta o número total de vagões
+     * Helper: counts the total number of wagons.
      */
     private int countWagons(Train train) {
         int count = 0;
