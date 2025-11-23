@@ -6,6 +6,7 @@ import domain.Option;
 import domain.Station;
 import domain.Utils;
 import ui.InfraestructureIndexMenu;
+import ui.UIHelper;
 
 import java.io.File;
 import java.util.List;
@@ -13,11 +14,10 @@ import java.util.Scanner;
 
 public class BuildIndexesUI implements Runnable {
 
-    private static final boolean COLOR_ON = true;
-    private static final String RESET = COLOR_ON ? "\u001B[0m" : "";
-    private static final String CYAN  = COLOR_ON ? "\u001B[36m" : "";
-    private static final String GREEN = COLOR_ON ? "\u001B[32m" : "";
-    private static final String YL = COLOR_ON ? "\u001B[33m" : "";
+    private static final String RESET = UIHelper.getReset();
+    private static final String CYAN  = UIHelper.getCyan();
+    private static final String GREEN = UIHelper.getGreen();
+    private static final String YL    = UIHelper.getYellow();
     private static final String SEP   = "─";
 
     private String DEFAULT_CSV_PATH =
@@ -38,7 +38,6 @@ public class BuildIndexesUI implements Runnable {
         System.out.println("                        STATION INDEXES (USEI06)");
         System.out.println(line(72) + RESET);
 
-        // Show current status
         if (controller.isLoaded()) {
             System.out.println(GREEN + "✓ Indexes are loaded and ready" + RESET);
         } else {
@@ -60,7 +59,7 @@ public class BuildIndexesUI implements Runnable {
 
     private void buildIndexesAction() {
 
-        System.out.print("CSV path [" + DEFAULT_CSV_PATH + "]: ");
+        System.out.print(CYAN + "➤ " + RESET + "CSV path [" + DEFAULT_CSV_PATH + "]: ");
         Scanner sc = new Scanner(System.in);
         String input = sc.nextLine().trim();
         String csvPath = input.isEmpty() ? DEFAULT_CSV_PATH : input;
@@ -128,16 +127,15 @@ public class BuildIndexesUI implements Runnable {
         menu();
     }
 
-
     private void tzGroupAction() {
         if (!requireBuilt()) return;
 
+        System.out.print(CYAN + "➤ " + RESET);
         String group = askLine("Time zone group", "CET");
 
         List<Station> list = controller.queryByTimeZoneGroup(group);
 
-        System.out.printf("%nGroup '%s' → %d results%n",
-                group, list.size());
+        System.out.printf("%nGroup '%s' → %d results%n", group, list.size());
 
         printStations(list);
         pause();
@@ -147,7 +145,10 @@ public class BuildIndexesUI implements Runnable {
     private void tzGroupCountryAction() {
         if (!requireBuilt()) return;
 
-        String group   = askLine("Time zone group", "CET");
+        System.out.print(CYAN + "➤ " + RESET);
+        String group = askLine("Time zone group", "CET");
+
+        System.out.print(CYAN + "➤ " + RESET);
         String country = askLine("Country", "ES");
 
         List<Station> list = controller.queryByTimeZoneAndCountry(group, country);
@@ -182,25 +183,19 @@ public class BuildIndexesUI implements Runnable {
         System.out.println("Total: " + stationList.size());
     }
 
-
     private void pause() {
-        System.out.println("\nPress Enter to continue...");
-        Scanner sc = new Scanner(System.in);
-        sc.nextLine();
+        UIHelper.pause();
     }
 
     private void clear() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-    }
-    private String line(int n) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < n; i++) {
-            sb.append(SEP);
-        }
-        return sb.toString();
+        UIHelper.clear();
     }
 
+    private String line(int n) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; i++) sb.append(SEP);
+        return sb.toString();
+    }
 
     private String askLine(String label) {
         Scanner scanner = new Scanner(System.in);
@@ -234,7 +229,7 @@ public class BuildIndexesUI implements Runnable {
 
             try {
                 result = Double.parseDouble(text);
-                valid = true;     // <- condição de saída
+                valid = true;
             } catch (NumberFormatException ex) {
                 System.out.println("Invalid number. Please enter a valid numeric value.");
             }

@@ -9,6 +9,7 @@ import domain.ProximitySearchResult;
 import domain.TimeZoneFilter;
 import domain.Utils;
 import ui.InfraestructureIndexMenu;
+import ui.UIHelper; // <-- novo import
 
 import java.io.File;
 import java.util.Scanner;
@@ -18,21 +19,20 @@ import java.util.Scanner;
  */
 public class ProximitySearchUI implements Runnable {
 
-    private static final boolean COLOR_ON = true;
-    private static final String RESET = COLOR_ON ? "\u001B[0m" : "";
-    private static final String CYAN  = COLOR_ON ? "\u001B[36m" : "";
-    private static final String GREEN = COLOR_ON ? "\u001B[32m" : "";
-    private static final String YELLOW = COLOR_ON ? "\u001B[33m" : "";
-    private static final String RED   = COLOR_ON ? "\u001B[31m" : "";
-    private static final String SEP   = "─";
+    private static final String RESET  = UIHelper.getReset();
+    private static final String CYAN   = UIHelper.getCyan();
+    private static final String GREEN  = UIHelper.getGreen();
+    private static final String YELLOW = UIHelper.getYellow();
+    private static final String RED    = UIHelper.getRed();
+    private static final String SEP    = "─";
 
     private String DEFAULT_CSV_PATH =
             "warehouseMngt" + File.separator +
                     "train_station_dataset" + File.separator +
                     "train_stations_europe.csv";
 
-    private BuildIndexesController indexController = new BuildIndexesController();
-    private Build2DTreeController treeController = new Build2DTreeController();
+    private BuildIndexesController indexController   = new BuildIndexesController();
+    private Build2DTreeController treeController     = new Build2DTreeController();
     private ProximitySearchController searchController = new ProximitySearchController(treeController);
 
     @Override
@@ -75,7 +75,7 @@ public class ProximitySearchUI implements Runnable {
     private void buildIndexesAction() {
         if (indexController.isLoaded()) {
             System.out.println(YELLOW + "AVL indexes are already loaded." + RESET);
-            System.out.print("Do you want to reload? (y/n): ");
+            System.out.print(CYAN + "➤ " + RESET + "Do you want to reload? (y/n): ");
             Scanner sc = new Scanner(System.in);
             String answer = sc.nextLine().trim().toLowerCase();
             if (!answer.equals("y")) {
@@ -84,7 +84,7 @@ public class ProximitySearchUI implements Runnable {
             }
         }
 
-        System.out.print("CSV path [" + DEFAULT_CSV_PATH + "]: ");
+        System.out.print(CYAN + "➤ " + RESET + "CSV path [" + DEFAULT_CSV_PATH + "]: ");
         Scanner sc = new Scanner(System.in);
         String input = sc.nextLine().trim();
         String csvPath = input.isEmpty() ? DEFAULT_CSV_PATH : input;
@@ -170,7 +170,8 @@ public class ProximitySearchUI implements Runnable {
         double lon = askLongitude(sc);
         int n = askInt(sc, "Number of nearest neighbors (N)");
 
-        System.out.print("Time zone group filter (e.g., 'Europe/Lisbon', or leave blank for no filter): ");
+        System.out.print(CYAN + "➤ " + RESET +
+                "Time zone group filter (e.g., 'Europe/Lisbon', or leave blank for no filter): ");
         String tzInput = sc.nextLine().trim();
 
         TimeZoneFilter filter;
@@ -248,7 +249,7 @@ public class ProximitySearchUI implements Runnable {
         double value = 0;
 
         do {
-            System.out.print(label + ": ");
+            System.out.print(CYAN + "➤ " + RESET + label + ": ");
             String text = sc.nextLine().trim();
 
             if (!text.isEmpty()) {
@@ -272,7 +273,7 @@ public class ProximitySearchUI implements Runnable {
         int value = 0;
 
         do {
-            System.out.print(label + ": ");
+            System.out.print(CYAN + "➤ " + RESET + label + ": ");
             String text = sc.nextLine().trim();
 
             if (!text.isEmpty()) {
@@ -297,14 +298,11 @@ public class ProximitySearchUI implements Runnable {
     }
 
     private void pause() {
-        System.out.println("\nPress Enter to continue...");
-        Scanner sc = new Scanner(System.in);
-        sc.nextLine();
+        UIHelper.pause();
     }
 
     private void clear() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        UIHelper.clear();
     }
 
     private String line(int n) {
@@ -313,14 +311,13 @@ public class ProximitySearchUI implements Runnable {
         return sb.toString();
     }
 
-    // ---- Métodos específicos para latitude/longitude com intervalo ----
 
     private double askLatitude(Scanner sc) {
         boolean valid = false;
         double value = 0.0;
 
         do {
-            System.out.print("Target latitude (-90 to 90): ");
+            System.out.print(CYAN + "➤ " + RESET + "Target latitude (-90 to 90): ");
             String text = sc.nextLine().trim();
 
             if (!text.isEmpty()) {
@@ -348,7 +345,7 @@ public class ProximitySearchUI implements Runnable {
         double value = 0.0;
 
         do {
-            System.out.print("Target longitude (-180 to 180): ");
+            System.out.print(CYAN + "➤ " + RESET + "Target longitude (-180 to 180): ");
             String text = sc.nextLine().trim();
 
             if (!text.isEmpty()) {
