@@ -247,4 +247,14 @@ public class StationIndexes {
         return text == null || text.trim().isEmpty();
     }
 
+    /**
+     * Clears all AVL indexes, removing all stations.
+     * Used primarily for testing to ensure clean state.
+     */
+    public void clear() {
+        // Como AVL extends BST, e BST tem clear(), basta chamar
+        latitudeIndex.clear();
+        longitudeIndex.clear();
+        timeZoneIndex.clear();
+    }
 }

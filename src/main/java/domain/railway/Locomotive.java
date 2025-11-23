@@ -16,6 +16,7 @@ public class Locomotive {
     public Locomotive(int id, String name, String make, String model,
                       int power, int maxSpeed, int opSpeed, String tractionType,
                       int totalWeight, int gauge, int length) {
+        this.id = id;
         this.name = name;
         this.make = make;
         this.model = model;
