@@ -143,23 +143,5 @@ public class RadiusSearchController {
         return treeController.isBuilt();
     }
 
-    /**
-     * Depth-first traversal to collect all stations from the 2D-Tree.
-     *
-     * @param node        current KD-node
-     * @param accumulator list to accumulate stations
-     */
-    private void collectAllStations(KDNode node, List<Station> accumulator) {
-        if (node == null) {
-            return;
-        }
 
-        List<Station> bucket = node.getStations();
-        for (int i = 0; i < bucket.size(); i++) {
-            accumulator.add(bucket.get(i));
-        }
-
-        collectAllStations(node.getLeft(), accumulator);
-        collectAllStations(node.getRight(), accumulator);
-    }
 }

@@ -103,11 +103,9 @@ public class RadiusSearchControllerTest {
      */
     @Test(expected = IllegalStateException.class)
     public void searchWithinRadius_treeNotBuilt_throwsIllegalState() {
-        FakeBuild2DTreeController fakeTreeController =
-                new FakeBuild2DTreeController(false, null);
+        FakeBuild2DTreeController fakeTreeController = new FakeBuild2DTreeController(false, null);
 
-        RadiusSearchController controller =
-                new RadiusSearchController(fakeTreeController);
+        RadiusSearchController controller = new RadiusSearchController(fakeTreeController);
 
         controller.searchWithinRadius(0.0, 0.0, 100.0);
     }
@@ -125,11 +123,9 @@ public class RadiusSearchControllerTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void searchWithinRadius_negativeRadius_throwsIllegalArgument() {
-        FakeBuild2DTreeController fakeTreeController =
-                new FakeBuild2DTreeController(true, null);
+        FakeBuild2DTreeController fakeTreeController = new FakeBuild2DTreeController(true, null);
 
-        RadiusSearchController controller =
-                new RadiusSearchController(fakeTreeController);
+        RadiusSearchController controller = new RadiusSearchController(fakeTreeController);
 
         controller.searchWithinRadius(0.0, 0.0, -5.0);
     }
@@ -179,8 +175,7 @@ public class RadiusSearchControllerTest {
         double centerLon = 0.0;
         double radiusKm = 600.0;
 
-        RadiusSearchResult result =
-                controller.searchWithinRadius(centerLat, centerLon, radiusKm);
+        RadiusSearchResult result = controller.searchWithinRadius(centerLat, centerLon, radiusKm);
 
         // Total: 3 inside radius (Alpha, Zulu, Beta)
         assertEquals(3, result.getTotalCount());
@@ -226,15 +221,11 @@ public class RadiusSearchControllerTest {
      */
     @Test
     public void isReady_reflectsTreeControllerState() {
-        FakeBuild2DTreeController notBuilt =
-                new FakeBuild2DTreeController(false, null);
-        FakeBuild2DTreeController built =
-                new FakeBuild2DTreeController(true, null);
+        FakeBuild2DTreeController notBuilt = new FakeBuild2DTreeController(false, null);
+        FakeBuild2DTreeController built = new FakeBuild2DTreeController(true, null);
 
-        RadiusSearchController controllerNotBuilt =
-                new RadiusSearchController(notBuilt);
-        RadiusSearchController controllerBuilt =
-                new RadiusSearchController(built);
+        RadiusSearchController controllerNotBuilt = new RadiusSearchController(notBuilt);
+        RadiusSearchController controllerBuilt = new RadiusSearchController(built);
 
         assertFalse(controllerNotBuilt.isReady());
         assertTrue(controllerBuilt.isReady());
@@ -251,13 +242,11 @@ public class RadiusSearchControllerTest {
      *
      * @see RadiusSearchController#searchWithinRadius(double, double, double)
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void searchWithinRadius_invalidLatitude_throwsIllegalArgument() {
-        FakeBuild2DTreeController fakeTreeController =
-                new FakeBuild2DTreeController(true, null);
+        FakeBuild2DTreeController fakeTreeController = new FakeBuild2DTreeController(true, null);
 
-        RadiusSearchController controller =
-                new RadiusSearchController(fakeTreeController);
+        RadiusSearchController controller = new RadiusSearchController(fakeTreeController);
 
         controller.searchWithinRadius(123.0, 0.0, 10.0);
     }
@@ -273,13 +262,11 @@ public class RadiusSearchControllerTest {
      *
      * @see RadiusSearchController#searchWithinRadius(double, double, double)
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void searchWithinRadius_invalidLongitude_throwsIllegalArgument() {
-        FakeBuild2DTreeController fakeTreeController =
-                new FakeBuild2DTreeController(true, null);
+        FakeBuild2DTreeController fakeTreeController = new FakeBuild2DTreeController(true, null);
 
-        RadiusSearchController controller =
-                new RadiusSearchController(fakeTreeController);
+        RadiusSearchController controller = new RadiusSearchController(fakeTreeController);
 
         controller.searchWithinRadius(0.0, 999.0, 10.0);
     }

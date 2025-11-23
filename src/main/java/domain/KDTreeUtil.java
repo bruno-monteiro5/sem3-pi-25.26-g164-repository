@@ -25,8 +25,8 @@ public final class KDTreeUtil {
         if (node == null) return;
 
         List<Station> bucket = node.getStations();
-        for (int i = 0; i < bucket.size(); i++) {
-            accumulator.add(bucket.get(i));
+        for (Station station : bucket) {
+            accumulator.add(station);
         }
 
         collectAllStations(node.getLeft(), accumulator);
