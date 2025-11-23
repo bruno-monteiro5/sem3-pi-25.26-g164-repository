@@ -9,7 +9,7 @@ public class Locomotive {
     private int maxSpeed;       // km/h
     private int opSpeed;        // km/h
     private String tractionType; // "ELECTRIC" or "DIESEL"
-    private int totalWeight;    // toneladas
+    private int totalWeight;    // tonnes
     private int gauge;          // mm
     private int length;
 
@@ -29,7 +29,7 @@ public class Locomotive {
         this.length = length;
     }
 
-    // Getters existentes...
+    // Existant getters...
     public int getId() { return id; }
     public String getName() { return name; }
     public String getMake() { return make; }

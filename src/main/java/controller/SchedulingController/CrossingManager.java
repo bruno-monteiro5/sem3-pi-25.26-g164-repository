@@ -191,17 +191,17 @@ public class CrossingManager {
         Endpoint crossingLocation;
 
         if (waitingPassage.requiresStop() && isStation(waitingPassage.getArrivalEndpoint())) {
-            // Prioridade 1: arrival
+            // Priority 1: arrival
             crossingType = CrossingOperation.CrossingType.AT_STATION;
             crossingLocation = waitingPassage.getArrivalEndpoint();
 
         } else if (singleTrack.hasSiding()) {
-            // Prioridade 2: Siding
+            // Priority 2: Siding
             crossingType = CrossingOperation.CrossingType.AT_SIDING;
             crossingLocation = waitingPassage.getDepartureEndpoint();
 
         } else if (isStation(waitingPassage.getDepartureEndpoint())) {
-            // Prioridade 3 : departure
+            // Priority 3: departure
             crossingType = CrossingOperation.CrossingType.AT_STATION;
             crossingLocation = waitingPassage.getDepartureEndpoint();
 

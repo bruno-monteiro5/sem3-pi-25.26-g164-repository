@@ -23,7 +23,7 @@ public class Path {
     }
 
     /**
-     * Retorna a lista de endpoints ordenada por sequência
+     * Returns the list of endpoints ordered by sequence
      */
     public List<PathEndpoint> getOrderedEndpoints() {
         return endpoints.stream()
@@ -32,7 +32,7 @@ public class Path {
     }
 
     /**
-     * Retorna apenas os endpoints onde o comboio deve parar
+     * Returns only the endpoints where the train must stop
      */
     public List<PathEndpoint> getStopEndpoints() {
         return endpoints.stream()
@@ -48,7 +48,7 @@ public class Path {
     }
 
     /**
-     * Classe interna para representar um endpoint no path
+     * Internal class to represent an endpoint in a path
      */
     public static class PathEndpoint {
         private int sequence;

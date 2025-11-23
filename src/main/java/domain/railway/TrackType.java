@@ -1,7 +1,7 @@
 package domain.railway;
 
 /**
- * Representa o tipo de via de um segmento
+ * Represents the type of track a line segment is on.
  */
 public abstract class TrackType {
     protected int segmentId;
