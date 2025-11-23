@@ -1,10 +1,12 @@
 package ui.SchedulingUI;
 
+import com.sun.tools.javac.Main;
 import domain.railway.*;
 import domain.scheduling.Schedule;
 import domain.scheduling.TrainSchedule;
 import repository.RailwayRepository;
 import controller.SchedulingController.TrainScheduler;
+import ui.MainMenu;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -70,6 +72,7 @@ public class SchedulerUI implements Runnable{
 
         // Return to main menu (don't exit application)
         System.out.println(GREEN + "\n✓ Returning to main menu..." + RESET);
+        MainMenu.menu();
     }
 
     /**
