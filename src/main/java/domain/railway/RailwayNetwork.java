@@ -43,12 +43,12 @@ public class RailwayNetwork {
     /**
      * Private constructor: all data is injected already prepared.
      */
-    private RailwayNetwork(List<Endpoint> endpoints,
-                           List<Line> lines,
-                           List<LineSegment> segments,
-                           List<Path> paths,
-                           List<Train> trains,
-                           Map<Integer, TrackType> trackTypeBySegmentId) {
+    protected RailwayNetwork(List<Endpoint> endpoints,
+                             List<Line> lines,
+                             List<LineSegment> segments,
+                             List<Path> paths,
+                             List<Train> trains,
+                             Map<Integer, TrackType> trackTypeBySegmentId) {
 
         this.endpoints = endpoints;
         this.lines = lines;
