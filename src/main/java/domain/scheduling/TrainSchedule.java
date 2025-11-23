@@ -37,6 +37,7 @@ public class TrainSchedule {
         this.train = train;
         this.scheduledDeparture = scheduledDeparture;
         this.actualDeparture = scheduledDeparture;
+        this.estimatedArrival = scheduledDeparture;
         this.passages = new ArrayList<>();
         this.crossingOperations = new ArrayList<>();
         this.totalTravelTimeMinutes = 0;
