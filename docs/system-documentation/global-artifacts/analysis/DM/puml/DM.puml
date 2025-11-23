@@ -21,7 +21,8 @@ class LineSegment {
 class SingleTrackSegment extends LineSegment {
 }
 
-class DoubleTrackSegment extends LineSegment {
+class MultipleTrackSegment extends LineSegment {
+    trackNum
 }
 
 class Siding {
@@ -248,7 +249,7 @@ Station "1" --> "1" Location : has >
 Siding "1" --> "1" Location : has >
 Wagon "1" --> "1" WagonType : has >
 Station "1" --> "1" StationType : has >
-Station "1" *-- "0..*" Warehouse        : has >
+Station "1" *-- "0..*" Warehouse : has >
 Warehouse "1" *--> "0..*" UnloadingDock  : has >
 Locomotive "1" -- "1..*" Gauge : supports >
 Wagon      "1" -- "1..*" Gauge : supports >
