@@ -6,19 +6,19 @@ import controller.StationCsvLoader;
 import domain.Option;
 import domain.Utils;
 import ui.InfraestructureIndexMenu;
+import ui.UIHelper;
 
 import java.io.File;
 import java.util.Scanner;
 
 public class Build2DTreeUI implements Runnable {
 
-    private static final boolean COLOR_ON = true;
-    private static final String RESET = COLOR_ON ? "\u001B[0m" : "";
-    private static final String CYAN  = COLOR_ON ? "\u001B[36m" : "";
-    private static final String GREEN = COLOR_ON ? "\u001B[32m" : "";
-    private static final String YELLOW = COLOR_ON ? "\u001B[33m" : "";
-    private static final String RED   = COLOR_ON ? "\u001B[31m" : "";
-    private static final String SEP   = "─";
+    private static final String RESET  = UIHelper.getReset();
+    private static final String CYAN   = UIHelper.getCyan();
+    private static final String GREEN  = UIHelper.getGreen();
+    private static final String YELLOW = UIHelper.getYellow();
+    private static final String RED    = UIHelper.getRed();
+    private static final String SEP    = "─";
 
     private String DEFAULT_CSV_PATH =
             "warehouseMngt" + File.separator +
@@ -26,7 +26,7 @@ public class Build2DTreeUI implements Runnable {
                     "train_stations_europe.csv";
 
     private BuildIndexesController indexController = new BuildIndexesController();
-    private Build2DTreeController treeController = new Build2DTreeController();
+    private Build2DTreeController treeController   = new Build2DTreeController();
 
     @Override
     public void run() {
@@ -67,7 +67,7 @@ public class Build2DTreeUI implements Runnable {
     private void buildIndexesAction() {
         if (indexController.isLoaded()) {
             System.out.println(YELLOW + "AVL indexes are already loaded." + RESET);
-            System.out.print("Do you want to reload? (y/n): ");
+            System.out.print(CYAN + "➤ " + RESET + "Do you want to reload? (y/n): ");
             Scanner sc = new Scanner(System.in);
             String answer = sc.nextLine().trim().toLowerCase();
             if (!answer.equals("y")) {
@@ -76,7 +76,7 @@ public class Build2DTreeUI implements Runnable {
             }
         }
 
-        System.out.print("CSV path [" + DEFAULT_CSV_PATH + "]: ");
+        System.out.print(CYAN + "➤ " + RESET + "CSV path [" + DEFAULT_CSV_PATH + "]: ");
         Scanner sc = new Scanner(System.in);
         String input = sc.nextLine().trim();
         String csvPath = input.isEmpty() ? DEFAULT_CSV_PATH : input;
@@ -143,14 +143,11 @@ public class Build2DTreeUI implements Runnable {
     }
 
     private void pause() {
-        System.out.println("\nPress Enter to continue...");
-        Scanner sc = new Scanner(System.in);
-        sc.nextLine();
+        UIHelper.pause();
     }
 
     private void clear() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        UIHelper.clear();
     }
 
     private String line(int n) {

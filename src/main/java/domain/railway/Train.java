@@ -71,7 +71,7 @@ public class Train {
     }
 
     /**
-     * Calcula a potência total das locomotivas
+     * Calcula the total power of all locomotives
      */
     public int getTotalPower() {
         return locomotives.stream()
@@ -80,7 +80,7 @@ public class Train {
     }
 
     /**
-     * Calcula o peso total do comboio (locomotivas + vagões carregados)
+     * Calculates the total weight of the train (locomotive + loaded wagons)
      */
     public int getTotalWeight() {
         int locomotiveWeight = locomotives.stream()
@@ -96,14 +96,14 @@ public class Train {
     }
 
     /**
-     * Verifica se o comboio tem pelo menos uma locomotiva elétrica
+     * Verifies if the train has at least one electric locomotive
      */
     public boolean hasElectricLocomotive() {
         return locomotives.stream().anyMatch(Locomotive::isElectric);
     }
 
     /**
-     * Verifica se todas as locomotivas são elétricas
+     * Verifies if all locomotives are electric
      */
     public boolean isFullyElectric() {
         return !locomotives.isEmpty() &&

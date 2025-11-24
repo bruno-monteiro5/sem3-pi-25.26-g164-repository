@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Representa um Freight (carga) com origem e destino
+ * Represents a Freight (cargo) with origin and destination
  */
 public class Freight {
     private int id;
@@ -33,7 +33,7 @@ public class Freight {
     }
 
     /**
-     * Calcula o peso total dos vagões deste freight
+     * Calculates the total weight of this freight's wagons
      */
     public int getTotalWeight() {
         return wagons.stream()

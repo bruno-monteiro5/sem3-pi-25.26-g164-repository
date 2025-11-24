@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Interface de utilizador text-based para o Train Scheduler
+ * Text-based user interface for the Train Scheduler
  * USLP07 - As Freight Manager, I want to use a scheduler
  */
 public class SchedulerUI implements Runnable{
@@ -155,7 +155,7 @@ public class SchedulerUI implements Runnable{
 
     private void scheduleSingleTrain() {
         try {
-            // 1. Buscar todos os comboios da rede em memória
+            // 1. Get all trains from the network
             List<Train> trains = network.getTrains();
 
             if (trains.isEmpty()) {
@@ -163,7 +163,7 @@ public class SchedulerUI implements Runnable{
                 return;
             }
 
-            // 2. Mostrar lista de comboios
+            // 2. Show list of trains
             System.out.println("\n📋 Available trains:");
             for (int i = 0; i < trains.size(); i++) {
                 Train t = trains.get(i);
@@ -178,7 +178,7 @@ public class SchedulerUI implements Runnable{
                 );
             }
 
-            // 3. Escolher um
+            // 3. Choose one
             System.out.print("\n➤ Select train number: ");
             int choice = readOption() - 1;
 
@@ -191,10 +191,10 @@ public class SchedulerUI implements Runnable{
 
             System.out.println("\n⏳ Calculating schedule for train " + selected.getId() + "...\n");
 
-            // 4. Agendar (usa o TrainScheduler)
+            // 4. Schedule (use TrainScheduler)
             TrainSchedule schedule = scheduler.scheduleTrainReschedule(selected);
 
-            // 5. Mostrar resultado
+            // 5. Show result
             System.out.println(schedule.getDetailedReport());
 
         } catch (SQLException e) {
@@ -212,7 +212,7 @@ public class SchedulerUI implements Runnable{
                 return;
             }
 
-            // 1. Mostrar todos os comboios disponíveis
+            // 1. Show all trains available
             System.out.println("\n📋 Available trains:");
             for (int i = 0; i < allTrains.size(); i++) {
                 Train t = allTrains.get(i);
@@ -227,7 +227,7 @@ public class SchedulerUI implements Runnable{
                 );
             }
 
-            // 2. Escolher vários (tipo "1,2,4")
+            // 2. Choose various (like "1", "2", "4")
             System.out.print("\n➤ Enter train numbers separated by comma (e.g., 1,2,3): ");
             String input = scanner.nextLine();
             String[] parts = input.split(",");
@@ -251,13 +251,13 @@ public class SchedulerUI implements Runnable{
 
             System.out.println("\n⏳ Calculating schedule for " + selectedTrains.size() + " trains...\n");
 
-            // 3. Agendar todos
+            // 3. Schedule all
             Schedule schedule = scheduler.scheduleMultipleTrains(selectedTrains);
 
-            // 4. Mostrar visão geral
+            // 4. Show general vision
             System.out.println(schedule);
 
-            // 5. Opcional: mostrar detalhes
+            // 5. Optional: show details
             System.out.print("\n➤ Show detailed report for all trains? (y/n): ");
             if (scanner.nextLine().equalsIgnoreCase("y")) {
                 for (TrainSchedule ts : schedule.getTrainSchedules()) {
@@ -344,18 +344,18 @@ public class SchedulerUI implements Runnable{
                     .forEach(e -> System.out.println("  " + e));
 
         } catch (Exception e) {
-            // Aqui em princípio já não deves ter SQLException, mas deixo genérico
+            // From the get go, there should not be a SQLException here. But i leave a generic format
             System.err.println("❌ Error while showing train details: " + e.getMessage());
         }
     }
 
 
     /**
-     * Permite ao Freight Manager definir/alterar a rota (Path) de um Train,
-     * SEM alterar a base de dados. Tudo é feito apenas em memória na RailwayNetwork.
+     * Allows the Freight Manager to define/change the route (Path) of a Train,
+     * WITHOUT changing the database. Everything is done in memory in the RailwayNetwork.
      */
     private void defineTrainRoute() {
-        // 1. Ir buscar os trains à rede em memória
+        // 1. Go get the trains from the network's memory
         List<Train> trains = network.getTrains();
 
         if (trains.isEmpty()) {
@@ -363,7 +363,7 @@ public class SchedulerUI implements Runnable{
             return;
         }
 
-        // 2. Mostrar lista de comboios
+        // 2. Show the list of trains
         System.out.println("\n📋 Available trains:");
         for (int i = 0; i < trains.size(); i++) {
             Train t = trains.get(i);
@@ -384,7 +384,7 @@ public class SchedulerUI implements Runnable{
         System.out.print("\n➤ Select train number (0 to cancel): ");
         int trainChoice = readOption() - 1;
         if (trainChoice == -1) {
-            return; // user escolheu 0
+            return; // user chose 0
         }
         if (trainChoice < 0 || trainChoice >= trains.size()) {
             System.out.println("❌ Invalid train selection!");
@@ -393,7 +393,7 @@ public class SchedulerUI implements Runnable{
 
         Train train = trains.get(trainChoice);
 
-        // 4. Mostrar paths disponíveis (inclui os criados em memória)
+        // 4. Show available paths (including the new ones created in memory)
         List<Path> paths = network.getPaths();
         if (paths.isEmpty()) {
             System.out.println("❌ No paths in network! Create one first (option 6).");
@@ -407,7 +407,7 @@ public class SchedulerUI implements Runnable{
                     p.getId(), p.getName(), endpointCount);
         }
 
-        // 5. Escolher path
+        // 5. Pick a path
         System.out.print("\n➤ Enter path ID to assign (0 to cancel): ");
         int pathId = readOption();
         if (pathId == 0) {
@@ -425,7 +425,7 @@ public class SchedulerUI implements Runnable{
             return;
         }
 
-        // 6. Atribuir path ao train em memória
+        // 6. Attribute path to the train in the memory
         try {
             network.assignPathToTrain(train, selectedPath);
             System.out.printf("✅ Train %d route updated IN MEMORY to path '%s'.\n",
@@ -437,7 +437,7 @@ public class SchedulerUI implements Runnable{
             System.out.println(RED + "❌ VALIDATION FAILED: " + e.getMessage() + RESET);
             System.out.println("   Train route NOT changed.");
 
-            // Sugestões de ação
+            // Suggestions of action
             if (e.getMessage().contains("GAUGE")) {
                 System.out.println("\n💡 Possible solutions:");
                 System.out.println("   • Add locomotives supporting gauge " );
@@ -487,13 +487,13 @@ public class SchedulerUI implements Runnable{
                 continue;
             }
 
-            // Se já houver endpoints no path, validar ligação com o último
+            // If there is endpoints on the path, validate the connection to the last one
             var ordered = path.getOrderedEndpoints();
             if (!ordered.isEmpty()) {
                 Endpoint lastEndpoint = ordered.get(ordered.size() - 1).getEndpoint();
 
-                // ⚠️ Aqui é onde impedimos caminhos impossíveis:
-                // usamos a RailwayNetwork para ver se há segmento entre lastEndpoint e endpoint
+                // ⚠️ Here is where we stop impossible paths:
+                // we use the RailwayNetwork to check if there is a segment between lastEndpoint and endpoint
                 LineSegment segment = network.findSegmentBetween(lastEndpoint.getId(), endpoint.getId());
 
                 if (segment == null) {
@@ -502,7 +502,7 @@ public class SchedulerUI implements Runnable{
                             lastEndpoint.getName(), endpoint.getName()
                     );
                     System.out.println("   Please choose another endpoint that is directly connected.");
-                    // Podes opcionalmente aqui sugerir endpoints ligados (ver secção 2)
+                    // You can, optionally, suggest here connected endpoints (see section 2)
                     continue;
                 }
             }
@@ -556,7 +556,7 @@ public class SchedulerUI implements Runnable{
 
         Train train = trains.get(trainChoice);
 
-        // Paths disponíveis (incluindo novos em memória)
+        // Available paths (including new ones in memory)
         var paths = network.getPaths();
         if (paths.isEmpty()) {
             System.out.println("❌ No paths in network! Create one first (option 6).");
@@ -595,9 +595,9 @@ public class SchedulerUI implements Runnable{
     }
 
     /**
-     * Permite alterar a data e a hora de partida de um train em memória.
-     * Útil para criar cenários artificiais (ex.: cruzamentos em sidings)
-     * sem tocar na base de dados.
+     * Allows to alter the date and time of departure of a train in memory.
+     * Useful for artificial scenarios (i.e. crossings on siding)
+     * without touching the database.
      */
     private void editTrainDeparture() {
         List<Train> trains = network.getTrains();

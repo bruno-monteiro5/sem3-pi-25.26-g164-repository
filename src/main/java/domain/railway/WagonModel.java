@@ -1,7 +1,7 @@
 package domain.railway;
 
 /**
- * Representa um Wagon Model
+ * Represents a model wagon
  */
 public class WagonModel {
     private int id;

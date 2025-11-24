@@ -3,7 +3,7 @@ package domain.railway;
 import domain.railway.WagonModel;
 
 /**
- * Representa um Wagon (vagão)
+ * Represents a wagon
  */
 public class Wagon {
     private int id;
@@ -24,7 +24,7 @@ public class Wagon {
     public String getOperatorVat() { return operatorVat; }
 
     /**
-     * Calcula o peso total (tara + payload)
+     * Calculates total weight (tara + payload)
      */
     public int getTotalWeight() {
         return (int) (model.getWeight() + model.getPayload());

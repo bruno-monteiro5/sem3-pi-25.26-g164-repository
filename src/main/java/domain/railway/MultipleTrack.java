@@ -1,7 +1,7 @@
 package domain.railway;
 
 /**
- * Via Múltipla (Multiple Tracks)
+ * Multiple Tracks
  */
 public class MultipleTrack extends TrackType {
     private int numberTracks;
@@ -16,7 +16,7 @@ public class MultipleTrack extends TrackType {
 
     @Override
     public boolean canCrossTrains() {
-        return true; // vias múltiplas permitem sempre cruzamento
+        return true; // multiple tracks always allow crossing
     }
 
     public int getNumberTracks() { return numberTracks; }

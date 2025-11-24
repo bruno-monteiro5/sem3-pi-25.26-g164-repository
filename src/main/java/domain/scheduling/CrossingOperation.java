@@ -6,19 +6,19 @@ import domain.railway.LineSegment;
 import java.time.LocalDateTime;
 
 /**
- * Representa uma operação de cruzamento entre dois comboios numa via simples
+ * Represents an operation of crossing between two trains on a simple track
  */
 public class CrossingOperation {
 
     public enum CrossingType {
-        AT_STATION,     // Cruzamento numa estação
-        AT_SIDING       // Cruzamento num siding
+        AT_STATION,     // Crossing in a station
+        AT_SIDING       // Crossing in a siding
     }
 
     private int waitingTrainId;
     private int passingTrainId;
     private LineSegment segment;
-    private Endpoint location;  // Estação ou posição do siding
+    private Endpoint location;  // Station or position of the siding
     private CrossingType type;
     private LocalDateTime waitStartTime;
     private LocalDateTime waitEndTime;

@@ -302,7 +302,7 @@ public class SpeedCalculatorTest {
     @Test
     public void testCanTraverse_DieselTrain_NonElectrified() {
         // Arrange
-        Train train = createDieselTrain(2500, 120, 110, 600);
+        Train train = createDieselTrain(2500, 120, 110, 80);
 
         // Act
         boolean canTraverse = speedCalculator.canTraverse(train, nonElectrifiedSegment);
@@ -333,7 +333,7 @@ public class SpeedCalculatorTest {
     @Test
     public void testCanTraverse_HybridTrain_HasElectric() {
         // Arrange
-        Train train = createHybridTrain(3000, 2000, 140, 130, 700);
+        Train train = createHybridTrain(3000, 2000, 140, 130, 160);
 
         // Act
         boolean canTraverse = speedCalculator.canTraverse(train, electrifiedSegment);

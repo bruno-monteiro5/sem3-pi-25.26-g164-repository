@@ -3,12 +3,12 @@ package domain.railway;
 import domain.railway.TrackType;
 
 /**
- * Via Simples (Single Track)
+ * Single Track
  */
 public class SingleTrack extends TrackType {
     private boolean hasSiding;
-    private Integer sidingPosition;  // posição do siding (metros desde o início)
-    private Integer sidingLength;    // comprimento do siding
+    private Integer sidingPosition;  // siding position (meters since the beginning of the segment)
+    private Integer sidingLength;    // siding length
 
     public SingleTrack(int segmentId) {
         super(segmentId);
@@ -27,7 +27,7 @@ public class SingleTrack extends TrackType {
 
     @Override
     public boolean canCrossTrains() {
-        return hasSiding; // só pode cruzar se tiver siding
+        return hasSiding; // can only cross if it has siding
     }
 
     public boolean hasSiding() { return hasSiding; }
