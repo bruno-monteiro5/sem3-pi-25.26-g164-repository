@@ -16,17 +16,26 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ### Use Cases / User Stories — ARQCP
 
-| UC/US   | Description                       |
-|:--------|:----------------------------------|
-| USAC01  | Encrypt Data                      |
-| USEAC02 | Decrypt Data                      |
-| USEAC3  | Extract Data                      |
-| USAC04  | Format Command                    |
-| USAC05  | Enqueue Value                     |
-| USAC06  | Dequeue Value                     |
-| USAC07  | Move N to Array                   |
-| USAC08  | Sort Array                        |
-| USAC09  | Median                            |
+| UC/US   | Description                            |
+|:--------|:---------------------------------------|
+| USAC01  | Encrypt Data                           |
+| USEAC02 | Decrypt Data                           |
+| USEAC3  | Extract Data                           |
+| USAC04  | Format Command                         |
+| USAC05  | Enqueue Value                          |
+| USAC06  | Dequeue Value                          |
+| USAC07  | Move N to Array                        |
+| USAC08  | Sort Array                             |
+| USAC09  | Median                                 |
+| USAC10  | Implement Sensors & LightSigns Devices |
+| USAC11  | Initial Setup From File                |
+| USAC12  | Export User Action Log                 |
+| USAC13  | Get Sensor Data                        |
+| USAC14  | Control Track LightSign                |
+| USAC15  | Send Data to Board                     |
+| USAC16  | Manage Station Tracks                  |
+
+
 
 ---
 

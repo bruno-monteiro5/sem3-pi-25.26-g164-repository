@@ -7,6 +7,9 @@ title Use Case Diagram — ARQCP
 actor "System Administrator" as SA
 actor "Station Operator" as SO
 
+' ------------------
+' Sprint 2 Use Cases
+' ------------------
 usecase "USAC01 - Encrypt Data" as UC1
 usecase "USAC02 - Decrypt Data" as UC2
 usecase "USAC03 - Extract Data" as UC3
@@ -18,6 +21,22 @@ usecase "USAC05 - Enqueue Value" as UC5
 usecase "USAC06 - Dequeue Value" as UC6
 usecase "USAC07 - Move N to Array" as UC7
 
+
+' ------------------
+' Sprint 3 Use Cases
+' ------------------
+usecase "USAC10 - Implement Sensors & LightSigns Devices" as UC10
+usecase "USAC11 - Initial Setup From File" as UC11
+usecase "USAC12 - Export User Action Log" as UC12
+usecase "USAC13 - Get Sensor Data" as UC13
+usecase "USAC14 - Control Track LightSign" as UC14
+usecase "USAC15 - Send Data to Board" as UC15
+usecase "USAC16 - Manage Station Tracks" as UC16
+
+
+' ------------------
+' Associations Sprint 2
+' ------------------
 SA --> UC1
 SA --> UC2
 SA --> UC3
@@ -28,5 +47,17 @@ SA --> UC9
 SO --> UC5
 SO --> UC6
 SO --> UC7
+
+' ------------------
+' Associations Sprint 3
+' ------------------
+SA --> UC10
+SA --> UC11
+SA --> UC12
+
+SO --> UC13
+SO --> UC14
+SO --> UC15
+SO --> UC16
 
 @enduml
