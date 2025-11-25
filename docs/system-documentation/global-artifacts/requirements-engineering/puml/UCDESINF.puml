@@ -11,25 +11,58 @@ actor "Data Engineer" as DE
 actor "Analyst" as AN
 actor "Operations Planner" as OP
 
+' ---------------------
+' Sprint 1 – Warehouse & Terminal
+' ---------------------
 usecase "USEI01 - Wagons Unloading" as UC1
 usecase "USEI02 - Order Eligibility & Allocation" as UC2
 usecase "USEI03 - Picking Plans" as UC3
 usecase "USEI04 - Pick Path Sequencing" as UC4
 usecase "USEI05 - Returns & Quarantine" as UC5
+
+' ---------------------
+' Sprint 2 – Spatial & Indexed Queries
+' ---------------------
 usecase "USEI06 - Time-Zone Index" as UC6
 usecase "USEI07 - Build 2D-Tree" as UC7
 usecase "USEI08 - Area Search" as UC8
 usecase "USEI09 - Proximity Search" as UC9
 usecase "USEI10 - Radius Search" as UC10
 
+' ---------------------
+' Sprint 3 – Railway Network Optimization
+' ---------------------
+usecase "USEI11 - Directed Line Upgrade Plan" as UC11
+usecase "USEI12 - Minimal Backbone Network" as UC12
+usecase "USEI13 - Rail Hub Centrality Analysis" as UC13
+usecase "USEI14 - Maximum Throughput Between Two Hubs" as UC14
+usecase "USEI15 - Risk-Aware Shortest Paths" as UC15
+
+' ---------------------
+' Associations Sprint 1
+' ---------------------
 TO --> UC1
 WP --> UC2
 PL --> UC3
 PK --> UC4
 QO --> UC5
+
+' ---------------------
+' Associations Sprint 2
+' ---------------------
 PL --> UC6
 DE --> UC7
 PL --> UC8
 AN --> UC9
 OP --> UC10
+
+' ---------------------
+' Associations Sprint 3
+' ---------------------
+PL --> UC11
+PL --> UC12
+PL --> UC13
+AN --> UC14
+PL --> UC15
+
 @enduml

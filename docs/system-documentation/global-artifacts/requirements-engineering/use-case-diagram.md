@@ -71,18 +71,25 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ### Use Cases / User Stories — ESINF
 
-| UC/US  | Description                    |
-|:-------|:-------------------------------|
-| USEI01 | Wagons Unloading               |
-| USEI02 | Order Eligibility & Allocation |
-| USEI03 | Picking Plans                  |
-| USEI04 | Pick Path Sequencing           |
-| USEI05 | Returns & Quarantine           |
-| USEI06 | Time-Zone Index                |
-| USEI07 | Build 2D-Tree                  |
-| USEI08 | Area Search                    |
-| USEI09 | Proximity Search               |
-| USEI10 | Radius Search                  |
+| UC/US  | Description                         |
+|:-------|:------------------------------------|
+| USEI01 | Wagons Unloading                    |
+| USEI02 | Order Eligibility & Allocation      |
+| USEI03 | Picking Plans                       |
+| USEI04 | Pick Path Sequencing                |
+| USEI05 | Returns & Quarantine                |
+| USEI06 | Time-Zone Index                     |
+| USEI07 | Build 2D-Tree                       |
+| USEI08 | Area Search                         |
+| USEI09 | Proximity Search                    |
+| USEI10 | Radius Search                       |
+| USEI11 | Directed Line Upgrade Plan          |
+| USEI12 | Minimal Backbone Network            |
+| USEI13 | Rail Hub Centrality Analysis        |
+| USEI14 | Maximum Throughput Between Two Hubs |
+| USEI15 | Risk-Aware Shortest Paths           |
+
+
 
 ---
 
