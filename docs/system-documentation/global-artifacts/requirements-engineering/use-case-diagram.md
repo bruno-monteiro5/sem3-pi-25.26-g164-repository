@@ -16,17 +16,26 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ### Use Cases / User Stories — ARQCP
 
-| UC/US   | Description                       |
-|:--------|:----------------------------------|
-| USAC01  | Encrypt Data                      |
-| USEAC02 | Decrypt Data                      |
-| USEAC3  | Extract Data                      |
-| USAC04  | Format Command                    |
-| USAC05  | Enqueue Value                     |
-| USAC06  | Dequeue Value                     |
-| USAC07  | Move N to Array                   |
-| USAC08  | Sort Array                        |
-| USAC09  | Median                            |
+| UC/US   | Description                            |
+|:--------|:---------------------------------------|
+| USAC01  | Encrypt Data                           |
+| USEAC02 | Decrypt Data                           |
+| USEAC3  | Extract Data                           |
+| USAC04  | Format Command                         |
+| USAC05  | Enqueue Value                          |
+| USAC06  | Dequeue Value                          |
+| USAC07  | Move N to Array                        |
+| USAC08  | Sort Array                             |
+| USAC09  | Median                                 |
+| USAC10  | Implement Sensors & LightSigns Devices |
+| USAC11  | Initial Setup From File                |
+| USAC12  | Export User Action Log                 |
+| USAC13  | Get Sensor Data                        |
+| USAC14  | Control Track LightSign                |
+| USAC15  | Send Data to Board                     |
+| USAC16  | Manage Station Tracks                  |
+
+
 
 ---
 
@@ -62,18 +71,25 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ### Use Cases / User Stories — ESINF
 
-| UC/US  | Description                    |
-|:-------|:-------------------------------|
-| USEI01 | Wagons Unloading               |
-| USEI02 | Order Eligibility & Allocation |
-| USEI03 | Picking Plans                  |
-| USEI04 | Pick Path Sequencing           |
-| USEI05 | Returns & Quarantine           |
-| USEI06 | Time-Zone Index                |
-| USEI07 | Build 2D-Tree                  |
-| USEI08 | Area Search                    |
-| USEI09 | Proximity Search               |
-| USEI10 | Radius Search                  |
+| UC/US  | Description                         |
+|:-------|:------------------------------------|
+| USEI01 | Wagons Unloading                    |
+| USEI02 | Order Eligibility & Allocation      |
+| USEI03 | Picking Plans                       |
+| USEI04 | Pick Path Sequencing                |
+| USEI05 | Returns & Quarantine                |
+| USEI06 | Time-Zone Index                     |
+| USEI07 | Build 2D-Tree                       |
+| USEI08 | Area Search                         |
+| USEI09 | Proximity Search                    |
+| USEI10 | Radius Search                       |
+| USEI11 | Directed Line Upgrade Plan          |
+| USEI12 | Minimal Backbone Network            |
+| USEI13 | Rail Hub Centrality Analysis        |
+| USEI14 | Maximum Throughput Between Two Hubs |
+| USEI15 | Risk-Aware Shortest Paths           |
+
+
 
 ---
 

@@ -56,8 +56,6 @@ class Gauge {
 
 class Locomotive {
     id
-    make
-    model
     entryYear
     power
     acceleration
@@ -65,11 +63,11 @@ class Locomotive {
     bogieCount
 }
 
-class DieselLocomotive extends Locomotive {
+class DieselLocomotive extends LocomotiveModel  {
     fuelCapacity
 }
 
-class ElectricLocomotive extends Locomotive {
+class ElectricLocomotive extends LocomotiveModel  {
     voltage
     frequency
 }
@@ -88,6 +86,7 @@ class WagonType {
 
 class Train {
     id
+    date
 }
 
 
@@ -100,6 +99,12 @@ class Dimension {
 class Freight {
     id
 }
+
+class LocomotiveModel {
+    make
+    modelName
+}
+
 
 class Route {
 id
@@ -253,6 +258,7 @@ Station "1" *-- "0..*" Warehouse : has >
 Warehouse "1" *--> "0..*" UnloadingDock  : has >
 Locomotive "1" -- "1..*" Gauge : supports >
 Wagon      "1" -- "1..*" Gauge : supports >
+Locomotive "1" --> "1" LocomotiveModel
 
 
 

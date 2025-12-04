@@ -6,5 +6,5 @@ SELECT
 FROM Operator
     JOIN Locomotive ON Locomotive.operator = Operator.vat
     LEFT JOIN Electric_Locomotive  ON Electric_Locomotive.locomotive = Locomotive.id
-WHERE Operator.short_name = 'CapTrain'
+WHERE Operator.short_name = 'Captrain'
 GROUP BY Operator.short_name;
