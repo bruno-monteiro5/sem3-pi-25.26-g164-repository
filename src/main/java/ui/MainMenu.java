@@ -24,18 +24,20 @@ public class MainMenu implements Runnable {
         System.out.println("                                MAIN MENU");
         System.out.println(line(72 )+ RESET);
 
-        Option[] options = new Option[5];
+        Option[] options = new Option[6];
         Runnable warehouse = new WarehouseManagementMenu();
         Runnable travelTime = new TravelTimeCalculatorUI();
         Runnable infraIndex  = new InfraestructureIndexMenu();
         Runnable scheduler = new SchedulerUI();
+        Runnable optimizer = new RailwayNetworkMenu();
         Runnable exit = new Runnable() { public void run() { System.exit(0); } };
 
-        options[0] = new Option("Warehouse Management Functions", warehouse);
-        options[1] = new Option("Infrastructure Index ", infraIndex);
-        options[2] = new Option("Calculate Travel Time (USLP03)" , travelTime);
-        options[3] = new Option("Train Dispatch Scheduler (USLP07)" , scheduler);
-        options[4] = new Option(RED   + "Exit" + RESET, exit);
+        options[0] = new Option("Warehouse Management Functions (Sprint 1 ESINF)", warehouse);
+        options[1] = new Option("Infrastructure Index (Sprint 2 ESINF)", infraIndex);
+        options[2] = new Option("Railway Network Optimization (Sprint 3 ESINF)", optimizer);
+        options[3] = new Option("Calculate Travel Time (USLP03)" , travelTime);
+        options[4] = new Option("Train Dispatch Scheduler (USLP07)" , scheduler);
+        options[5] = new Option(RED   + "Exit" + RESET, exit);
 
         Utils.listAndSelect(options);
     }
