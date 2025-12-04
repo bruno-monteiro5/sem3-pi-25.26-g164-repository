@@ -23,7 +23,7 @@ enqueue_value:
     # Verify if buffer is full: *nelem == length ?
     beq     t0, a1, buffer_full
 
-    # --- IF ITS NOT FULL ---
+    # If is not full
     addi    t0, t0, 1      # nelem++
     sw      t0, 0(a2)      # *nelem = nelem
     j       write_value
