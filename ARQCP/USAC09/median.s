@@ -1,3 +1,15 @@
+/*
+ * int median(int* vec, int length, int* me);
+ *
+ * a0 = vec        pointer para array de inteiros
+ * a1 = length     tamanho do array
+ * a2 = me         pointer onde a mediana será guardada: *me
+ *
+ * Return value:
+ *   1 → sucesso (mediana calculada e escrita em *me)
+ *   0 → erro (length <= 0; *me não é modificado)
+ */
+
 .section .text
 .global median
 .extern sort_array
@@ -28,20 +40,20 @@ median:
 	li t1, 2
 	div t0, s2, t1
 
-	# check parity: if (length & 1) != 0 -> odd
+	# testar paridade: if (length & 1) != 0 -> impar
 	andi t1, s2, 1
 	bne t1, x0, odd_case
 
-	# even_case: median = (vec[mid_hi-1] + vec[mid_hi]) / 2
+	# caso par: median = (vec[mid_hi-1] + vec[mid_hi]) / 2
 even_case:
 	addi t1, t0, -1       # t1 = mid_lo = mid_hi - 1
 
-	# load vec[mid_lo] into t3
+	# load vec[mid_lo] para t3
 	slli t2, t1, 2        # t2 = mid_lo * 4
 	add t2, s1, t2        # &vec[mid_lo]
 	lw t3, 0(t2)          # t3 = vec[mid_lo]
 
-	# load vec[mid_hi] into t4
+	# load vec[mid_hi] para t4
 	slli t2, t0, 2        # t2 = mid_hi * 4
 	add t2, s1, t2        # &vec[mid_hi]
 	lw t4, 0(t2)          # t4 = vec[mid_hi]
@@ -51,7 +63,7 @@ even_case:
 
 	j store_and_return
 
-# odd_case: median = vec[mid_hi]
+# caso impar: mediana = vec[mid_hi]
 odd_case:
 	slli t2, t0, 2        # t2 = mid_hi * 4
 	add t2, s1, t2        # &vec[mid_hi]
@@ -69,7 +81,7 @@ store_and_return:
 	li a0, 1              # return 1 (success)
 	ret
 
-# length <= 0: return 0 and do NOT modify *me
+# length <= 0: return 0
 len_le_zero:
 	li a0, 0              # return 0
 	ret
