@@ -10,6 +10,11 @@ public class Station  {
     private boolean isMainStation;
     private boolean isAirport;
 
+    //for sprint 3
+    private int id;
+    private int cordX;
+    private int cordY;
+
     public Station(String name,
                    String country,
                    Location location,
@@ -35,6 +40,15 @@ public class Station  {
         this.isCity = isCity;
         this.isMainStation = isMainStation;
         this.isAirport = isAirport;
+    }
+
+    //new constructor for sprint 3
+    public Station(int id, String name, Location location, int cordX, int cordY){
+        this.id = id;
+        this.name = normalizeName(name);
+        this.location = location;
+        this.cordX = cordX;
+        this.cordY = cordY;
     }
 
 
@@ -85,6 +99,12 @@ public class Station  {
     public String getCountry() {
         return country;
     }
+
+
+    public int getId() { return id; }
+    public int getCordX() { return cordX; }
+    public int getCordY() { return cordY; }
+
 
     public String toString(){
         String s = String.format("Station: %s, Time Zone: %s, Country: %s, Latitude: %f, Longitude %f", name, timeZoneGroup, country, location.getLatitude(), location.getLongitude());
