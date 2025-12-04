@@ -33,8 +33,8 @@ public class StationCsvLoaderS3 {
                     String name  = get(cols, idxName);
                     double lat   = Double.parseDouble(get(cols, idxLat));
                     double lon   = Double.parseDouble(get(cols, idxLon));
-                    int coordX   = Integer.parseInt(get(cols, idxX));
-                    int coordY   = Integer.parseInt(get(cols, idxY));
+                    double coordX   = Double.parseDouble(get(cols, idxX));
+                    double coordY   = Double.parseDouble(get(cols, idxY));
 
                     Location loc = new Location(lat, lon);
                     Station st   = new Station(id, name, loc, coordX, coordY);

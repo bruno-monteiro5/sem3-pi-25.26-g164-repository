@@ -20,7 +20,6 @@ public class MatrixGraph<V,E> extends CommonGraph<V,E> {
     Edge<V,E> [][] edgeMatrix;
 
 
-    @SuppressWarnings("unchecked")
     public MatrixGraph(boolean directed, int initialCapacity) {
         super(directed);
         edgeMatrix = (Edge <V,E> [][])( new Edge<?, ?>[initialCapacity][initialCapacity]);

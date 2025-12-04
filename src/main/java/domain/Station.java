@@ -12,8 +12,8 @@ public class Station  {
 
     //for sprint 3
     private int id;
-    private int cordX;
-    private int cordY;
+    private double cordX;
+    private double cordY;
 
     public Station(String name,
                    String country,
@@ -43,7 +43,7 @@ public class Station  {
     }
 
     //new constructor for sprint 3
-    public Station(int id, String name, Location location, int cordX, int cordY){
+    public Station(int id, String name, Location location, double cordX, double cordY){
         this.id = id;
         this.name = normalizeName(name);
         this.location = location;
@@ -102,8 +102,8 @@ public class Station  {
 
 
     public int getId() { return id; }
-    public int getCordX() { return cordX; }
-    public int getCordY() { return cordY; }
+    public double getCordX() { return cordX; }
+    public double getCordY() { return cordY; }
 
 
     public String toString(){
