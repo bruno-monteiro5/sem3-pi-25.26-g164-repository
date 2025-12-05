@@ -2,7 +2,7 @@ package ui;
 
 import domain.Option;
 import domain.Utils;
-import ui.RailwayNetworkOptimization.UpgradeOrderUI;
+import ui.RailwayNetworkOptimization.*;
 
 public class RailwayNetworkMenu implements Runnable {
 
@@ -22,10 +22,12 @@ public class RailwayNetworkMenu implements Runnable {
         System.out.println("                 RAILWAY NETWORK OPTIMIZATION");
         System.out.println(line(72) + RESET);
 
-        Option[] options = new Option[2];
+        Option[] options = new Option[3];
 
         options[0] = new Option("Directed Line Upgrade Plan (USEI11)", new UpgradeOrderUI());
-        options[1] = new Option(RED + "Back to Main Menu" + RESET, new MainMenu());
+        options[1] = new Option("Directed Line Upgrade Plan (USEI11)", new MinimalBackboneUI());
+        options[2] = new Option("Rail Hub Centrality Analysis (USEI13)", new HubCentralityUI());
+        options[3] = new Option(RED + "Back to Main Menu" + RESET, new MainMenu());
 
         Utils.listAndSelect(options);
     }
