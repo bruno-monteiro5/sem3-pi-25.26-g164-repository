@@ -188,6 +188,112 @@ public class HubCentralityController {
         return strengthMap;
     }
 
+    /**
+     * Computes betweenness centrality for all stations.
+     * <p>
+     * This implementation is based on Brandes' algorithm adapted to this project.
+     * For each source station, it:
+     * <ul>
+     *   <li>Finds shortest paths to all other stations</li>
+     *   <li>Counts how many shortest paths go through each vertex</li>
+     *   <li>Accumulates the dependency values to get betweenness</li>
+     * </ul>
+     * At the end, values are normalized using the standard factor
+     * (n - 1)(n - 2)/2 for undirected graphs.
+     *
+     * @param vertices list of all stations in the graph
+     * @return map station -> normalized betweenness centrality in [0,1]
+     */
+    private Map<Station, Double> computeBetweenness(List<Station> vertices) {
+        Map<Station, Double> betweennessMap = new HashMap<>();
+        int n = vertices.size();
+
+        // Initialize betweenness to zero
+        for (Station v : vertices) {
+            betweennessMap.put(v, 0.0);
+        }
+
+        // Brandes-style accumulation for each source
+        for (Station source : vertices) {
+
+            Map<Station, List<Station>> predecessors = new HashMap<>();
+            Map<Station, Integer> pathCount = new HashMap<>();
+            Map<Station, Double> distances = new HashMap<>();
+
+            for (Station v : vertices) {
+                predecessors.put(v, new ArrayList<>());
+                pathCount.put(v, 0);
+                distances.put(v, Double.POSITIVE_INFINITY);
+            }
+
+            distances.put(source, 0.0);
+            pathCount.put(source, 1);
+
+            List<Station> stack = new ArrayList<>();
+            List<Station> queue = new ArrayList<>();
+            queue.add(source);
+
+            // Shortest-path search (using a simple queue for this project)
+            while (!queue.isEmpty()) {
+                Station current = queue.remove(0);
+                stack.add(current);
+
+                for (Station neighbor : graph.adjVertices(current)) {
+                    Edge<Station, Double> edge = graph.edge(current, neighbor);
+                    double newDist = distances.get(current) + edge.getWeight();
+
+                    if (newDist < distances.get(neighbor)) {
+                        distances.put(neighbor, newDist);
+                        pathCount.put(neighbor, pathCount.get(current));
+                        predecessors.get(neighbor).clear();
+                        predecessors.get(neighbor).add(current);
+
+                        if (!queue.contains(neighbor)) {
+                            queue.add(neighbor);
+                        }
+                    } else if (Math.abs(newDist - distances.get(neighbor)) < 1e-9) {
+                        pathCount.put(neighbor,
+                                pathCount.get(neighbor) + pathCount.get(current));
+                        predecessors.get(neighbor).add(current);
+                    }
+                }
+            }
+
+            // Accumulation phase
+            Map<Station, Double> dependency = new HashMap<>();
+            for (Station v : vertices) {
+                dependency.put(v, 0.0);
+            }
+
+            for (int i = stack.size() - 1; i >= 0; i--) {
+                Station w = stack.get(i);
+
+                for (Station pred : predecessors.get(w)) {
+                    double contribution =
+                            (pathCount.get(pred) / (double) pathCount.get(w)) *
+                                    (1.0 + dependency.get(w));
+                    dependency.put(pred, dependency.get(pred) + contribution);
+                }
+
+                if (!w.equals(source)) {
+                    double currentBetweenness = betweennessMap.get(w);
+                    betweennessMap.put(w, currentBetweenness + dependency.get(w));
+                }
+            }
+        }
+
+        // Normalize betweenness to [0,1] for undirected graphs
+        double betweennessDivisor = (n - 1) * (n - 2) / 2.0;
+        if (betweennessDivisor > 0) {
+            for (Station v : vertices) {
+                double normalized = betweennessMap.get(v) / betweennessDivisor;
+                betweennessMap.put(v, normalized);
+            }
+        }
+
+        return betweennessMap;
+    }
+
 
 
 
