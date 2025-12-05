@@ -5,6 +5,7 @@ import controller.Sprint3Loaders.StationCsvLoaderS3;
 import domain.HubScore;
 import domain.Line;
 import domain.Station;
+import domain.graph.Edge;
 import domain.graph.map.MapGraph;
 import repository.S3_RailwayRepository;
 
@@ -108,6 +109,49 @@ public class HubCentralityController {
     public int getLineCount() {
         return graph != null ? graph.numEdges() : 0;
     }
+
+    /**
+     * Computes all hub centrality metrics and returns a ranked list of results.
+     * <p>
+     * Steps:
+     * <ol>
+     *   <li>Compute degree and strength for each station</li>
+     *   <li>Compute betweenness and harmonic closeness centralities</li>
+     *   <li>Normalize strength to [0,1]</li>
+     *   <li>Compute the composite HubScore =
+     *       0.35 * betweenness + 0.35 * harmonicCloseness + 0.30 * strengthNorm</li>
+     *   <li>Sort stations by HubScore descending and return the list</li>
+     * </ol>
+     *
+     * @return list of HubScore objects sorted by HubScore (highest first)
+     * @throws IllegalStateException if the graph has not been built yet
+     */
+    public List<HubScore> calculateHubCentrality() {
+        if (!isGraphBuilt()) {
+            throw new IllegalStateException("Graph not built. Load network first.");
+        }
+
+        List<Station> vertices = new ArrayList<>(graph.vertices());
+
+        // 1) Basic metrics
+        Map<Station, Integer> degreeMap      = computeDegree(vertices);
+        Map<Station, Double> strengthMap     = computeStrength(vertices);
+
+        // 2) Centrality metrics
+        Map<Station, Double> betweennessMap  = computeBetweenness(vertices);
+        Map<Station, Double> harmonicMap     = computeHarmonicCloseness(vertices);
+
+        // 3) Normalize strength to [0,1]
+        Map<Station, Double> strengthNormMap = normalizeStrength(strengthMap);
+
+        // 4) Build HubScore objects and rank them
+        return buildHubScores(vertices, degreeMap, strengthMap,
+                strengthNormMap, betweennessMap, harmonicMap);
+    }
+
+
+
+
 
 
 }
