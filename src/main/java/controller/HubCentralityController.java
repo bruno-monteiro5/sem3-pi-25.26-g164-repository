@@ -49,7 +49,6 @@ public class HubCentralityController {
     public void buildGraphFromCsv(String stationsCsvPath, String linesCsvPath)
             throws IOException {
 
-        // Load stations
         StationCsvLoaderS3 stationLoader = new StationCsvLoaderS3();
         List<Station> stations = stationLoader.load(stationsCsvPath);
 
@@ -58,16 +57,13 @@ public class HubCentralityController {
             stationsById.put(s.getId(), s);
         }
 
-        // Load lines
         LineCsvLoader lineLoader = new LineCsvLoader();
         List<Line> lines = lineLoader.load(linesCsvPath, stationsById);
 
-        // Store in repository
         S3_RailwayRepository repo = S3_RailwayRepository.getInstance();
         repo.loadStations(stations);
         repo.loadLines(lines);
 
-        // Build undirected graph
         graph = new MapGraph<>(false); // undirected
 
         for (Station s : stations) {
@@ -133,18 +129,18 @@ public class HubCentralityController {
 
         List<Station> vertices = new ArrayList<>(graph.vertices());
 
-        // 1) Basic metrics
+        // Basic metrics
         Map<Station, Integer> degreeMap      = computeDegree(vertices);
         Map<Station, Double> strengthMap     = computeStrength(vertices);
 
-        // 2) Centrality metrics
+        // Centrality metrics
         Map<Station, Double> betweennessMap  = computeBetweenness(vertices);
         Map<Station, Double> harmonicMap     = computeHarmonicCloseness(vertices);
 
-        // 3) Normalize strength to [0,1]
+        // Normalize strength to [0,1]
         Map<Station, Double> strengthNormMap = normalizeStrength(strengthMap);
 
-        // 4) Build HubScore objects and rank them
+        // Build HubScore objects and rank them
         return buildHubScores(vertices, degreeMap, strengthMap,
                 strengthNormMap, betweennessMap, harmonicMap);
     }
@@ -209,7 +205,6 @@ public class HubCentralityController {
         Map<Station, Double> betweennessMap = new HashMap<>();
         int n = vertices.size();
 
-        // Initialize betweenness to zero
         for (Station v : vertices) {
             betweennessMap.put(v, 0.0);
         }
@@ -234,7 +229,7 @@ public class HubCentralityController {
             List<Station> queue = new ArrayList<>();
             queue.add(source);
 
-            // Shortest-path search (using a simple queue for this project)
+            // Shortest-path search
             while (!queue.isEmpty()) {
                 Station current = queue.remove(0);
                 stack.add(current);
@@ -309,7 +304,6 @@ public class HubCentralityController {
         Map<Station, Double> harmonicMap = new HashMap<>();
         int n = vertices.size();
 
-        // Initialize
         for (Station v : vertices) {
             harmonicMap.put(v, 0.0);
         }
@@ -326,7 +320,6 @@ public class HubCentralityController {
             List<Station> queue = new ArrayList<>();
             queue.add(source);
 
-            // Similar to Dijkstra/BFS for this project
             while (!queue.isEmpty()) {
                 Station current = queue.remove(0);
 
@@ -355,7 +348,7 @@ public class HubCentralityController {
             }
         }
 
-        // Normalize harmonic closeness (divide by n-1)
+        // Normalize harmonic closeness
         double harmonicDivisor = n - 1.0;
         if (harmonicDivisor > 0) {
             for (Station v : vertices) {
@@ -427,7 +420,6 @@ public class HubCentralityController {
             ));
         }
 
-        // Sort using HubScore.compareTo (descending by hubScore)
         results.sort(null);
         return results;
     }
