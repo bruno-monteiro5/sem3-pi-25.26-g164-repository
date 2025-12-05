@@ -166,6 +166,28 @@ public class HubCentralityController {
         return degreeMap;
     }
 
+    /**
+     * Computes the strength (sum of incident edge weights) for each station.
+     *
+     * @param vertices list of all stations in the graph
+     * @return map station -> strength (sum of edge weights)
+     */
+    private Map<Station, Double> computeStrength(List<Station> vertices) {
+        Map<Station, Double> strengthMap = new HashMap<>();
+
+        for (Station v : vertices) {
+            double strength = 0.0;
+
+            for (Edge<Station, Double> edge : graph.outgoingEdges(v)) {
+                strength += edge.getWeight();
+            }
+
+            strengthMap.put(v, strength);
+        }
+
+        return strengthMap;
+    }
+
 
 
 
