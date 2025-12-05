@@ -149,6 +149,7 @@ public class HubCentralityController {
                 strengthNormMap, betweennessMap, harmonicMap);
     }
 
+
     /**
      * Computes the degree (number of direct neighbors) for each station.
      *
@@ -366,8 +367,68 @@ public class HubCentralityController {
         return harmonicMap;
     }
 
+    /**
+     * Normalizes strength values to the range [0,1] by dividing by the maximum strength.
+     *
+     * @param strengthMap raw strength values (station -> strength)
+     * @return map station -> normalized strength in [0,1]
+     */
+    private Map<Station, Double> normalizeStrength(Map<Station, Double> strengthMap) {
+        double maxStrength = 0.0;
+        for (double s : strengthMap.values()) {
+            if (s > maxStrength) {
+                maxStrength = s;
+            }
+        }
 
+        Map<Station, Double> strengthNormMap = new HashMap<>();
+        for (Map.Entry<Station, Double> e : strengthMap.entrySet()) {
+            double normalized = maxStrength > 0 ? e.getValue() / maxStrength : 0.0;
+            strengthNormMap.put(e.getKey(), normalized);
+        }
 
+        return strengthNormMap;
+    }
 
+    /**
+     * Builds the final list of HubScore objects and sorts them by HubScore descending.
+     *
+     * @param vertices        list of all stations
+     * @param degreeMap       degree values per station
+     * @param strengthMap     raw strength values per station
+     * @param strengthNormMap normalized strength values per station
+     * @param betweennessMap  betweenness centrality values per station
+     * @param harmonicMap     harmonic closeness centrality values per station
+     * @return sorted list of HubScore objects (highest HubScore first)
+     */
+    private List<HubScore> buildHubScores(List<Station> vertices,
+                                          Map<Station, Integer> degreeMap,
+                                          Map<Station, Double> strengthMap,
+                                          Map<Station, Double> strengthNormMap,
+                                          Map<Station, Double> betweennessMap,
+                                          Map<Station, Double> harmonicMap) {
 
+        List<HubScore> results = new ArrayList<>();
+
+        for (Station v : vertices) {
+            double betw    = betweennessMap.get(v);
+            double harm    = harmonicMap.get(v);
+            double strNorm = strengthNormMap.get(v);
+
+            double hubScore = 0.35 * betw + 0.35 * harm + 0.30 * strNorm;
+
+            results.add(new HubScore(
+                    v,
+                    degreeMap.get(v),
+                    strengthMap.get(v),
+                    betw,
+                    harm,
+                    hubScore
+            ));
+        }
+
+        // Sort using HubScore.compareTo (descending by hubScore)
+        results.sort(null);
+        return results;
+    }
 }
