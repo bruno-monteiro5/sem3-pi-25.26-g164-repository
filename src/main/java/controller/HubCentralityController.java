@@ -149,6 +149,22 @@ public class HubCentralityController {
                 strengthNormMap, betweennessMap, harmonicMap);
     }
 
+    /**
+     * Computes the degree (number of direct neighbors) for each station.
+     *
+     * @param vertices list of all stations in the graph
+     * @return map station -> degree
+     */
+    private Map<Station, Integer> computeDegree(List<Station> vertices) {
+        Map<Station, Integer> degreeMap = new HashMap<>();
+
+        for (Station v : vertices) {
+            int degree = graph.outDegree(v);
+            degreeMap.put(v, degree);
+        }
+
+        return degreeMap;
+    }
 
 
 
