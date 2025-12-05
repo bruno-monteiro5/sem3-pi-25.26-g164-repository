@@ -294,6 +294,78 @@ public class HubCentralityController {
         return betweennessMap;
     }
 
+    /**
+     * Computes harmonic closeness centrality for all stations.
+     * <p>
+     * For each source station, it computes shortest-path distances to all
+     * other stations and accumulates 1/distance for each reachable target.
+     * At the end, values are normalized by (n - 1).
+     *
+     * @param vertices list of all stations in the graph
+     * @return map station -> normalized harmonic closeness in [0,1] (approximately)
+     */
+    private Map<Station, Double> computeHarmonicCloseness(List<Station> vertices) {
+        Map<Station, Double> harmonicMap = new HashMap<>();
+        int n = vertices.size();
+
+        // Initialize
+        for (Station v : vertices) {
+            harmonicMap.put(v, 0.0);
+        }
+
+        // For each station as source, run a shortest-path search
+        for (Station source : vertices) {
+
+            Map<Station, Double> distances = new HashMap<>();
+            for (Station v : vertices) {
+                distances.put(v, Double.POSITIVE_INFINITY);
+            }
+            distances.put(source, 0.0);
+
+            List<Station> queue = new ArrayList<>();
+            queue.add(source);
+
+            // Similar to Dijkstra/BFS for this project
+            while (!queue.isEmpty()) {
+                Station current = queue.remove(0);
+
+                for (Station neighbor : graph.adjVertices(current)) {
+                    Edge<Station, Double> edge = graph.edge(current, neighbor);
+                    double newDist = distances.get(current) + edge.getWeight();
+
+                    if (newDist < distances.get(neighbor)) {
+                        distances.put(neighbor, newDist);
+                        if (!queue.contains(neighbor)) {
+                            queue.add(neighbor);
+                        }
+                    }
+                }
+            }
+
+            // Accumulate harmonic closeness contributions
+            for (Station target : vertices) {
+                if (!source.equals(target)) {
+                    double dist = distances.get(target);
+                    if (dist > 0 && dist < Double.POSITIVE_INFINITY) {
+                        double current = harmonicMap.get(target);
+                        harmonicMap.put(target, current + (1.0 / dist));
+                    }
+                }
+            }
+        }
+
+        // Normalize harmonic closeness (divide by n-1)
+        double harmonicDivisor = n - 1.0;
+        if (harmonicDivisor > 0) {
+            for (Station v : vertices) {
+                double normalized = harmonicMap.get(v) / harmonicDivisor;
+                harmonicMap.put(v, normalized);
+            }
+        }
+
+        return harmonicMap;
+    }
+
 
 
 
