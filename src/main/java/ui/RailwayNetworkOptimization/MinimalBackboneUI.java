@@ -5,6 +5,7 @@ import domain.MinimalBackboneResult;
 import domain.Station;
 import domain.graph.Edge;
 import domain.graph.map.MapGraph;
+import ui.RailwayNetworkMenu;
 import ui.UIHelper;
 
 import java.io.IOException;
@@ -65,6 +66,8 @@ public class MinimalBackboneUI implements Runnable {
             UIHelper.printError("Unexpected error: " + e.getMessage());
             e.printStackTrace();
         }
+
+        new RailwayNetworkMenu().run();
     }
 
     private void displayResults(MinimalBackboneResult result) {
