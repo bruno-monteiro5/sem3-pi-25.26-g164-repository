@@ -22,10 +22,10 @@ public class RailwayNetworkMenu implements Runnable {
         System.out.println("                 RAILWAY NETWORK OPTIMIZATION");
         System.out.println(line(72) + RESET);
 
-        Option[] options = new Option[3];
+        Option[] options = new Option[4];
 
         options[0] = new Option("Directed Line Upgrade Plan (USEI11)", new UpgradeOrderUI());
-        options[1] = new Option("Directed Line Upgrade Plan (USEI11)", new MinimalBackboneUI());
+        options[1] = new Option("Minimal Backbone Network (USEI12)", new MinimalBackboneUI());
         options[2] = new Option("Rail Hub Centrality Analysis (USEI13)", new HubCentralityUI());
         options[3] = new Option(RED + "Back to Main Menu" + RESET, new MainMenu());
 
