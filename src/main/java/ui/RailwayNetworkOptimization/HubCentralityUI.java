@@ -104,12 +104,9 @@ public class HubCentralityUI implements Runnable {
         System.out.println("\n" + CYAN + "⏳ Loading railway network..." + RESET);
 
         try {
-            long start = System.currentTimeMillis();
             controller.buildGraphFromCsv(stationsCsv, linesCsv);
-            long duration = System.currentTimeMillis() - start;
 
-            System.out.printf(GREEN + "✓ Network loaded successfully in %.2f seconds\n" + RESET,
-                    duration / 1000.0);
+            System.out.println(GREEN + "✓ Network loaded successfully" + RESET);
             System.out.printf("  • %d stations\n", controller.getStationCount());
             System.out.printf("  • %d connections\n", controller.getLineCount());
 
@@ -135,11 +132,8 @@ public class HubCentralityUI implements Runnable {
         System.out.println("\n" + CYAN + "⏳ Calculating hub centrality metrics..." + RESET);
 
         try {
-            long start = System.currentTimeMillis();
             List<HubScore> results = controller.calculateHubCentrality();
-            long duration = System.currentTimeMillis() - start;
-
-            displayResults(results, duration);
+            displayResults(results);
 
         } catch (Exception e) {
             System.out.println(RED + "Error calculating centrality: " + e.getMessage() + RESET);
@@ -154,17 +148,16 @@ public class HubCentralityUI implements Runnable {
      * Displays the calculated hub centrality results.
      *
      * @param results list of HubScore objects sorted by hubScore
-     * @param durationMs computation time in milliseconds
      */
-    private void displayResults(List<HubScore> results, long durationMs) {
+    private void displayResults(List<HubScore> results) {
         clear();
         System.out.println(CYAN + line(120));
         System.out.println("                                 HUB CENTRALITY ANALYSIS RESULTS");
         System.out.println(line(120) + RESET);
-        System.out.printf("Computation time: %.3f seconds | Total stations: %d\n\n",
-                durationMs / 1000.0, results.size());
 
-        System.out.printf("%-4s %-35s %-8s %-10s %-12s %-12s %-10s\n",
+        System.out.printf("Total stations: %d\n\n", results.size());
+
+        System.out.printf("%-4s %-35s %-8s %-10s %-12s %-12s %-12s %-10s\n",
                 "Rank", "Station Name", "ID", "Degree", "Strength", "Betweenness", "Harmonic", "HubScore");
         System.out.println(line(120));
 
