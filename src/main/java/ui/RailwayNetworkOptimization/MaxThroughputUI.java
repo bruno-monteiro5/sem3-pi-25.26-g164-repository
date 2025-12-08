@@ -2,6 +2,7 @@ package ui.RailwayNetworkOptimization;
 
 import controller.UpgradeOrderController;
 import domain.Option;
+import domain.Station;
 import domain.Utils;
 import ui.RailwayNetworkMenu;
 import ui.UIHelper;
@@ -9,6 +10,8 @@ import ui.UIHelper;
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
+
+import controller.MaxThroughputController;
 
 public class MaxThroughputUI implements Runnable {
     private static final String RESET = UIHelper.getReset();
@@ -28,12 +31,20 @@ public class MaxThroughputUI implements Runnable {
                     "train_station_dataset" + File.separator +
                     "lines.csv";
 
-    private UpgradeOrderController controller = new UpgradeOrderController();
+    private MaxThroughputController controller = new MaxThroughputController();
+
+    /**
+     * Main runnable method
+     */
 
     @Override
     public void run() {
         menu();
     }
+
+    /**
+     * Main menu method
+     */
 
     public void menu() {
         clear();
@@ -60,6 +71,10 @@ public class MaxThroughputUI implements Runnable {
 
         Utils.listAndSelect(options);
     }
+
+    /**
+     * Method used to load railway network from CSV files.
+     */
 
     private void loadNetworkAction() {
         Scanner sc = new Scanner(System.in);
@@ -109,21 +124,62 @@ public class MaxThroughputUI implements Runnable {
         menu();
     }
 
-    public void genMaxThrough(){
+    /**
+     * Method used to generate maximum throughput between two stations using the controller methods.
+     */
 
+    public void genMaxThrough() {
+        clear();
+        System.out.println(CYAN + "=== MAXIMUM THROUGHPUT BETWEEN TWO STATIONS (USEI14) ===" + RESET);
+
+        if (!controller.isGraphBuilt()) {
+            System.out.println(RED + "⚠ Railway network graph is not loaded yet!" + RESET);
+            pause();
+            menu();
+            return;
+        }
+
+        Scanner sc = new Scanner(System.in);
+        try {
+            System.out.print(CYAN + "Enter SOURCE station ID: " + RESET);
+            int srcId = Integer.parseInt(sc.nextLine().trim());
+
+            System.out.print(CYAN + "Enter TARGET station ID: " + RESET);
+            int dstId = Integer.parseInt(sc.nextLine().trim());
+
+            Station src = controller.getStationById(srcId);
+            Station dst = controller.getStationById(dstId);
+
+            if (src == null || dst == null) {
+                System.out.println(RED + "❌ Invalid station ID(s)." + RESET);
+                pause();
+                menu();
+                return;
+            }
+
+            System.out.println("\n" + CYAN + "⏳ Computing Maximum Throughput..." + RESET);
+            long start = System.currentTimeMillis();
+            int maxFlow = controller.computeMaxFlow(src, dst);
+            long duration = System.currentTimeMillis() - start;
+
+            System.out.println(GREEN + "\n✓ Maximum Throughput Computed" + RESET);
+            System.out.printf("  • Source ID: %d  Name: %s\n", srcId, src.getName());
+            System.out.printf("  • Target ID: %d  Name: %s\n", dstId, dst.getName());
+            System.out.printf("  • Max Flow Value: %d trains/day\n", maxFlow);
+
+            // Per PDF: Edmonds-Karp complexity O(V * E^2)
+            System.out.println(YELLOW + "\nTemporal Complexity (Edmonds–Karp / BFS variant): O(V · E^2)" + RESET);
+            System.out.printf("Execution Time: %d ms\n", duration);
+
+        } catch (NumberFormatException ex) {
+            System.out.println(RED + "❌ Invalid input. Please enter numeric station IDs." + RESET);
+        }
+
+        pause();
+        menu();
     }
 
-    private void pause() {
-        UIHelper.pause();
-    }
-
-    private void clear() {
-        UIHelper.clear();
-    }
-
-    private String line(int n) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < n; i++) sb.append(SEP);
-        return sb.toString();
-    }
+    private void pause() { UIHelper.pause(); }
+    private void clear() { UIHelper.clear(); }
+    private String line(int n) { StringBuilder sb = new StringBuilder(); for (int i=0;i<n;i++) sb.append(SEP); return sb.toString(); }
 }
