@@ -16,7 +16,7 @@ class MaxThroughputControllerTest {
     private final String linesCsv = "test_lines.csv";
 
     /**
-     * We build a small known flow network:
+     * We build a small known flow network in order to make a more grounded and simplified (yet as efficient) test:
      *
      *      (6) ----10----> (8)
      *       |               |
