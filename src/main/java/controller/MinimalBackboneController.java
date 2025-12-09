@@ -4,6 +4,7 @@ import controller.Sprint3Loaders.LineCsvLoader;
 import controller.Sprint3Loaders.StationCsvLoaderS3;
 import domain.Line;
 import domain.MinimalBackboneResult;
+import domain.RailwayGraphBuilder;
 import domain.Station;
 import domain.graph.Edge;
 import domain.graph.map.MapGraph;
@@ -11,120 +12,65 @@ import repository.S3_RailwayRepository;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Controller for USEI12 - Minimal Backbone Network.
- * <p>
- * Computes a minimum spanning tree over the railway network using Kruskal's algorithm.
- * The resulting network connects all reachable stations with minimum total track length.
- * <p>
- * The backbone is computed treating the directed graph as undirected, as the goal is
- * to identify a minimal physical infrastructure that connects all stations.
+ * Computes minimum spanning tree using Kruskal's algorithm.
  */
 public class MinimalBackboneController {
 
-    private MapGraph<Station, Double> directedGraph;
-    private MapGraph<Station, Double> backboneGraph;
-    private boolean graphBuilt;
+    private final S3_RailwayRepository repo;
 
-    /**
-     * Creates a new controller with no graph loaded.
-     */
     public MinimalBackboneController() {
-        this.directedGraph = null;
-        this.backboneGraph = null;
-        this.graphBuilt = false;
+        this.repo = S3_RailwayRepository.getInstance();
     }
 
     /**
      * Builds the railway network graph from CSV files.
-     * <p>
-     * Loads stations and lines from the provided CSV paths and constructs
-     * a directed graph representation of the railway network.
-     *
-     * @param stationsCsv path to the stations CSV file
-     * @param linesCsv    path to the lines CSV file
-     * @throws IOException if file reading fails
+     * Updates the central repository.
      */
     public void buildGraphFromCsv(String stationsCsv, String linesCsv) throws IOException {
         StationCsvLoaderS3 stationLoader = new StationCsvLoaderS3();
         List<Station> stations = stationLoader.load(stationsCsv);
 
-        LineCsvLoader lineLoader = new LineCsvLoader();
-        List<Line> lines = lineLoader.load(linesCsv, createStationMap(stations));
+        Map<Integer, Station> stationsById = new HashMap<>();
+        for (Station s : stations) {
+            stationsById.put(s.getId(), s);
+        }
 
-        S3_RailwayRepository repo = S3_RailwayRepository.getInstance();
+        LineCsvLoader lineLoader = new LineCsvLoader();
+        List<Line> lines = lineLoader.load(linesCsv, stationsById);
+
         repo.loadStations(stations);
         repo.loadLines(lines);
-
-        buildGraph(stations, lines);
-        graphBuilt = true;
-    }
-
-    /**
-     * Creates a map of station ID to Station object.
-     *
-     * @param stations list of stations
-     * @return map with station IDs as keys
-     */
-    private java.util.Map<Integer, Station> createStationMap(List<Station> stations) {
-        java.util.Map<Integer, Station> map = new java.util.HashMap<>();
-        for (Station s : stations) {
-            map.put(s.getId(), s);
-        }
-        return map;
-    }
-
-    /**
-     * Builds the internal graph representation from stations and lines.
-     *
-     * @param stations list of all stations
-     * @param lines    list of all railway lines
-     */
-    private void buildGraph(List<Station> stations, List<Line> lines) {
-        directedGraph = new MapGraph<>(true);
-
-        for (Station s : stations) {
-            directedGraph.addVertex(s);
-        }
-
-        for (Line line : lines) {
-            Station origin = line.getOrigin();
-            Station dest = line.getDestination();
-            double distance = line.getDistance();
-
-            directedGraph.addEdge(origin, dest, distance);
-        }
     }
 
     /**
      * Computes the minimal backbone network using Kruskal's algorithm.
-     * <p>
-     * The algorithm treats the directed graph as undirected and finds the
-     * minimum spanning tree that connects all reachable stations with
-     * minimum total distance.
-     *
-     * @return result object containing the backbone graph and total distance
-     * @throws IllegalStateException if graph has not been built
+     * Uses the undirected graph from the repository.
      */
     public MinimalBackboneResult calculateMinimalBackbone() {
-        if (!graphBuilt) {
-            throw new IllegalStateException("Graph not built. Call buildGraphFromCsv first.");
+        if (!repo.isDataLoaded()) {
+            throw new IllegalStateException("Data not loaded. Call buildGraphFromCsv first.");
         }
 
+        RailwayGraphBuilder builder = new RailwayGraphBuilder(repo);
+        MapGraph<Station, Double> directedGraph = builder.buildDirectedGraphWithDistance();
+
         MapGraph<Station, Double> undirectedGraph = convertToUndirected(directedGraph);
-        backboneGraph = kruskallMST(undirectedGraph);
+        MapGraph<Station, Double> backboneGraph = kruskallMST(undirectedGraph);
         double totalDistance = calculateTotalDistance(backboneGraph);
 
         return new MinimalBackboneResult(backboneGraph, totalDistance);
     }
 
     /**
-     * Converts a directed graph to an undirected representation.
-     *
-     * @param directed the directed graph
-     * @return undirected graph representation
+     * Converts a directed graph to undirected representation.
      */
     private MapGraph<Station, Double> convertToUndirected(MapGraph<Station, Double> directed) {
         MapGraph<Station, Double> undirected = new MapGraph<>(false);
@@ -133,7 +79,7 @@ public class MinimalBackboneController {
             undirected.addVertex(s);
         }
 
-        java.util.Set<String> addedEdges = new java.util.HashSet<>();
+        Set<String> addedEdges = new HashSet<>();
 
         for (Edge<Station, Double> edge : directed.edges()) {
             Station u = edge.getVOrig();
@@ -159,22 +105,12 @@ public class MinimalBackboneController {
         return undirected;
     }
 
-    /**
-     * Creates a unique key for an edge between two stations.
-     *
-     * @param s1 first station
-     * @param s2 second station
-     * @return string key representing the edge
-     */
     private String createEdgeKey(Station s1, Station s2) {
         return s1.getId() + "-" + s2.getId();
     }
 
     /**
-     * Implements Kruskal's algorithm to find the minimum spanning tree.
-     *
-     * @param graph undirected graph
-     * @return minimum spanning tree as a graph
+     * Kruskal's algorithm for MST.
      */
     private MapGraph<Station, Double> kruskallMST(MapGraph<Station, Double> graph) {
         MapGraph<Station, Double> mst = new MapGraph<>(false);
@@ -204,11 +140,6 @@ public class MinimalBackboneController {
         return mst;
     }
 
-    /**
-     * Sorts edges by weight in ascending order using bubble sort (to avoid lambdas/comparators).
-     *
-     * @param edges list of edges to sort (modified in place)
-     */
     private void sortEdgesByWeight(List<Edge<Station, Double>> edges) {
         int n = edges.size();
         for (int i = 0; i < n - 1; i++) {
@@ -222,12 +153,6 @@ public class MinimalBackboneController {
         }
     }
 
-    /**
-     * Calculates the total distance (sum of all edge weights) in the graph.
-     *
-     * @param graph the graph to measure
-     * @return total sum of edge weights
-     */
     private double calculateTotalDistance(MapGraph<Station, Double> graph) {
         double total = 0.0;
         for (Edge<Station, Double> edge : graph.edges()) {
@@ -236,16 +161,28 @@ public class MinimalBackboneController {
         return total;
     }
 
+    public boolean isGraphBuilt() {
+        return repo.isDataLoaded();
+    }
+
+    public int getStationCount() {
+        return repo.getStationCount();
+    }
+
+    public int getLineCount() {
+        return repo.getLineCount();
+    }
+
     /**
-     * Union-Find (Disjoint Set Union) data structure for cycle detection.
+     * Union-Find data structure.
      */
     private static class UnionFind {
-        private java.util.Map<Station, Station> parent;
-        private java.util.Map<Station, Integer> rank;
+        private Map<Station, Station> parent;
+        private Map<Station, Integer> rank;
 
         public UnionFind(List<Station> stations) {
-            parent = new java.util.HashMap<>();
-            rank = new java.util.HashMap<>();
+            parent = new HashMap<>();
+            rank = new HashMap<>();
             for (Station s : stations) {
                 parent.put(s, s);
                 rank.put(s, 0);
@@ -263,9 +200,7 @@ public class MinimalBackboneController {
             Station root1 = find(s1);
             Station root2 = find(s2);
 
-            if (root1.equals(root2)) {
-                return;
-            }
+            if (root1.equals(root2)) return;
 
             int rank1 = rank.get(root1);
             int rank2 = rank.get(root2);
