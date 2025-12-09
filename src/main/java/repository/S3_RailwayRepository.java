@@ -7,7 +7,7 @@ import java.util.*;
 
 public class S3_RailwayRepository {
 
-    private static final S3_RailwayRepository INSTANCE = new S3_RailwayRepository();
+    private static S3_RailwayRepository instance = null;
 
     private final Map<Integer, Station> stationsById = new HashMap<>();
     private final List<Line> lines = new ArrayList<>();
@@ -15,7 +15,10 @@ public class S3_RailwayRepository {
     private S3_RailwayRepository() {}
 
     public static S3_RailwayRepository getInstance() {
-        return INSTANCE;
+        if (instance == null) {
+            instance = new S3_RailwayRepository();
+        }
+        return instance;
     }
 
     public void loadStations(List<Station> stations) {
