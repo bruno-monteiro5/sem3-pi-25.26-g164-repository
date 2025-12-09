@@ -91,8 +91,8 @@ public class UpgradeOrderController {
     }
 
     /**
-     * Detecta ciclos no grafo usando DFS com coloração
-     * Retorna lista de ciclos encontrados
+     * Detecta ciclos no grafo usando DFS com coloração.
+     * Retorna lista de ciclos encontrados (cada ciclo é uma lista de estações).
      */
     private List<List<Station>> detectCycles() {
         List<List<Station>> cycles = new ArrayList<>();
@@ -101,18 +101,19 @@ public class UpgradeOrderController {
         Map<Station, Station> parent = new HashMap<>();
 
         // 0 = branco (não visitado)
-        // 1 = cinza (em processamento)
-        // 2 = preto (processado)
+        // 1 = cinza (em processamento - está na pilha DFS)
+        // 2 = preto (processado - já terminou)
 
         for (Station s : graph.vertices()) {
             color.put(s, 0);
             parent.put(s, null);
         }
 
+        // Percorrer todos os vértices
         for (Station s : graph.vertices()) {
             if (color.get(s) == 0) {
-                List<Station> cycle = dfsCycleDetection(s, color, parent);
-                if (cycle != null) {
+                List<Station> cycle = dfsCycleDetection(s, color, parent, new LinkedList<>());
+                if (cycle != null && !cycle.isEmpty()) {
                     cycles.add(cycle);
                 }
             }
@@ -122,48 +123,82 @@ public class UpgradeOrderController {
     }
 
     /**
-     * DFS auxiliar para detecção de ciclos
+     * DFS auxiliar para detecção de ciclos.
+     * Usa uma pilha de recursão (path) para rastrear o caminho atual.
+     *
+     * @param u vértice atual
+     * @param color mapa de cores dos vértices
+     * @param parent mapa de predecessores
+     * @param path pilha de recursão (caminho atual)
+     * @return ciclo encontrado ou null
      */
     private List<Station> dfsCycleDetection(Station u,
                                             Map<Station, Integer> color,
-                                            Map<Station, Station> parent) {
-        color.put(u, 1); // cinza
+                                            Map<Station, Station> parent,
+                                            LinkedList<Station> path) {
 
+        // Marca como "em processamento" (cinza)
+        color.put(u, 1);
+        path.addLast(u);  // adiciona à pilha de recursão
+
+        // Explorar todos os vizinhos
         for (Station v : graph.adjVertices(u)) {
-            parent.put(v, u);
 
+            // CASO 1: Vértice cinza → BACK EDGE → CICLO DETECTADO!
             if (color.get(v) == 1) {
-                // Back edge - ciclo encontrado
-                return reconstructCycle(u, v, parent);
+                // Reconstruir ciclo desde v até u (que está no path)
+                List<Station> cycle = extractCycle(path, v);
+                return cycle;
             }
 
+            // CASO 2: Vértice branco → explorar recursivamente
             if (color.get(v) == 0) {
-                List<Station> cycle = dfsCycleDetection(v, color, parent);
+                parent.put(v, u);  // definir predecessor apenas na primeira visita
+
+                List<Station> cycle = dfsCycleDetection(v, color, parent, path);
                 if (cycle != null) {
-                    return cycle;
+                    return cycle;  // propagar ciclo encontrado
                 }
             }
+
+            // CASO 3: Vértice preto → ignorar (já foi completamente processado)
         }
 
-        color.put(u, 2); // preto
-        return null;
+        // Marca como "processado" (preto)
+        color.put(u, 2);
+        path.removeLast();  // remove da pilha de recursão
+
+        return null;  // nenhum ciclo encontrado neste caminho
     }
 
     /**
-     * Reconstrói o ciclo a partir dos predecessores
+     * Extrai o ciclo do caminho atual (path) quando uma back edge é detectada.
+     *
+     * @param path pilha de recursão (caminho atual do DFS)
+     * @param cycleStart vértice onde o ciclo começa (destino da back edge)
+     * @return lista de estações que formam o ciclo
      */
-    private List<Station> reconstructCycle(Station start, Station end,
-                                           Map<Station, Station> parent) {
+    private List<Station> extractCycle(LinkedList<Station> path, Station cycleStart) {
         List<Station> cycle = new ArrayList<>();
-        cycle.add(end);
 
-        Station current = start;
-        while (current != null && !current.equals(end)) {
-            cycle.add(0, current);
-            current = parent.get(current);
+        boolean inCycle = false;
+
+        // Percorrer o path de trás para frente
+        for (Station s : path) {
+            if (s.equals(cycleStart)) {
+                inCycle = true;
+            }
+
+            if (inCycle) {
+                cycle.add(s);
+            }
         }
 
-        cycle.add(end); // fechar o ciclo
+        // Adicionar novamente o início do ciclo para fechar
+        if (!cycle.isEmpty()) {
+            cycle.add(cycleStart);
+        }
+
         return cycle;
     }
 
