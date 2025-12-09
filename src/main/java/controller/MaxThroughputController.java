@@ -3,8 +3,8 @@ package controller;
 import controller.Sprint3Loaders.LineCsvLoader;
 import controller.Sprint3Loaders.StationCsvLoaderS3;
 import domain.Line;
+import domain.RailwayGraphBuilder;
 import domain.Station;
-import domain.graph.Graph;
 import domain.graph.map.MapGraph;
 import repository.S3_RailwayRepository;
 
@@ -12,15 +12,18 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Class used for the backbone operations in the calculation of the Maximum throughput in a line between two stations.
+ * Controller for USEI14 - Maximum Throughput Calculator.
  */
 public class MaxThroughputController {
 
-    public Graph<Station, Double> graph = null;
-    public boolean graphBuilt = false;
+    private final S3_RailwayRepository repo;
+
+    public MaxThroughputController() {
+        this.repo = S3_RailwayRepository.getInstance();
+    }
 
     /**
-     * Loads CSVs and builds directed graph.
+     * Loads CSVs and updates the repository.
      */
     public void buildGraphFromCsv(String stationsCsv, String linesCsv) throws IOException {
         StationCsvLoaderS3 stationLoader = new StationCsvLoaderS3();
@@ -34,44 +37,32 @@ public class MaxThroughputController {
         LineCsvLoader lineLoader = new LineCsvLoader();
         List<Line> lines = lineLoader.load(linesCsv, stationsById);
 
-        S3_RailwayRepository repo = S3_RailwayRepository.getInstance();
         repo.loadStations(stations);
         repo.loadLines(lines);
-
-        buildGraph(stations, lines);
-        graphBuilt = true;
     }
 
     /**
-     * Builds a directed MapGraph using line.capacity as the edge weight (capacity).
-     * This change is required because the max-flow problem uses capacities (c(E)), not distances.
-     */
-    private void buildGraph(List<Station> stations, List<Line> lines) {
-        graph = new MapGraph<>(true);
-
-        for (Station s : stations) {
-            graph.addVertex(s);
-        }
-
-        for (Line line : lines) {
-            Station origin = line.getOrigin();
-            Station dest = line.getDestination();
-            double capacity = line.getCapacity();
-            graph.addEdge(origin, dest, capacity);
-        }
-    }
-
-    /**
-     * Computes maximum flow between source and target.
-     *
-     * Implementation notes:
-     * - Builds an integer residual capacity map from graph edge weights (casts to int).
-     * - Uses BFS to find the shortest augmenting paths.
+     * Computes maximum flow between source and target using Edmonds-Karp.
+     * Uses capacity-based directed graph from the repository.
      */
     public int computeMaxFlow(Station source, Station target) {
-        if (graph == null) return 0;
+        if (!repo.isDataLoaded()) {
+            throw new IllegalStateException("Data not loaded.");
+        }
 
+        RailwayGraphBuilder builder = new RailwayGraphBuilder(repo);
+        MapGraph<Station, Double> graph = builder.buildDirectedGraphWithCapacity();
+
+        Map<Station, Map<Station, Integer>> residual = buildResidualGraph(graph);
+        return edmondsKarp(residual, source, target);
+    }
+
+    /**
+     * Builds residual capacity map from the graph.
+     */
+    private Map<Station, Map<Station, Integer>> buildResidualGraph(MapGraph<Station, Double> graph) {
         Map<Station, Map<Station, Integer>> residual = new HashMap<>();
+
         for (Station u : graph.vertices()) {
             residual.put(u, new HashMap<>());
         }
@@ -85,6 +76,15 @@ public class MaxThroughputController {
             }
         }
 
+        return residual;
+    }
+
+    /**
+     * Edmonds-Karp algorithm (Ford-Fulkerson with BFS).
+     */
+    private int edmondsKarp(Map<Station, Map<Station, Integer>> residual,
+                            Station source,
+                            Station target) {
         int maxFlow = 0;
 
         while (true) {
@@ -112,14 +112,12 @@ public class MaxThroughputController {
     }
 
     /**
-     * BFS to find the shortest augmenting path from source to target in the residual graph.
-     * Returns path flow, or 0 if none.
+     * BFS to find augmenting path. Returns path flow or 0.
      */
     private int bfsFindAugmentingPath(Station source,
                                       Station target,
                                       Map<Station, Station> parent,
                                       Map<Station, Map<Station, Integer>> residual) {
-
         Queue<Station> q = new LinkedList<>();
         q.add(source);
         parent.clear();
@@ -158,22 +156,18 @@ public class MaxThroughputController {
     }
 
     public boolean isGraphBuilt() {
-        return graphBuilt;
+        return repo.isDataLoaded();
     }
 
     public int getStationCount() {
-        return graph == null ? 0 : graph.numVertices();
+        return repo.getStationCount();
     }
 
     public int getLineCount() {
-        return graph == null ? 0 : graph.numEdges();
+        return repo.getLineCount();
     }
 
     public Station getStationById(int id) {
-        if (graph == null) return null;
-        for (Station s : graph.vertices()) {
-            if (s.getId() == id) return s;
-        }
-        return null;
+        return repo.getStationById(id);
     }
 }
