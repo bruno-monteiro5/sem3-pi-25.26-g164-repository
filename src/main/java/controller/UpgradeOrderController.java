@@ -101,8 +101,8 @@ public class UpgradeOrderController {
     }
 
     /**
-     * Detecta ciclos no grafo usando DFS com coloração.
-     * Retorna lista de ciclos encontrados (cada ciclo é uma lista de estações).
+     * Detecta ciclos no grafo usando DFS com coloração
+     * Retorna lista de ciclos encontrados
      */
     private List<List<Station>> detectCycles() {
         List<List<Station>> cycles = new ArrayList<>();
@@ -181,13 +181,6 @@ public class UpgradeOrderController {
         return null;  // nenhum ciclo encontrado neste caminho
     }
 
-    /**
-     * Extrai o ciclo do caminho atual (path) quando uma back edge é detectada.
-     *
-     * @param path pilha de recursão (caminho atual do DFS)
-     * @param cycleStart vértice onde o ciclo começa (destino da back edge)
-     * @return lista de estações que formam o ciclo
-     */
     private List<Station> extractCycle(LinkedList<Station> path, Station cycleStart) {
         List<Station> cycle = new ArrayList<>();
 
