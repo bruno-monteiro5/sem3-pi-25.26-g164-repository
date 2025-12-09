@@ -37,7 +37,6 @@ public class HubScore implements Comparable<HubScore> {
         this.hubScore = hubScore;
     }
 
-    // Getters
     public Station getStation() { return station; }
     public int getDegree() { return degree; }
     public double getStrength() { return strength; }

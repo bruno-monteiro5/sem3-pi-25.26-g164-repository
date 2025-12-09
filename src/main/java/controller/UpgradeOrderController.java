@@ -23,6 +23,16 @@ public class UpgradeOrderController {
     private MapGraph<Station, Double> graph;
     private boolean graphBuilt = false;
 
+    public UpgradeOrderController() {
+        S3_RailwayRepository repo = S3_RailwayRepository.getInstance();
+        if (!repo.getStationsById().isEmpty() && !repo.getLines().isEmpty()) {
+            List<Station> stations = new ArrayList<>(repo.getStationsById().values());
+            List<Line> lines = repo.getLines();
+            buildGraph(stations, lines);
+            graphBuilt = true;
+        }
+    }
+
     /**
      * Carrega os dados dos CSVs e constrói o grafo direcionado
      */

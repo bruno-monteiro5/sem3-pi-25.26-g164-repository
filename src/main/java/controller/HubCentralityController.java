@@ -89,22 +89,35 @@ public class HubCentralityController {
     }
 
     /**
-     * Returns the number of stations in the network.
+     * Returns the number of stations (vertices) in the railway network graph.
+     * If the graph has not been built yet, returns 0.
      *
-     * @return station count
+     * @return total number of stations in the graph
      */
     public int getStationCount() {
-        return graph != null ? graph.numVertices() : 0;
+
+        if (graph == null) {
+            return 0;
+        }
+
+        return graph.numVertices();
     }
 
     /**
-     * Returns the number of connections in the network.
+     * Returns the number of railway connections (edges) in the graph.
+     * If the graph has not been built yet, returns 0.
      *
-     * @return edge count (undirected, so each line counted once)
+     * @return total number of edges in the graph
      */
     public int getLineCount() {
-        return graph != null ? graph.numEdges() : 0;
+
+        if (graph == null) {
+            return 0;
+        }
+
+        return graph.numEdges();
     }
+
 
     /**
      * Computes all hub centrality metrics and returns a ranked list of results.
@@ -209,7 +222,6 @@ public class HubCentralityController {
             betweennessMap.put(v, 0.0);
         }
 
-        // Brandes-style accumulation for each source
         for (Station source : vertices) {
 
             Map<Station, List<Station>> predecessors = new HashMap<>();
@@ -248,8 +260,7 @@ public class HubCentralityController {
                             queue.add(neighbor);
                         }
                     } else if (Math.abs(newDist - distances.get(neighbor)) < 1e-9) {
-                        pathCount.put(neighbor,
-                                pathCount.get(neighbor) + pathCount.get(current));
+                        pathCount.put(neighbor, pathCount.get(neighbor) + pathCount.get(current));
                         predecessors.get(neighbor).add(current);
                     }
                 }
@@ -265,9 +276,7 @@ public class HubCentralityController {
                 Station w = stack.get(i);
 
                 for (Station pred : predecessors.get(w)) {
-                    double contribution =
-                            (pathCount.get(pred) / (double) pathCount.get(w)) *
-                                    (1.0 + dependency.get(w));
+                    double contribution = (pathCount.get(pred) / (double) pathCount.get(w)) * (1.0 + dependency.get(w));
                     dependency.put(pred, dependency.get(pred) + contribution);
                 }
 
@@ -308,7 +317,6 @@ public class HubCentralityController {
             harmonicMap.put(v, 0.0);
         }
 
-        // For each station as source, run a shortest-path search
         for (Station source : vertices) {
 
             Map<Station, Double> distances = new HashMap<>();
@@ -376,7 +384,13 @@ public class HubCentralityController {
 
         Map<Station, Double> strengthNormMap = new HashMap<>();
         for (Map.Entry<Station, Double> e : strengthMap.entrySet()) {
-            double normalized = maxStrength > 0 ? e.getValue() / maxStrength : 0.0;
+            double normalized;
+
+            if (maxStrength > 0) {
+                normalized = e.getValue() / maxStrength;
+            } else {
+                normalized = 0.0;
+            }
             strengthNormMap.put(e.getKey(), normalized);
         }
 
