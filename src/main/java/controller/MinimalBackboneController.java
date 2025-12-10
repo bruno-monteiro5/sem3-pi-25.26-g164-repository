@@ -1,7 +1,5 @@
 package controller;
 
-import controller.Sprint3Loaders.LineCsvLoader;
-import controller.Sprint3Loaders.StationCsvLoaderS3;
 import domain.Line;
 import domain.MinimalBackboneResult;
 import domain.RailwayGraphBuilder;
@@ -10,7 +8,6 @@ import domain.graph.Edge;
 import domain.graph.map.MapGraph;
 import repository.S3_RailwayRepository;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,32 +28,12 @@ public class MinimalBackboneController {
     }
 
     /**
-     * Builds the railway network graph from CSV files.
-     * Updates the central repository.
-     */
-    public void buildGraphFromCsv(String stationsCsv, String linesCsv) throws IOException {
-        StationCsvLoaderS3 stationLoader = new StationCsvLoaderS3();
-        List<Station> stations = stationLoader.load(stationsCsv);
-
-        Map<Integer, Station> stationsById = new HashMap<>();
-        for (Station s : stations) {
-            stationsById.put(s.getId(), s);
-        }
-
-        LineCsvLoader lineLoader = new LineCsvLoader();
-        List<Line> lines = lineLoader.load(linesCsv, stationsById);
-
-        repo.loadStations(stations);
-        repo.loadLines(lines);
-    }
-
-    /**
      * Computes the minimal backbone network using Kruskal's algorithm.
      * Uses the undirected graph from the repository.
      */
     public MinimalBackboneResult calculateMinimalBackbone() {
         if (!repo.isDataLoaded()) {
-            throw new IllegalStateException("Data not loaded. Call buildGraphFromCsv first.");
+            throw new IllegalStateException("Data not loaded. Load network data first.");
         }
 
         RailwayGraphBuilder builder = new RailwayGraphBuilder(repo);

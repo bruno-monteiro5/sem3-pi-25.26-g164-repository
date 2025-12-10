@@ -6,7 +6,9 @@ import domain.graph.map.MapGraph;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Result object containing the minimal backbone network computed by USEI12.
@@ -63,11 +65,13 @@ public class MinimalBackboneResult {
      * Returns the number of connections in the backbone network.
      * <p>
      * For a tree, this is always (number of vertices - 1).
+     * Since the graph is undirected, we divide by 2 to get unique connections.
      *
-     * @return number of edges
+     * @return number of unique edges
      */
     public int getConnectionCount() {
-        return backboneGraph.numEdges();
+        // Since it's an undirected graph, each edge appears twice
+        return backboneGraph.numEdges() / 2;
     }
 
     /**
@@ -76,6 +80,7 @@ public class MinimalBackboneResult {
      * The generated DOT file can be processed with:
      * <pre>
      * neato -Tsvg filename.dot -o output.svg
+     * neato -Tpng filename.dot -o output.png
      * </pre>
      *
      * @param filename path to the output DOT file
@@ -87,10 +92,13 @@ public class MinimalBackboneResult {
             writer = new FileWriter(filename);
             writer.write("graph MinimalBackbone {\n");
             writer.write("  layout=neato;\n");
-            writer.write("  node [shape=circle, style=filled, fillcolor=lightblue];\n");
-            writer.write("  edge [color=blue];\n");
+            writer.write("  overlap=false;\n");
+            writer.write("  splines=true;\n");
+            writer.write("  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];\n");
+            writer.write("  edge [color=blue, penwidth=2.0];\n");
             writer.write("\n");
 
+            // Write vertices with XY coordinates
             List<Station> vertices = backboneGraph.vertices();
             for (Station station : vertices) {
                 String nodeId = createNodeId(station);
@@ -98,14 +106,14 @@ public class MinimalBackboneResult {
                 double y = station.getCordY();
                 String label = escapeLabel(station.getName());
 
-                // Using String.format compatible with older Java versions if needed
                 writer.write(String.format("  %s [label=\"%s\", pos=\"%.2f,%.2f!\"];\n",
                         nodeId, label, x, y));
             }
 
             writer.write("\n");
 
-            List<String> writtenEdges = new ArrayList<>();
+            // Write edges (only once for undirected graph)
+            Set<String> writtenEdges = new HashSet<>();
             for (Edge<Station, Double> edge : backboneGraph.edges()) {
                 Station u = edge.getVOrig();
                 Station v = edge.getVDest();
@@ -126,6 +134,64 @@ public class MinimalBackboneResult {
             if (writer != null) {
                 writer.close();
             }
+        }
+    }
+
+    /**
+     * Generates an SVG file from the DOT file using Graphviz neato.
+     * <p>
+     * This method executes the neato command to generate the SVG visualization.
+     * The DOT file must already exist (created by exportToDot).
+     * Requires Graphviz to be installed and in the system PATH.
+     *
+     * Process:
+     * 1. Executes: neato -Tsvg dotFilename -o svgFilename
+     * 2. Waits for command completion
+     * 3. Checks exit code
+     *
+     * @param dotFilename input DOT file (must exist)
+     * @param svgFilename output SVG file to create
+     * @throws IOException if Graphviz is not installed, command fails, or file operations fail
+     */
+    public void exportToSvg(String dotFilename, String svgFilename) throws IOException {
+        try {
+            // Build command: neato -Tsvg input.dot -o output.svg
+            String[] command = {
+                    "neato",
+                    "-Tsvg",
+                    dotFilename,
+                    "-o",
+                    svgFilename
+            };
+
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+
+            // Wait for process to complete
+            int exitCode = process.waitFor();
+
+            if (exitCode != 0) {
+                // Read error output
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(process.getInputStream()));
+                StringBuilder errorMsg = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    errorMsg.append(line).append("\n");
+                }
+                reader.close();
+
+                throw new IOException("Graphviz neato command failed with exit code: " + exitCode +
+                        "\nError: " + errorMsg.toString() +
+                        "\nMake sure Graphviz is installed and 'neato' is in your PATH.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("SVG generation was interrupted", e);
+        } catch (IOException e) {
+            throw new IOException("Failed to execute Graphviz neato. " +
+                    "Make sure Graphviz is installed: " + e.getMessage(), e);
         }
     }
 
@@ -166,7 +232,7 @@ public class MinimalBackboneResult {
         if (label == null) {
             return "";
         }
-        return label.replace("\"", "\\\"");
+        return label.replace("\"", "\\\"").replace("\n", "\\n");
     }
 
     @Override
