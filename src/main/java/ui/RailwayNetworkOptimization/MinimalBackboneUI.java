@@ -2,13 +2,17 @@ package ui.RailwayNetworkOptimization;
 
 import controller.MinimalBackboneController;
 import domain.MinimalBackboneResult;
+import domain.Option;
 import domain.Station;
+import domain.Utils;
 import domain.graph.Edge;
 import domain.graph.map.MapGraph;
 import ui.RailwayNetworkMenu;
 import ui.UIHelper;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -19,112 +23,259 @@ import java.util.Scanner;
  */
 public class MinimalBackboneUI implements Runnable {
 
+    private static final String RESET  = UIHelper.getReset();
+    private static final String CYAN   = UIHelper.getCyan();
+    private static final String GREEN  = UIHelper.getGreen();
+    private static final String YELLOW = UIHelper.getYellow();
+    private static final String RED    = UIHelper.getRed();
+    private static final String SEP    = "─";
+
     private final MinimalBackboneController controller;
-    private final Scanner scanner;
 
     public MinimalBackboneUI() {
         this.controller = new MinimalBackboneController();
-        this.scanner = new Scanner(System.in);
     }
 
     @Override
     public void run() {
-
-        UIHelper.printHeader("USEI12 - MINIMAL BACKBONE NETWORK");
-
-        try {
-            String defaultStations = "warehouseMngt/train_station_dataset/stations.csv";
-            String defaultLines = "warehouseMngt/train_station_dataset/lines.csv";
-
-            System.out.println();
-            System.out.print(UIHelper.getCyan() + "➤ " + UIHelper.getReset() +
-                    "Enter path for Stations CSV [" + defaultStations + "]: ");
-            String stationsPath = scanner.nextLine().trim();
-            if (stationsPath.isEmpty()) stationsPath = defaultStations;
-
-            System.out.print(UIHelper.getCyan() + "➤ " + UIHelper.getReset() +
-                    "Enter path for Lines CSV [" + defaultLines + "]: ");
-            String linesPath = scanner.nextLine().trim();
-            if (linesPath.isEmpty()) linesPath = defaultLines;
-
-            UIHelper.printInfo("Building graph...");
-            controller.buildGraphFromCsv(stationsPath, linesPath);
-
-            UIHelper.printInfo("Calculating minimal backbone (Minimum Spanning Tree)...");
-            MinimalBackboneResult result = controller.calculateMinimalBackbone();
-
-            UIHelper.printSuccess("Minimal backbone successfully calculated.");
-
-            displayResults(result);
-            handleExport(result);
-
-        } catch (IOException e) {
-            UIHelper.printError("Error reading files: " + e.getMessage());
-        } catch (IllegalStateException e) {
-            UIHelper.printError("Logic error: " + e.getMessage());
-        } catch (Exception e) {
-            UIHelper.printError("Unexpected error: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        new RailwayNetworkMenu().run();
+        menu();
     }
 
-    private void displayResults(MinimalBackboneResult result) {
-
-        UIHelper.printSubHeader("Backbone Summary");
-
-        System.out.printf("  Total Backbone Distance : %.3f km%n", result.getTotalDistance());
-        System.out.printf("  Total Stations          : %d%n", result.getStationCount());
-        System.out.printf("  Total Connections       : %d%n", result.getConnectionCount());
+    /**
+     * Displays the main menu for minimal backbone analysis.
+     */
+    public void menu() {
+        clear();
+        System.out.println(CYAN + line(72));
+        System.out.println("           MINIMAL BACKBONE NETWORK (USEI12)");
+        System.out.println(line(72) + RESET);
 
         System.out.println();
-        UIHelper.printSubHeader("Detailed Connections");
+        System.out.println("Status:");
+        if (controller.isGraphBuilt()) {
+            System.out.println(GREEN + "  ✓ Railway network loaded" + RESET);
+            System.out.printf("    • %d stations\n", controller.getStationCount());
+            System.out.printf("    • %d connections\n", controller.getLineCount());
+        } else {
+            System.out.println(YELLOW + "  ⚠ Network not loaded yet" + RESET);
+            System.out.println("    Please load network data from the main menu (option 1)");
+        }
+        System.out.println();
 
-        MapGraph<Station, Double> graph = result.getBackboneGraph();
-        List<Edge<Station, Double>> edges = new java.util.ArrayList<>();
+        Option[] options = new Option[3];
 
-        for (Edge<Station, Double> e : graph.edges()) edges.add(e);
+        options[0] = new Option("Calculate Minimal Backbone (MST)", this::calculateBackboneAction);
+        options[1] = new Option("Calculate and Export (DOT + SVG)", this::calculateAndExportAction);
+        options[2] = new Option("Go Back", new RailwayNetworkMenu());
 
-        if (edges.isEmpty()) {
-            UIHelper.printWarning("No connections found in the backbone.");
+        Utils.listAndSelect(options);
+    }
+
+    /**
+     * Action to calculate and display minimal backbone.
+     */
+    private void calculateBackboneAction() {
+        if (!controller.isGraphBuilt()) {
+            System.out.println(RED + "Please load the railway network first from the main menu." + RESET);
+            pause();
+            menu();
             return;
         }
 
-        for (Edge<Station, Double> edge : edges) {
-            System.out.printf("  %-25s -> %-25s : %7.3f km%n",
-                    edge.getVOrig().getName(),
-                    edge.getVDest().getName(),
-                    edge.getWeight());
+        System.out.println("\n" + CYAN + "⏳ Calculating minimal backbone network..." + RESET);
+
+        try {
+            long start = System.currentTimeMillis();
+            MinimalBackboneResult result = controller.calculateMinimalBackbone();
+            long duration = System.currentTimeMillis() - start;
+
+            displayResults(result, duration);
+
+        } catch (Exception e) {
+            System.out.println(RED + "Error calculating backbone: " + e.getMessage() + RESET);
+            e.printStackTrace();
+        }
+
+        pause();
+        menu();
+    }
+
+    /**
+     * Action to calculate backbone and export to DOT and SVG.
+     */
+    private void calculateAndExportAction() {
+        if (!controller.isGraphBuilt()) {
+            System.out.println(RED + "Please load the railway network first from the main menu." + RESET);
+            pause();
+            menu();
+            return;
+        }
+
+        System.out.println("\n" + CYAN + "⏳ Calculating minimal backbone network..." + RESET);
+
+        try {
+            long start = System.currentTimeMillis();
+            MinimalBackboneResult result = controller.calculateMinimalBackbone();
+            long duration = System.currentTimeMillis() - start;
+
+            displayResults(result, duration);
+
+            // Export to DOT
+            Scanner sc = new Scanner(System.in);
+            System.out.print("\n" + CYAN + "➤ " + RESET + "Output filename for DOT file [backbone.dot]: ");
+            String dotFilename = sc.nextLine().trim();
+            if (dotFilename.isEmpty()) dotFilename = "backbone.dot";
+
+            System.out.println(CYAN + "⏳ Exporting to DOT format..." + RESET);
+            result.exportToDot(dotFilename);
+            System.out.println(GREEN + "✓ Successfully exported to " + dotFilename + RESET);
+
+            // Ask if user wants to generate SVG
+            System.out.print(CYAN + "➤ " + RESET + "Generate SVG file using Graphviz neato? (y/n): ");
+            String choice = sc.nextLine().trim();
+
+            if (choice.equalsIgnoreCase("y") || choice.equalsIgnoreCase("yes")) {
+                System.out.print(CYAN + "➤ " + RESET + "Output filename for SVG [backbone.svg]: ");
+                String svgFilename = sc.nextLine().trim();
+                if (svgFilename.isEmpty()) svgFilename = "backbone.svg";
+
+                System.out.println(CYAN + "⏳ Generating SVG with Graphviz neato..." + RESET);
+                try {
+                    result.exportToSvg(dotFilename, svgFilename);
+                    System.out.println(GREEN + "✓ Successfully generated " + svgFilename + RESET);
+                    System.out.println("  You can now open the SVG file in a web browser or image viewer.");
+                } catch (IOException e) {
+                    System.out.println(RED + "❌ SVG generation failed: " + e.getMessage() + RESET);
+                    System.out.println(YELLOW + "  You can manually generate it using: neato -Tsvg " + dotFilename + " -o " + svgFilename + RESET);
+                }
+            } else {
+                System.out.println(YELLOW + "ℹ You can manually generate SVG using: neato -Tsvg " + dotFilename + " -o backbone.svg" + RESET);
+            }
+
+        } catch (Exception e) {
+            System.out.println(RED + "Error: " + e.getMessage() + RESET);
+            e.printStackTrace();
+        }
+
+        pause();
+        menu();
+    }
+
+    /**
+     * Displays the calculated minimal backbone results.
+     *
+     * @param result the calculated minimal backbone result
+     * @param durationMs calculation duration in milliseconds
+     */
+    private void displayResults(MinimalBackboneResult result, long durationMs) {
+        clear();
+        System.out.println(CYAN + line(120));
+        System.out.println("                                 MINIMAL BACKBONE NETWORK RESULTS");
+        System.out.println(line(120) + RESET);
+
+        System.out.println();
+        System.out.println(GREEN + "✓ Minimal backbone successfully calculated" + RESET);
+        System.out.println();
+
+        // Summary
+        System.out.println("Summary:");
+        System.out.printf("  • Total Stations        : %d\n", result.getStationCount());
+        System.out.printf("  • Total Connections     : %d\n", result.getConnectionCount());
+        System.out.printf("  • Total Distance        : %.3f km\n", result.getTotalDistance());
+        System.out.printf("  • Calculation Time      : %d ms\n", durationMs);
+        System.out.println();
+
+        // Detailed connections
+        System.out.println("Detailed Connections (sorted by distance):");
+        System.out.println(line(120));
+        System.out.printf("%-40s   %-40s   %10s\n", "Origin", "Destination", "Distance");
+        System.out.println(line(120));
+
+        MapGraph<Station, Double> graph = result.getBackboneGraph();
+        List<EdgeInfo> edges = new ArrayList<>();
+
+        // Collect all edges (avoiding duplicates in undirected graph)
+        java.util.Set<String> processed = new java.util.HashSet<>();
+        for (Edge<Station, Double> edge : graph.edges()) {
+            Station u = edge.getVOrig();
+            Station v = edge.getVDest();
+
+            String key1 = u.getId() + "-" + v.getId();
+            String key2 = v.getId() + "-" + u.getId();
+
+            if (!processed.contains(key1) && !processed.contains(key2)) {
+                edges.add(new EdgeInfo(u.getName(), v.getName(), edge.getWeight()));
+                processed.add(key1);
+                processed.add(key2);
+            }
+        }
+
+        // Sort by distance
+        edges.sort(Comparator.comparingDouble(e -> e.distance));
+
+        // Display
+        for (EdgeInfo edge : edges) {
+            System.out.printf("%-40s → %-40s   %10.3f km\n",
+                    truncate(edge.origin, 40),
+                    truncate(edge.destination, 40),
+                    edge.distance);
+        }
+
+        System.out.println(line(120));
+        System.out.println();
+    }
+
+    /**
+     * Helper class to store edge information.
+     */
+    private static class EdgeInfo {
+        String origin;
+        String destination;
+        double distance;
+
+        EdgeInfo(String origin, String destination, double distance) {
+            this.origin = origin;
+            this.destination = destination;
+            this.distance = distance;
         }
     }
 
-    private void handleExport(MinimalBackboneResult result) {
+    /**
+     * Truncates a string to maximum length.
+     *
+     * @param s the string to truncate
+     * @param maxLen maximum length
+     * @return truncated string with "..." if necessary
+     */
+    private String truncate(String s, int maxLen) {
+        if (s == null) return "";
+        if (s.length() <= maxLen) return s;
+        return s.substring(0, maxLen - 3) + "...";
+    }
 
-        UIHelper.printSubHeader("Export Graph (.dot)");
+    /**
+     * Pauses execution until user presses Enter.
+     */
+    private void pause() {
+        UIHelper.pause();
+    }
 
-        System.out.print(UIHelper.getCyan() + "➤ " + UIHelper.getReset() +
-                "Do you want to export the graph to a .dot file? (y/n): ");
-        String choice = scanner.nextLine().trim();
+    /**
+     * Clears the console screen.
+     */
+    private void clear() {
+        UIHelper.clear();
+    }
 
-        if (choice.equalsIgnoreCase("y") || choice.equalsIgnoreCase("yes")) {
-
-            System.out.print(UIHelper.getCyan() + "➤ " + UIHelper.getReset() +
-                    "Output filename [backbone.dot]: ");
-            String filename = scanner.nextLine().trim();
-            if (filename.isEmpty()) filename = "backbone.dot";
-
-            try {
-                result.exportToDot(filename);
-                UIHelper.printSuccess("Successfully exported to " + filename);
-                System.out.println("  You can generate an image using Graphviz:");
-                System.out.println("  neato -Tpng " + filename + " -o backbone.png");
-            } catch (IOException e) {
-                UIHelper.printError("Failed to write file: " + e.getMessage());
-            }
-
-        } else {
-            UIHelper.printInfo("Export cancelled.");
-        }
+    /**
+     * Creates a line separator of specified length.
+     *
+     * @param n number of characters
+     * @return line separator string
+     */
+    private String line(int n) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; i++) sb.append(SEP);
+        return sb.toString();
     }
 }
