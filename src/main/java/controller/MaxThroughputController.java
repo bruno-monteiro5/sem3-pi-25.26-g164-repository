@@ -167,7 +167,7 @@ public class MaxThroughputController {
         return repo.getLineCount();
     }
 
-    public Station getStationById(int id) {
+    public Station getStationById(String id) {
         return repo.getStationById(id);
     }
 }
