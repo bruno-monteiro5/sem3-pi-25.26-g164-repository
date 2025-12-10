@@ -96,8 +96,13 @@ public class S3_RailwayRepository {
      * @param id station ID
      * @return the Station object, or null if not found
      */
-    public Station getStationById(int id) {
-        return stationsById.get(id);
+    public Station getStationById(String id) {
+        for(Map.Entry<Integer, Station> entry : stationsById.entrySet()) {
+            if(id.equals(entry.getValue().getId())) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
 
