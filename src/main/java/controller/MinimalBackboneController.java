@@ -135,7 +135,7 @@ public class MinimalBackboneController {
         for (Edge<Station, Double> edge : graph.edges()) {
             total += edge.getWeight();
         }
-        return total;
+        return graph.isDirected() ? total : total / 2.0;
     }
 
     public boolean isGraphBuilt() {
