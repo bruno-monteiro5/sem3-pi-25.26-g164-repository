@@ -76,6 +76,8 @@ public class UpgradeOrderController {
 
             graph.addEdge(origin, dest, distance);
         }
+        S3_RailwayRepository repo = S3_RailwayRepository.getInstance();
+        repo.setGraph(graph);
     }
 
     /**
