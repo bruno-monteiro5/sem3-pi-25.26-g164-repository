@@ -44,7 +44,7 @@ public class MaxThroughputUI implements Runnable {
         repo = S3_RailwayRepository.getInstance();
         System.out.println("print all graph(debug, remove");
         for(Map.Entry<Integer, Station> s : repo.getStationsById().entrySet()) {
-            System.out.printf("&d- %s\n", s.getKey(), s.getValue().toString());
+            System.out.printf("%d- %s\n", s.getKey(), s.getValue().toString());
         }
         menu();
     }
@@ -165,6 +165,7 @@ public class MaxThroughputUI implements Runnable {
             }
 
             System.out.print(CYAN + "Enter TARGET station ID: " + RESET);
+            name = sc.nextLine().trim();
             Station stationDst = controller.getStationById(name);
             while(stationDst == null) {
                 System.out.println("Invalid station ID. Please enter a valid station ID.");
@@ -193,7 +194,7 @@ public class MaxThroughputUI implements Runnable {
             System.out.printf("Execution Time: %d ms\n", duration);
 
         } catch (NumberFormatException ex) {
-            System.out.println(RED + "❌ Invalid input. Please enter numeric station IDs." + RESET);
+            System.out.println(RED + " Invalid input. Please enter numeric station IDs." + RESET);
         }
 
         pause();
