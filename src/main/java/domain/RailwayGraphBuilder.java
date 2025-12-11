@@ -54,11 +54,20 @@ public class RailwayGraphBuilder {
             Station origin = line.getOrigin();
             Station dest = line.getDestination();
             double distance = line.getDistance();
-            graph.addEdge(origin, dest, distance);
+
+            domain.graph.Edge<Station, Double> existing = graph.edge(origin, dest);
+
+            if (existing == null) {
+                graph.addEdge(origin, dest, distance);
+            } else if (distance < existing.getWeight()) {
+                graph.removeEdge(origin, dest);
+                graph.addEdge(origin, dest, distance);
+            }
         }
 
         return graph;
     }
+
 
     /**
      * Builds a directed graph using line capacities as edge weights.
