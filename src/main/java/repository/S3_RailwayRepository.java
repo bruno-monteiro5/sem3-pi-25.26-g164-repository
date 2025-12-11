@@ -100,7 +100,7 @@ public class S3_RailwayRepository {
      */
     public Station getStationById(String id) {
         for(Map.Entry<Integer, Station> entry : stationsById.entrySet()) {
-            if(id.equals(entry.getValue().getId())) {
+            if(id.equals(entry.getValue().getName())) {
                 return entry.getValue();
             }
         }
