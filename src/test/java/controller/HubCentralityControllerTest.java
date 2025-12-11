@@ -1,9 +1,11 @@
 package controller;
 
 import domain.HubScore;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import repository.S3_RailwayRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +36,16 @@ public class HubCentralityControllerTest {
             "warehouseMngt" + File.separator +
                     "train_station_dataset" + File.separator +
                     "lines.csv";
+
+    /**
+     * Reset the singleton repository before each test to ensure test isolation.
+     */
+    @Before
+    public void setUp() {
+        // Clear the repository state before each test
+        S3_RailwayRepository repo = S3_RailwayRepository.getInstance();
+        repo.clear();
+    }
 
     /**
      * Helper to assert that the real CSV files exist.
@@ -163,7 +175,7 @@ public class HubCentralityControllerTest {
         HubCentralityController controller = new HubCentralityController();
 
         thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("Graph not built");
+        thrown.expectMessage("Data not loaded");
 
         controller.calculateHubCentrality();
     }

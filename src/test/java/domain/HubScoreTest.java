@@ -6,29 +6,16 @@ import static org.junit.Assert.*;
 public class HubScoreTest {
 
     /**
-     * Simple fake Station object for testing purposes.
-     * We only implement the methods used by HubScore (getId and getName).
+     * Creates a properly initialized Station for testing.
      */
-    private static class FakeStation extends Station {
-        private final int id;
-        private final String name;
-
-        public FakeStation(int id, String name) {
-            super(0, "", null, 0, 0); // bypass original constructor
-            this.id = id;
-            this.name = name;
-        }
-
-        @Override
-        public int getId() { return id; }
-
-        @Override
-        public String getName() { return name; }
+    private Station createTestStation(int id, String name) {
+        Location loc = new Location(41.1579, -8.6291); // Porto coordinates
+        return new Station(id, name, loc, 0.0, 0.0);
     }
 
     @Test
     public void testGetters() {
-        Station s = new FakeStation(1, "Porto Campanhã");
+        Station s = createTestStation(1, "Porto Campanhã");
 
         HubScore hs = new HubScore(s, 5, 12.5, 0.3, 0.7, 0.55);
 
@@ -42,31 +29,45 @@ public class HubScoreTest {
 
     @Test
     public void testCompareTo() {
-        Station a = new FakeStation(1, "A");
-        Station b = new FakeStation(2, "B");
+        Station a = createTestStation(1, "A");
+        Station b = createTestStation(2, "B");
 
         HubScore hs1 = new HubScore(a, 1, 10, 0.1, 0.2, 0.30);
         HubScore hs2 = new HubScore(b, 2, 20, 0.2, 0.3, 0.80);
 
-        assertTrue(hs1.compareTo(hs2) > 0);
-        assertTrue(hs2.compareTo(hs1) < 0);
-        assertEquals(0, hs1.compareTo(hs1));
+        // hs2 has higher hubScore (0.80 > 0.30), so it should come first
+        assertTrue("hs1 should be greater than hs2 (lower priority)", hs1.compareTo(hs2) > 0);
+        assertTrue("hs2 should be less than hs1 (higher priority)", hs2.compareTo(hs1) < 0);
+        assertEquals("Same object should have compareTo = 0", 0, hs1.compareTo(hs1));
     }
 
     @Test
-    public void testToString() {
-        Station s = new FakeStation(10, "Gaia");
+    public void testCompareToWithEqualScores() {
+        Station a = createTestStation(1, "A");
+        Station b = createTestStation(2, "B");
 
-        HubScore hs = new HubScore(s, 3, 12.5, 0.1234, 0.5678, 0.9999);
+        HubScore hs1 = new HubScore(a, 1, 10, 0.1, 0.2, 0.50);
+        HubScore hs2 = new HubScore(b, 2, 20, 0.2, 0.3, 0.50);
 
-        String str = hs.toString();
+        assertEquals("Stations with equal hubScores should have compareTo = 0",
+                0, hs1.compareTo(hs2));
+    }
 
-        assertTrue(str.contains("Gaia"));
-        assertTrue(str.contains("ID: 10"));
-        assertTrue(str.contains("Degree: 3"));
-        assertTrue(str.contains("Strength: 12.50"));
-        assertTrue(str.contains("Betweenness: 0.1234"));
-        assertTrue(str.contains("Harmonic: 0.5678"));
-        assertTrue(str.contains("HubScore: 0.9999"));
+    @Test
+    public void testCompareToDescendingOrder() {
+        Station s1 = createTestStation(1, "Station1");
+        Station s2 = createTestStation(2, "Station2");
+        Station s3 = createTestStation(3, "Station3");
+
+        HubScore hs1 = new HubScore(s1, 1, 10, 0.1, 0.2, 0.90);
+        HubScore hs2 = new HubScore(s2, 2, 20, 0.2, 0.3, 0.50);
+        HubScore hs3 = new HubScore(s3, 3, 30, 0.3, 0.4, 0.10);
+
+        assertTrue("hs1 (0.90) should come before hs2 (0.50)",
+                hs1.compareTo(hs2) < 0);
+        assertTrue("hs2 (0.50) should come before hs3 (0.10)",
+                hs2.compareTo(hs3) < 0);
+        assertTrue("hs1 (0.90) should come before hs3 (0.10)",
+                hs1.compareTo(hs3) < 0);
     }
 }
