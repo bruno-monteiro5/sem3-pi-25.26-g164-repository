@@ -1,5 +1,7 @@
 package domain;
 
+import java.util.Objects;
+
 public class Station  {
 
     private String name;
@@ -127,5 +129,16 @@ public class Station  {
         return s;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Station station = (Station) o;
+        return id == station.id;
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

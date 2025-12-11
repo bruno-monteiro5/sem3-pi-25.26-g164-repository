@@ -18,6 +18,8 @@ public class S3_RailwayRepository {
     private final List<Line> lines = new ArrayList<>();
     private boolean dataLoaded = false;
 
+    private MapGraph<Station, Double> graph;
+
     private S3_RailwayRepository() {}
 
     public static S3_RailwayRepository getInstance() {
@@ -96,10 +98,31 @@ public class S3_RailwayRepository {
      * @param id station ID
      * @return the Station object, or null if not found
      */
-    public Station getStationById(int id) {
-        return stationsById.get(id);
+    public Station getStationById(String id) {
+        for(Map.Entry<Integer, Station> entry : stationsById.entrySet()) {
+            if(id.equals(entry.getValue().getName())) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
+    /**
+     * Sets the current graph
+     * @param graph to set in the instance
+     */
+    public void setGraph(MapGraph<Station, Double> graph) {
+        this.graph = graph;
+    }
+
+    /**
+     * Returns the current instance's graph
+     * @return graph
+     */
+
+    public MapGraph<Station, Double> getGraph() {
+        return graph;
+    }
 
 
     /**
