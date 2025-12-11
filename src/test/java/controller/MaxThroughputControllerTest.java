@@ -59,13 +59,13 @@ class MaxThroughputControllerTest {
     void computeMaxFlow() {
         assertDoesNotThrow(() -> controller.buildGraphFromCsv(stationsCsv, linesCsv));
 
-        Station s6 = controller.getStationById(6);
-        Station s10 = controller.getStationById(10);
+        Station s = controller.getStationById("AALST");
+        Station t = controller.getStationById("AARSELE");
 
-        assertNotNull(s6);
-        assertNotNull(s10);
+        assertNotNull(s);
+        assertNotNull(t);
 
-        int flow = controller.computeMaxFlow(s6, s10);
+        int flow = controller.computeMaxFlow(s, t);
         assertEquals(12, flow);
     }
 
@@ -93,11 +93,11 @@ class MaxThroughputControllerTest {
     void getStationById() {
         assertDoesNotThrow(() -> controller.buildGraphFromCsv(stationsCsv, linesCsv));
 
-        Station s8 = controller.getStationById(8);
+        Station s8 = controller.getStationById("AALTER");
         assertNotNull(s8);
         assertEquals(8, s8.getId());
 
-        Station missing = controller.getStationById(9999);
+        Station missing = controller.getStationById("WSIGTWBUIGNEWBB");
         assertNull(missing);
     }
 }

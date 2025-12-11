@@ -5,6 +5,7 @@ import controller.Sprint3Loaders.StationCsvLoaderS3;
 import domain.Line;
 import domain.RailwayGraphBuilder;
 import domain.Station;
+import domain.graph.Graph;
 import domain.graph.map.MapGraph;
 import repository.S3_RailwayRepository;
 
@@ -17,6 +18,7 @@ import java.util.*;
 public class MaxThroughputController {
 
     private final S3_RailwayRepository repo;
+    private MapGraph<Station, Double> graph= null;
 
     public MaxThroughputController() {
         this.repo = S3_RailwayRepository.getInstance();
@@ -39,6 +41,9 @@ public class MaxThroughputController {
 
         repo.loadStations(stations);
         repo.loadLines(lines);
+        RailwayGraphBuilder builder = new RailwayGraphBuilder(repo);
+        graph = builder.buildDirectedGraphWithCapacity();
+
     }
 
     /**
@@ -51,109 +56,65 @@ public class MaxThroughputController {
         }
 
         RailwayGraphBuilder builder = new RailwayGraphBuilder(repo);
-        MapGraph<Station, Double> graph = builder.buildDirectedGraphWithCapacity();
-
-        Map<Station, Map<Station, Integer>> residual = buildResidualGraph(graph);
-        return edmondsKarp(residual, source, target);
+        graph = builder.buildDirectedGraphWithCapacity();
+        return fordFulkerson(graph, source, target);
     }
 
     /**
-     * Builds residual capacity map from the graph.
+     * Ford-Fulkerson algorythm because weights matter in this case, paired with a dfs search in order to ease the process
      */
-    private Map<Station, Map<Station, Integer>> buildResidualGraph(MapGraph<Station, Double> graph) {
-        Map<Station, Map<Station, Integer>> residual = new HashMap<>();
+    private int fordFulkerson(MapGraph<Station, Double> graph, Station source, Station target) {
 
-        for (Station u : graph.vertices()) {
-            residual.put(u, new HashMap<>());
-        }
+        MapGraph<Station, Double> residual = graph.clone();
 
-        for (Station u : graph.vertices()) {
-            for (Station v : graph.adjVertices(u)) {
-                double w = graph.edge(u, v).getWeight();
-                int cap = (int) Math.round(w);
-                if (cap < 0) cap = 0;
-                residual.get(u).put(v, cap);
-            }
-        }
-
-        return residual;
-    }
-
-    /**
-     * Edmonds-Karp algorithm (Ford-Fulkerson with BFS).
-     */
-    private int edmondsKarp(Map<Station, Map<Station, Integer>> residual,
-                            Station source,
-                            Station target) {
-        int maxFlow = 0;
+        double maxFlow = 0;
 
         while (true) {
-            Map<Station, Station> parent = new HashMap<>();
-            int pathFlow = bfsFindAugmentingPath(source, target, parent, residual);
+
+            Set<Station> visited = new HashSet<>();
+            double pathFlow = dfsFindPath(residual, source, target, visited, Double.MAX_VALUE);
+
             if (pathFlow == 0) break;
 
             maxFlow += pathFlow;
-
-            Station cur = target;
-            while (!cur.equals(source)) {
-                Station prev = parent.get(cur);
-
-                int prevToCur = residual.get(prev).getOrDefault(cur, 0) - pathFlow;
-                residual.get(prev).put(cur, prevToCur);
-
-                int curToPrev = residual.get(cur).getOrDefault(prev, 0) + pathFlow;
-                residual.get(cur).put(prev, curToPrev);
-
-                cur = prev;
-            }
         }
 
-        return maxFlow;
+        return (int) maxFlow; // trains per day
     }
 
-    /**
-     * BFS to find augmenting path. Returns path flow or 0.
-     */
-    private int bfsFindAugmentingPath(Station source,
-                                      Station target,
-                                      Map<Station, Station> parent,
-                                      Map<Station, Map<Station, Integer>> residual) {
-        Queue<Station> q = new LinkedList<>();
-        q.add(source);
-        parent.clear();
-        parent.put(source, null);
+    private double dfsFindPath(MapGraph<Station, Double> residual, Station current, Station target, Set<Station> visited, double flow) {
 
-        while (!q.isEmpty()) {
-            Station u = q.poll();
-            for (Map.Entry<Station, Integer> entry : residual.get(u).entrySet()) {
-                Station v = entry.getKey();
-                int cap = entry.getValue();
-                if (cap > 0 && !parent.containsKey(v)) {
-                    parent.put(v, u);
-                    if (v.equals(target)) {
-                        return computePathFlow(source, target, parent, residual);
+        visited.add(current);
+
+        if (current.equals(target)) return flow;
+
+        for (Station next : residual.adjVertices(current)) {
+            if (visited.contains(next)) continue;
+            Double capacity = residual.edge(current, next).getWeight();
+            if (capacity > 0) {
+                double bottleneck = dfsFindPath(residual, next, target, visited, Math.min(flow, capacity));
+
+                if (bottleneck > 0) {
+                    // UPDATE FORWARD EDGE
+                    residual.removeEdge(current, next);  // ← Remove first!
+                    residual.addEdge(current, next, capacity - bottleneck);
+
+                    // UPDATE BACKWARD EDGE
+                    Double backCap = 0.0;
+                    if (residual.edge(next, current) != null) {
+                        backCap = residual.edge(next, current).getWeight();
+                        residual.removeEdge(next, current);  // ← Remove first!
                     }
-                    q.add(v);
+                    residual.addEdge(next, current, backCap + bottleneck);
+
+                    return bottleneck;
                 }
             }
         }
+
         return 0;
     }
 
-    private int computePathFlow(Station source,
-                                Station target,
-                                Map<Station, Station> parent,
-                                Map<Station, Map<Station, Integer>> residual) {
-        int flow = Integer.MAX_VALUE;
-        Station cur = target;
-        while (!cur.equals(source)) {
-            Station prev = parent.get(cur);
-            int cap = residual.get(prev).getOrDefault(cur, 0);
-            flow = Math.min(flow, cap);
-            cur = prev;
-        }
-        return flow == Integer.MAX_VALUE ? 0 : flow;
-    }
 
     public boolean isGraphBuilt() {
         return repo.isDataLoaded();
