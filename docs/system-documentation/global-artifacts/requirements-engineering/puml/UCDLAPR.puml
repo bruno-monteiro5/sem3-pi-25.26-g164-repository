@@ -8,7 +8,7 @@ actor "Product Owner" as PO
 actor "Station Storage\nManager" as SSM
 actor "Traffic\nDispatcher" as TD
 actor "Freight\nManager" as FM
-
+actor "Traffic\nManager" as TM
 
 usecase "USLP01 - Create Domain Model" as USLP01
 usecase "USLP02 - Access Cargo Handling" as USLP02
@@ -19,6 +19,10 @@ usecase "USLP05 - Update Conceptual Domain Model" as USLP05
 usecase "USLP06 - Update Data Dictionary/Glossary" as USLP06
 usecase "USLP07 - Use Scheduler to Dispatch Trains" as USLP07
 
+usecase "USLP08 - Define/Assign Routes\nfor Pending Freights" as USLP08
+usecase "USLP09 - Assemble and Assign\nTrain to Route" as USLP09
+usecase "USLP10 - Schedule and Dispatch\nTrains " as USLP10
+
 PO  --> USLP01
 PO  --> USLP04
 PO  --> USLP05
@@ -27,5 +31,9 @@ PO  --> USLP06
 SSM --> USLP02
 TD  --> USLP03
 FM  --> USLP07
+
+FM  --> USLP08
+TM  --> USLP09
+TM  --> USLP10
 
 @enduml
