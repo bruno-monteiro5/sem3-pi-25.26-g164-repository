@@ -7,7 +7,7 @@ package domain;
  * important stations (hubs) in a railway network.
  * All scores are normalized to [0,1] per connected component.
  */
-public class HubScore implements Comparable<HubScore> {
+public class HubScore {
 
     private final Station station;
     private final int degree;
@@ -37,28 +37,36 @@ public class HubScore implements Comparable<HubScore> {
         this.hubScore = hubScore;
     }
 
-    public Station getStation() { return station; }
-    public int getDegree() { return degree; }
-    public double getStrength() { return strength; }
-    public double getBetweenness() { return betweenness; }
-    public double getHarmonicCloseness() { return harmonicCloseness; }
-    public double getHubScore() { return hubScore; }
-
-    /**
-     * Compares by hubScore descending (higher scores first).
-     */
-    @Override
-    public int compareTo(HubScore other) {
-        return Double.compare(other.hubScore, this.hubScore);
+    public Station getStation() {
+        return station;
     }
 
-    @Override
+    public int getDegree() {
+        return degree;
+    }
+
+    public double getStrength() {
+        return strength;
+    }
+
+    public double getBetweenness() {
+        return betweenness;
+    }
+
+    public double getHarmonicCloseness() {
+        return harmonicCloseness;
+    }
+
+    public double getHubScore() {
+        return hubScore;
+    }
+
     public String toString() {
-        return String.format(
-                "Station: %s (ID: %d) | Degree: %d | Strength: %.2f | " +
-                        "Betweenness: %.4f | Harmonic: %.4f | HubScore: %.4f",
-                station.getName(), station.getId(), degree, strength,
-                betweenness, harmonicCloseness, hubScore
-        );
+        return "Station: " + station.getName() + " (ID: " + station.getId() + ")" +
+                " | Degree: " + degree +
+                " | Strength: " + String.format("%.2f", strength) +
+                " | Betweenness: " + String.format("%.4f", betweenness) +
+                " | Harmonic: " + String.format("%.4f", harmonicCloseness) +
+                " | HubScore: " + String.format("%.4f", hubScore);
     }
 }
