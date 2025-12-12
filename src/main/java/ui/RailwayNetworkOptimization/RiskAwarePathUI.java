@@ -10,6 +10,7 @@ import ui.UIHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -23,7 +24,6 @@ public class RiskAwarePathUI implements Runnable {
     private static final String GREEN  = UIHelper.getGreen();
     private static final String YELLOW = UIHelper.getYellow();
     private static final String RED    = UIHelper.getRed();
-    private static final String SEP    = "─";
 
     private String DEFAULT_STATIONS_CSV =
             "warehouseMngt" + File.separator +
@@ -62,11 +62,12 @@ public class RiskAwarePathUI implements Runnable {
         }
         System.out.println();
 
-        Option[] options = new Option[3];
+        Option[] options = new Option[4];
 
         options[0] = new Option("Load Railway Network (CSV)", this::loadNetworkAction);
-        options[1] = new Option("Calculate Shortest Path with Costs", this::calculatePathAction);
-        options[2] = new Option("Go Back", new RailwayNetworkMenu());
+        options[1] = new Option("List Available Stations", this::listStationsAction);
+        options[2] = new Option("Calculate Shortest Path with Costs", this::calculatePathAction);
+        options[3] = new Option("Go Back", new RailwayNetworkMenu());
 
         Utils.listAndSelect(options);
     }
@@ -123,6 +124,50 @@ public class RiskAwarePathUI implements Runnable {
     }
 
     /**
+     * Action to list all available stations.
+     */
+    private void listStationsAction() {
+        if (!controller.isGraphBuilt()) {
+            System.out.println(RED + "Please load the railway network first (option 1)." + RESET);
+            UIHelper.pause();
+            menu();
+            return;
+        }
+
+        List<Station> stations = controller.getAllStations();
+
+        if (stations.isEmpty()) {
+            System.out.println(YELLOW + "No stations found." + RESET);
+            UIHelper.pause();
+            menu();
+            return;
+        }
+
+        // Ordenar por ID para facilitar a leitura
+        stations.sort(Comparator.comparingInt(Station::getId));
+
+        UIHelper.clear();
+        System.out.println(CYAN + UIHelper.line(60));
+        System.out.println("                   AVAILABLE STATIONS");
+        System.out.println(UIHelper.line(60) + RESET);
+
+        System.out.printf("%-10s %-40s\n", "ID", "Station Name");
+        System.out.println(UIHelper.line(60));
+
+        for (Station s : stations) {
+            System.out.printf("%-10d %-40s\n",
+                    s.getId(),
+                    UIHelper.truncate(s.getName(), 40));
+        }
+
+        System.out.println(UIHelper.line(60));
+        System.out.printf("Total: %d stations\n", stations.size());
+
+        UIHelper.pause();
+        menu();
+    }
+
+    /**
      * Action to calculate shortest path between two stations.
      */
     private void calculatePathAction() {
@@ -136,6 +181,8 @@ public class RiskAwarePathUI implements Runnable {
         Scanner sc = new Scanner(System.in);
 
         try {
+            System.out.println(YELLOW + "\nUse 'List Available Stations' to find IDs if needed." + RESET);
+
             System.out.print(CYAN + "➤ " + RESET + "Enter SOURCE station ID: ");
             int sourceId = Integer.parseInt(sc.nextLine().trim());
 
@@ -161,11 +208,9 @@ public class RiskAwarePathUI implements Runnable {
 
             System.out.println("\n" + CYAN + "⏳ Calculating shortest path with costs..." + RESET);
 
-            long start = System.currentTimeMillis();
             RiskAwarePathResult result = controller.calculateShortestPath(source, target);
-            long duration = System.currentTimeMillis() - start;
 
-            displayResult(result, duration);
+            displayResult(result);
 
         } catch (NumberFormatException e) {
             System.out.println(RED + "❌ Invalid input. Please enter numeric station IDs." + RESET);
@@ -182,9 +227,8 @@ public class RiskAwarePathUI implements Runnable {
      * Displays the calculated shortest path result.
      *
      * @param result the calculation result
-     * @param durationMs execution time in milliseconds
      */
-    private void displayResult(RiskAwarePathResult result, long durationMs) {
+    private void displayResult(RiskAwarePathResult result) {
         UIHelper.clear();
         System.out.println(CYAN + UIHelper.line(120));
         System.out.println("                                 RISK-AWARE SHORTEST PATH RESULTS");
@@ -196,18 +240,14 @@ public class RiskAwarePathUI implements Runnable {
         } else if (!result.isReachable()) {
             displayNoPathResult(result);
         } else {
-            displayValidPathResult(result, durationMs);
+            displayValidPathResult(result);
         }
-
-        System.out.println();
-        System.out.println(YELLOW + "Temporal Complexity (Bellman-Ford): O(V · E)" + RESET);
-        System.out.printf("Execution Time: %d ms\n", durationMs);
     }
 
     /**
      * Displays result when a valid path is found.
      */
-    private void displayValidPathResult(RiskAwarePathResult result, long durationMs) {
+    private void displayValidPathResult(RiskAwarePathResult result) {
         System.out.println(GREEN + "✓ Shortest path found" + RESET);
         System.out.println();
 

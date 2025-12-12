@@ -268,4 +268,17 @@ public class RiskAwarePathController {
 
         return reversed;
     }
+
+
+    /**
+     * Returns a list of all stations in the network.
+     * Useful for listing available stations in the UI.
+     * * @return list of stations, or empty list if data not loaded
+     */
+    public List<Station> getAllStations() {
+        if (!repo.isDataLoaded()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(repo.getStationsById().values());
+    }
 }
