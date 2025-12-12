@@ -131,4 +131,14 @@ public class MaxThroughputController {
     public Station getStationById(String id) {
         return repo.getStationById(id);
     }
+
+    public String getStations(){
+        String station = "";
+        int i = 1;
+        for(Map.Entry<Integer, Station> entry : repo.getStationsById().entrySet()) {
+            station += String.format("%d - %s \n", i, entry.getValue().getName());
+            i++;
+        }
+        return station;
+    }
 }
