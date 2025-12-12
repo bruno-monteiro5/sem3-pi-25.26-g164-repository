@@ -15,7 +15,7 @@ public class HubScoreTest {
      * Creates a properly initialized Station for testing.
      */
     private Station createTestStation(int id, String name) {
-        Location loc = new Location(41.1579, -8.6291); // Porto coordinates
+        Location loc = new Location(41.1579, -8.6291);
         return new Station(id, name, loc, 0.0, 0.0);
     }
 
