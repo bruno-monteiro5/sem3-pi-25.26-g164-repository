@@ -26,7 +26,6 @@ public class HubCentralityControllerTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    // Use the same default paths as in the UI / production code
     private static final String STATIONS_CSV_PATH =
             "warehouseMngt" + File.separator +
                     "train_station_dataset" + File.separator +
