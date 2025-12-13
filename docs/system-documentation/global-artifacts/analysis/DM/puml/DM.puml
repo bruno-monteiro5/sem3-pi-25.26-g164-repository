@@ -16,6 +16,7 @@ class LineSegment {
     length
     maxWeight
     speedLimit
+    isEletrified
 }
 
 class SingleTrackSegment extends LineSegment {
@@ -63,11 +64,11 @@ class Locomotive {
     bogieCount
 }
 
-class DieselLocomotive extends LocomotiveModel  {
+class DieselLocomotive extends Locomotive  {
     fuelCapacity
 }
 
-class ElectricLocomotive extends LocomotiveModel  {
+class ElectricLocomotive extends Locomotive  {
     voltage
     frequency
 }
