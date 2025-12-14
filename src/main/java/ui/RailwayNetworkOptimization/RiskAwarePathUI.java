@@ -62,66 +62,15 @@ public class RiskAwarePathUI implements Runnable {
         }
         System.out.println();
 
-        Option[] options = new Option[4];
+        Option[] options = new Option[3];
 
-        options[0] = new Option("Load Railway Network (CSV)", this::loadNetworkAction);
-        options[1] = new Option("List Available Stations", this::listStationsAction);
-        options[2] = new Option("Calculate Shortest Path with Costs", this::calculatePathAction);
-        options[3] = new Option("Go Back", new RailwayNetworkMenu());
+        options[0] = new Option("List Available Stations", this::listStationsAction);
+        options[1] = new Option("Calculate Shortest Path with Costs", this::calculatePathAction);
+        options[2] = new Option("Go Back", new RailwayNetworkMenu());
 
         Utils.listAndSelect(options);
     }
 
-    /**
-     * Action to load railway network from CSV files.
-     */
-    private void loadNetworkAction() {
-        Scanner sc = new Scanner(System.in);
-
-        System.out.print(CYAN + "➤ " + RESET + "Stations CSV [" + DEFAULT_STATIONS_CSV + "]: ");
-        String stationInput = sc.nextLine().trim();
-        String stationsCsv = stationInput.isEmpty() ? DEFAULT_STATIONS_CSV : stationInput;
-
-        System.out.print(CYAN + "➤ " + RESET + "Lines CSV [" + DEFAULT_LINES_CSV + "]: ");
-        String lineInput = sc.nextLine().trim();
-        String linesCsv = lineInput.isEmpty() ? DEFAULT_LINES_CSV : lineInput;
-
-        File stationsFile = new File(stationsCsv);
-        File linesFile = new File(linesCsv);
-
-        if (!stationsFile.isFile()) {
-            System.out.println(RED + "Stations CSV file not found: " + stationsCsv + RESET);
-            UIHelper.pause();
-            menu();
-            return;
-        }
-
-        if (!linesFile.isFile()) {
-            System.out.println(RED + "Lines CSV file not found: " + linesCsv + RESET);
-            UIHelper.pause();
-            menu();
-            return;
-        }
-
-        System.out.println("\n" + CYAN + "⏳ Loading railway network..." + RESET);
-
-        try {
-            long start = System.currentTimeMillis();
-            controller.buildGraphFromCsv(stationsCsv, linesCsv);
-            long duration = System.currentTimeMillis() - start;
-
-            System.out.printf(GREEN + "✓ Network loaded successfully in %.2f seconds\n" + RESET,
-                    duration / 1000.0);
-            System.out.printf("  • %d stations\n", controller.getStationCount());
-            System.out.printf("  • %d connections\n", controller.getLineCount());
-
-        } catch (IOException e) {
-            System.out.println(RED + "Error loading network: " + e.getMessage() + RESET);
-        }
-
-        UIHelper.pause();
-        menu();
-    }
 
     /**
      * Action to list all available stations.

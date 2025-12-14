@@ -108,7 +108,6 @@ public class MinimalBackboneUI implements Runnable {
             return;
         }
 
-        // Require previous calculation
         if (lastResult == null) {
             System.out.println(YELLOW + "⚠ No minimal backbone calculated yet." + RESET);
             System.out.println("  Please run " + CYAN + "Calculate Minimal Backbone (MST)" + RESET + " first.");

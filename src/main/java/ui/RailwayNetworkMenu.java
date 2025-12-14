@@ -30,15 +30,34 @@ public class RailwayNetworkMenu implements Runnable {
         Option[] options = new Option[8];
 
         options[0] = new Option("Load Railway Network from CSV", new LoadNetworkUI());
-        options[1] = new Option("List Stations", new ListStationsUI());
-        options[2] = new Option("Directed Line Upgrade Plan (USEI11)", new UpgradeOrderUI());
-        options[3] = new Option("Minimal Backbone Network (USEI12)", new MinimalBackboneUI());
-        options[4] = new Option("Rail Hub Centrality Analysis (USEI13)", new HubCentralityUI());
-        options[5] = new Option("Maximum Throughput Calculator (USEI14)", new MaxThroughputUI());
-        options[6] = new Option("Risk-Aware Shortest Paths (USEI15)", new RiskAwarePathUI());
+
+        options[1] = new Option("List Stations", requireNetwork(new ListStationsUI()));
+        options[2] = new Option("Directed Line Upgrade Plan (USEI11)", requireNetwork(new UpgradeOrderUI()));
+        options[3] = new Option("Minimal Backbone Network (USEI12)", requireNetwork(new MinimalBackboneUI()));
+        options[4] = new Option("Rail Hub Centrality Analysis (USEI13)", requireNetwork(new HubCentralityUI()));
+        options[5] = new Option("Maximum Throughput Calculator (USEI14)", requireNetwork(new MaxThroughputUI()));
+        options[6] = new Option("Risk-Aware Shortest Paths (USEI15)", requireNetwork(new RiskAwarePathUI()));
+
         options[7] = new Option(RED + "Back to Main Menu" + RESET, new MainMenu());
 
         Utils.listAndSelect(options);
+    }
+
+    /**
+     * Wraps an UI option, blocking access if the railway network is not loaded.
+     */
+    private Runnable requireNetwork(Runnable targetUI) {
+        return () -> {
+            S3_RailwayRepository repo = S3_RailwayRepository.getInstance();
+            if (!repo.isDataLoaded()) {
+                System.out.println(YELLOW + "⚠ No network data loaded." + RESET);
+                System.out.println("   Please run option " + CYAN + "1) Load Railway Network from CSV" + RESET + " to load the network first.");
+                UIHelper.pause();
+                new RailwayNetworkMenu().run();
+                return;
+            }
+            targetUI.run();
+        };
     }
 
     /**
