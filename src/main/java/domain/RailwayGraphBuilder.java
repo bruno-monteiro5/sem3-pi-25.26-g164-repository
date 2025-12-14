@@ -3,7 +3,6 @@ package domain;
 import domain.graph.map.MapGraph;
 import repository.S3_RailwayRepository;
 
-import java.util.List;
 
 /**
  * Helper class for building graph structures from railway repository data.
@@ -99,6 +98,35 @@ public class RailwayGraphBuilder {
     }
 
     /**
+     * Builds a directed graph using line costs as edge weights.
+     * <p>
+     * This graph is suitable for risk-aware shortest path calculations
+     * such as those needed in USEI15, where costs represent penalties,
+     * risks, or economic implications.
+     *
+     * @return directed graph with cost weights
+     * @throws IllegalStateException if repository data is not loaded
+     */
+    public MapGraph<Station, Double> buildDirectedGraphWithCost() {
+        validateDataLoaded();
+
+        MapGraph<Station, Double> graph = new MapGraph<>(true);
+
+        for (Station s : repo.getStationsById().values()) {
+            graph.addVertex(s);
+        }
+
+        for (Line line : repo.getLines()) {
+            Station origin = line.getOrigin();
+            Station dest = line.getDestination();
+            double cost = line.getCost();
+            graph.addEdge(origin, dest, cost);
+        }
+
+        return graph;
+    }
+
+    /**
      * Builds an undirected graph using line distances as edge weights.
      * <p>
      * This graph is suitable for:
@@ -128,6 +156,8 @@ public class RailwayGraphBuilder {
         return graph;
     }
 
+
+
     /**
      * Validates that the repository has loaded data.
      *
@@ -139,4 +169,6 @@ public class RailwayGraphBuilder {
                     "Repository data not loaded. Load CSV files first.");
         }
     }
+
+
 }

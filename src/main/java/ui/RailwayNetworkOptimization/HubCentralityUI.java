@@ -61,61 +61,12 @@ public class HubCentralityUI implements Runnable {
         }
         System.out.println();
 
-        Option[] options = new Option[3];
+        Option[] options = new Option[2];
 
-        options[0] = new Option("Load Railway Network (CSV)", this::loadNetworkAction);
-        options[1] = new Option("Calculate Hub Centrality", this::calculateCentralityAction);
-        options[2] = new Option("Go Back", new RailwayNetworkMenu());
+        options[0] = new Option("Calculate Hub Centrality", this::calculateCentralityAction);
+        options[1] = new Option("Go Back", new RailwayNetworkMenu());
 
         Utils.listAndSelect(options);
-    }
-
-    /**
-     * Action to load railway network from CSV files.
-     */
-    private void loadNetworkAction() {
-        Scanner sc = new Scanner(System.in);
-
-        System.out.print(CYAN + "➤ " + RESET + "Stations CSV [" + DEFAULT_STATIONS_CSV + "]: ");
-        String stationInput = sc.nextLine().trim();
-        String stationsCsv = stationInput.isEmpty() ? DEFAULT_STATIONS_CSV : stationInput;
-
-        System.out.print(CYAN + "➤ " + RESET + "Lines CSV [" + DEFAULT_LINES_CSV + "]: ");
-        String lineInput = sc.nextLine().trim();
-        String linesCsv = lineInput.isEmpty() ? DEFAULT_LINES_CSV : lineInput;
-
-        File stationsFile = new File(stationsCsv);
-        File linesFile = new File(linesCsv);
-
-        if (!stationsFile.isFile()) {
-            System.out.println(RED + "Stations CSV file not found: " + stationsCsv + RESET);
-            pause();
-            menu();
-            return;
-        }
-
-        if (!linesFile.isFile()) {
-            System.out.println(RED + "Lines CSV file not found: " + linesCsv + RESET);
-            pause();
-            menu();
-            return;
-        }
-
-        System.out.println("\n" + CYAN + "⏳ Loading railway network..." + RESET);
-
-        try {
-            controller.buildGraphFromCsv(stationsCsv, linesCsv);
-
-            System.out.println(GREEN + "✓ Network loaded successfully" + RESET);
-            System.out.printf("  • %d stations\n", controller.getStationCount());
-            System.out.printf("  • %d connections\n", controller.getLineCount());
-
-        } catch (IOException e) {
-            System.out.println(RED + "Error loading network: " + e.getMessage() + RESET);
-        }
-
-        pause();
-        menu();
     }
 
     /**
@@ -177,7 +128,6 @@ public class HubCentralityUI implements Runnable {
 
         System.out.println(line(120));
         System.out.println("\nFormula: HubScore = 0.35 × Betweenness + 0.35 × Harmonic Closeness + 0.30 × Strength(norm)");
-        System.out.println("All metrics normalized to [0,1] per connected component.");
     }
 
     /**

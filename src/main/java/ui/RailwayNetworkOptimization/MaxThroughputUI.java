@@ -42,10 +42,6 @@ public class MaxThroughputUI implements Runnable {
     @Override
     public void run() {
         repo = S3_RailwayRepository.getInstance();
-        System.out.println("print all graph(debug, remove");
-        for(Map.Entry<Integer, Station> s : repo.getStationsById().entrySet()) {
-            System.out.printf("%d- %s\n", s.getKey(), s.getValue().toString());
-        }
         menu();
     }
 
@@ -70,66 +66,15 @@ public class MaxThroughputUI implements Runnable {
         }
         System.out.println();
 
-        Option[] options = new Option[3];
+        Option[] options = new Option[3 ];
 
-        options[0] = new Option("Load Railway Network (CSV)", this::loadNetworkAction);
+        options[0] = new Option("Print station list", this::stationListPrinting);
         options[1] = new Option("Generate Maximum Throughput data", this::genMaxThrough);
         options[2] = new Option("Go Back", new RailwayNetworkMenu());
 
         Utils.listAndSelect(options);
     }
 
-    /**
-     * Method used to load railway network from CSV files.
-     */
-
-    private void loadNetworkAction() {
-        Scanner sc = new Scanner(System.in);
-
-        System.out.print(CYAN + "➤ " + RESET + "Stations CSV [" + DEFAULT_STATIONS_CSV + "]: ");
-        String stationInput = sc.nextLine().trim();
-        String stationsCsv = stationInput.isEmpty() ? DEFAULT_STATIONS_CSV : stationInput;
-
-        System.out.print(CYAN + "➤ " + RESET + "Lines CSV [" + DEFAULT_LINES_CSV + "]: ");
-        String lineInput = sc.nextLine().trim();
-        String linesCsv = lineInput.isEmpty() ? DEFAULT_LINES_CSV : lineInput;
-
-        File stationsFile = new File(stationsCsv);
-        File linesFile = new File(linesCsv);
-
-        if (!stationsFile.isFile()) {
-            System.out.println(RED + "Stations CSV file not found: " + stationsCsv + RESET);
-            pause();
-            menu();
-            return;
-        }
-
-        if (!linesFile.isFile()) {
-            System.out.println(RED + "Lines CSV file not found: " + linesCsv + RESET);
-            pause();
-            menu();
-            return;
-        }
-
-        System.out.println("\n" + CYAN + "⏳ Loading railway network..." + RESET);
-
-        try {
-            long start = System.currentTimeMillis();
-            controller.buildGraphFromCsv(stationsCsv, linesCsv);
-            long duration = System.currentTimeMillis() - start;
-
-            System.out.printf(GREEN + "✓ Network loaded successfully in %.2f seconds\n" + RESET,
-                    duration / 1000.0);
-            System.out.printf("  • %d stations\n", controller.getStationCount());
-            System.out.printf("  • %d directed connections\n", controller.getLineCount());
-
-        } catch (IOException e) {
-            System.out.println(RED + "Error loading network: " + e.getMessage() + RESET);
-        }
-
-        pause();
-        menu();
-    }
 
     /**
      * Method used to generate maximum throughput between two stations using the controller methods.
@@ -153,12 +98,6 @@ public class MaxThroughputUI implements Runnable {
             Station stationSrc = controller.getStationById(name);
             while(stationSrc == null) {
                 System.out.println("Invalid station ID. Please enter a valid station ID.");
-                Map<Integer, Station> graph = repo.getStationsById();
-                int i = 1;
-                for(Station s : graph.values()) {
-                    System.out.println(i+"-"+s.getName());
-                    i++;
-                }
                 System.out.print(CYAN + "Enter SOURCE station ID: " + RESET);
                 name = sc.nextLine().trim();
                 stationSrc = controller.getStationById(name);
@@ -169,12 +108,6 @@ public class MaxThroughputUI implements Runnable {
             Station stationDst = controller.getStationById(name);
             while(stationDst == null) {
                 System.out.println("Invalid station ID. Please enter a valid station ID.");
-                Map<Integer, Station> graph = repo.getStationsById();
-                int i = 1;
-                for(Station s : graph.values()) {
-                    System.out.println(i+"-"+s.getName());
-                    i++;
-                }
                 System.out.print(CYAN + "Enter TARGET station ID: " + RESET);
                 name = sc.nextLine().trim();
                 stationDst = controller.getStationById(name);
@@ -198,6 +131,15 @@ public class MaxThroughputUI implements Runnable {
         }
 
         pause();
+        menu();
+    }
+
+    /**
+     * Method to print all the existant station's at the user's request
+     */
+
+    public void stationListPrinting() {
+        System.out.println(controller.getStations());
         menu();
     }
 
