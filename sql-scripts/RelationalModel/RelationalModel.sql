@@ -34,8 +34,8 @@ CREATE TABLE Locomotive (
   name         varchar2(255) NOT NULL, 
   entry_year   number(10) NOT NULL, 
   total_weight number(10) NOT NULL, 
-  operator     varchar2(255) NOT NULL, 
   op_speed     number(10) NOT NULL, 
+  operator     varchar2(255) NOT NULL, 
   model        number(10) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Operator (
@@ -118,7 +118,6 @@ CREATE TABLE Freight (
   "date"      date NOT NULL, 
   origin      number(10) NOT NULL, 
   destination number(10) NOT NULL, 
-  train       number(10) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Wagon_Freight (
   wagon   number(10) NOT NULL, 
@@ -130,12 +129,12 @@ CREATE TABLE Path (
   name varchar2(255) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Endpoint_Path (
-  path      number(10) NOT NULL, 
   seq       number(10) NOT NULL, 
+  path      number(10) NOT NULL, 
   endpoint  number(10) NOT NULL, 
   must_stop varchar2(1) NOT NULL, 
-  PRIMARY KEY (path, 
-  seq));
+  PRIMARY KEY (seq, 
+  path));
 CREATE TABLE Single_Track (
   segment number(10) NOT NULL, 
   PRIMARY KEY (segment));
@@ -167,6 +166,32 @@ CREATE TABLE Locomotive_Model_Gauge (
   Gaugeid            number(10) NOT NULL, 
   PRIMARY KEY (Locomotive_Modelid, 
   Gaugeid));
+CREATE TABLE Wagon_Location (
+  id        number(10) GENERATED AS IDENTITY, 
+  wagon     number(10) NOT NULL, 
+  endpoint  number(10) NOT NULL, 
+  status    varchar2(1) DEFAULT 'F' NOT NULL CHECK(status IN ('F','O')), 
+  arrival   timestamp(0) NOT NULL, 
+  departure timestamp(0), 
+  PRIMARY KEY (id));
+CREATE TABLE Train_Movement (
+  id       number(10) GENERATED AS IDENTITY, 
+  train    number(10) NOT NULL, 
+  endpoint number(10) NOT NULL, 
+  PRIMARY KEY (id));
+CREATE TABLE Stop (
+  arrival   timestamp(0) NOT NULL, 
+  departure timestamp(0) NOT NULL, 
+  movement  number(10) NOT NULL, 
+  PRIMARY KEY (movement));
+CREATE TABLE Passage (
+  passage  number(10) NOT NULL, 
+  movement number(10) NOT NULL, 
+  PRIMARY KEY (movement));
+CREATE TABLE Freight_Train (
+  freight number(10) NOT NULL, 
+  train   number(10) NOT NULL, 
+  PRIMARY KEY (freight));
 ALTER TABLE Line ADD CONSTRAINT FKLine262396 FOREIGN KEY (owner) REFERENCES Owner (vat);
 ALTER TABLE Line_Segment ADD CONSTRAINT FKLine_Segme425123 FOREIGN KEY (line) REFERENCES Line (id);
 ALTER TABLE Line ADD CONSTRAINT FKLine635842 FOREIGN KEY (endpoint_a) REFERENCES Endpoint (id);
@@ -189,7 +214,6 @@ ALTER TABLE Wagon_Freight ADD CONSTRAINT FKWagon_Frei246610 FOREIGN KEY (wagon) 
 ALTER TABLE Wagon_Freight ADD CONSTRAINT FKWagon_Frei318629 FOREIGN KEY (freight) REFERENCES Freight (id);
 ALTER TABLE Freight ADD CONSTRAINT FKFreight109531 FOREIGN KEY (origin) REFERENCES Endpoint (id);
 ALTER TABLE Freight ADD CONSTRAINT FKFreight881821 FOREIGN KEY (destination) REFERENCES Endpoint (id);
-ALTER TABLE Freight ADD CONSTRAINT FKFreight671762 FOREIGN KEY (train) REFERENCES Train (id);
 ALTER TABLE Train ADD CONSTRAINT FKTrain985667 FOREIGN KEY (path) REFERENCES Path (id);
 ALTER TABLE Endpoint_Path ADD CONSTRAINT FKEndpoint_P179752 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
 ALTER TABLE Endpoint_Path ADD CONSTRAINT FKEndpoint_P852905 FOREIGN KEY (path) REFERENCES Path (id);
@@ -201,7 +225,15 @@ ALTER TABLE Locomotive_Model_Gauge ADD CONSTRAINT FKLocomotive35887 FOREIGN KEY 
 ALTER TABLE Locomotive_Model_Gauge ADD CONSTRAINT FKLocomotive663176 FOREIGN KEY (Gaugeid) REFERENCES Gauge (id);
 ALTER TABLE Diesel_Locomotive_Model ADD CONSTRAINT FKDiesel_Loc686371 FOREIGN KEY (model) REFERENCES Locomotive_Model (id);
 ALTER TABLE Electric_Locomotive_Model ADD CONSTRAINT FKElectric_L872183 FOREIGN KEY (model) REFERENCES Locomotive_Model (id);
-CREATE OR REPLACE TRIGGER trg_check_train_length
+ALTER TABLE Wagon_Location ADD CONSTRAINT FKWagon_Loca706875 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
+ALTER TABLE Wagon_Location ADD CONSTRAINT FKWagon_Loca55866 FOREIGN KEY (wagon) REFERENCES Wagon (id);
+ALTER TABLE Train_Movement ADD CONSTRAINT FKTrain_Move863847 FOREIGN KEY (train) REFERENCES Train (id);
+ALTER TABLE Train_Movement ADD CONSTRAINT FKTrain_Move54998 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
+ALTER TABLE Stop ADD CONSTRAINT FKStop83748 FOREIGN KEY (movement) REFERENCES Train_Movement (id);
+ALTER TABLE Passage ADD CONSTRAINT FKPassage102422 FOREIGN KEY (movement) REFERENCES Train_Movement (id);
+ALTER TABLE Freight_Train ADD CONSTRAINT FKFreight_Tr432283 FOREIGN KEY (freight) REFERENCES Freight (id);
+ALTER TABLE Freight_Train ADD CONSTRAINT FKFreight_Tr820123 FOREIGN KEY (train) REFERENCES Train (id);
+CREATE OR REPLACE TRIGGER trg_check_train_length_loco
 AFTER INSERT OR UPDATE OR DELETE ON Locomotive_Train
 FOR EACH ROW
 DECLARE
@@ -234,17 +266,74 @@ BEGIN
      WHERE lt.train = v_train_id;
 
     -- 4) Somar comprimento dos wagons desse train
-    -- (via Freight → Train)
+    --    via Freight_Train → Wagon_Freight → Wagon → Wagon_Model
     SELECT NVL(SUM(wm.length), 0)
       INTO v_wagon_length
-      FROM Freight f
+      FROM Freight_Train ft
       JOIN Wagon_Freight wf
-        ON wf.freight = f.id
+        ON wf.freight = ft.freight
       JOIN Wagon w
         ON wf.wagon = w.id
       JOIN Wagon_Model wm
         ON w.wagon_model = wm.id
-     WHERE f.train = v_train_id;
+     WHERE ft.train = v_train_id;
+
+    -- 5) Verificar regra
+    IF v_loco_length + v_wagon_length > v_max_length THEN
+        raise_application_error(
+            -20033,
+            'Train ' || v_train_id ||
+            ' exceeds max length (' || v_max_length || ')'
+        );
+    END IF;
+END;
+/
+;
+/
+CREATE OR REPLACE TRIGGER trg_check_train_length_freight
+AFTER INSERT OR UPDATE OR DELETE ON Freight_Train
+FOR EACH ROW
+DECLARE
+    v_train_id       Train.id%TYPE;
+    v_max_length     Train.max_length%TYPE;
+    v_loco_length    NUMBER := 0;
+    v_wagon_length   NUMBER := 0;
+BEGIN
+    -- 1) Descobrir qual é o train afetado
+    IF INSERTING OR UPDATING THEN
+        v_train_id := :NEW.train;
+    ELSIF DELETING THEN
+        v_train_id := :OLD.train;
+    END IF;
+
+    -- 2) Ler o comprimento máximo desse train
+    SELECT max_length
+      INTO v_max_length
+      FROM Train
+     WHERE id = v_train_id;
+
+    -- 3) Somar comprimento das locomotivas desse train
+    SELECT NVL(SUM(lm.length), 0)
+      INTO v_loco_length
+      FROM Locomotive_Train lt
+      JOIN Locomotive l
+        ON lt.locomotive = l.id
+      JOIN Locomotive_Model lm
+        ON l.model = lm.id
+     WHERE lt.train = v_train_id;
+
+    -- 4) Somar comprimento dos wagons desse train
+    --    via Freight_Train → Wagon_Freight → Wagon → Wagon_Model
+    SELECT NVL(SUM(wm.length), 0)
+      INTO v_wagon_length
+      FROM Freight_Train ft
+      JOIN Wagon_Freight wf
+        ON wf.freight = ft.freight
+      JOIN Wagon w
+        ON wf.wagon = w.id
+      JOIN Wagon_Model wm
+        ON w.wagon_model = wm.id
+     WHERE ft.train = v_train_id;
 
     -- 5) Verificar regra
     IF v_loco_length + v_wagon_length > v_max_length THEN
