@@ -32,6 +32,8 @@ public class MinimalBackboneUI implements Runnable {
 
     private final MinimalBackboneController controller;
 
+    private MinimalBackboneResult lastResult;
+
     public MinimalBackboneUI() {
         this.controller = new MinimalBackboneController();
     }
@@ -63,9 +65,8 @@ public class MinimalBackboneUI implements Runnable {
         System.out.println();
 
         Option[] options = new Option[3];
-
         options[0] = new Option("Calculate Minimal Backbone (MST)", this::calculateBackboneAction);
-        options[1] = new Option("Calculate and Export (DOT + SVG)", this::calculateAndExportAction);
+        options[1] = new Option("Export (DOT + SVG)", this::exportAction);
         options[2] = new Option("Go Back", new RailwayNetworkMenu());
 
         Utils.listAndSelect(options);
@@ -85,12 +86,8 @@ public class MinimalBackboneUI implements Runnable {
         System.out.println("\n" + CYAN + "⏳ Calculating minimal backbone network..." + RESET);
 
         try {
-            long start = System.currentTimeMillis();
-            MinimalBackboneResult result = controller.calculateMinimalBackbone();
-            long duration = System.currentTimeMillis() - start;
-
-            displayResults(result, duration);
-
+            lastResult = controller.calculateMinimalBackbone();
+            displayResults(lastResult);
         } catch (Exception e) {
             System.out.println(RED + "Error calculating backbone: " + e.getMessage() + RESET);
             e.printStackTrace();
@@ -101,9 +98,9 @@ public class MinimalBackboneUI implements Runnable {
     }
 
     /**
-     * Action to calculate backbone and export to DOT and SVG.
+     * Action to export last calculated backbone to DOT and SVG.
      */
-    private void calculateAndExportAction() {
+    private void exportAction() {
         if (!controller.isGraphBuilt()) {
             System.out.println(RED + "Please load the railway network first from the main menu." + RESET);
             pause();
@@ -111,46 +108,36 @@ public class MinimalBackboneUI implements Runnable {
             return;
         }
 
-        System.out.println("\n" + CYAN + "⏳ Calculating minimal backbone network..." + RESET);
+        // Require previous calculation
+        if (lastResult == null) {
+            System.out.println(YELLOW + "⚠ No minimal backbone calculated yet." + RESET);
+            System.out.println("  Please run " + CYAN + "Calculate Minimal Backbone (MST)" + RESET + " first.");
+            pause();
+            menu();
+            return;
+        }
 
         try {
-            long start = System.currentTimeMillis();
-            MinimalBackboneResult result = controller.calculateMinimalBackbone();
-            long duration = System.currentTimeMillis() - start;
-
-            displayResults(result, duration);
-
-            // Export to DOT
             Scanner sc = new Scanner(System.in);
+
             System.out.print("\n" + CYAN + "➤ " + RESET + "Output filename for DOT file [backbone.dot]: ");
             String dotFilename = sc.nextLine().trim();
             if (dotFilename.isEmpty()) dotFilename = "backbone.dot";
 
             System.out.println(CYAN + "⏳ Exporting to DOT format..." + RESET);
-            result.exportToDot(dotFilename);
-            System.out.println(GREEN + "✓ Successfully exported to " + dotFilename + RESET);
+            lastResult.exportToDot(dotFilename);
 
-            // Ask if user wants to generate SVG
-            System.out.print(CYAN + "➤ " + RESET + "Generate SVG file using Graphviz neato? (y/n): ");
-            String choice = sc.nextLine().trim();
+            System.out.print(CYAN + "➤ " + RESET + "Output filename for SVG file [backbone.svg]: ");
+            String svgFilename = sc.nextLine().trim();
+            if (svgFilename.isEmpty()) svgFilename = "backbone.svg";
 
-            if (choice.equalsIgnoreCase("y") || choice.equalsIgnoreCase("yes")) {
-                System.out.print(CYAN + "➤ " + RESET + "Output filename for SVG [backbone.svg]: ");
-                String svgFilename = sc.nextLine().trim();
-                if (svgFilename.isEmpty()) svgFilename = "backbone.svg";
 
-                System.out.println(CYAN + "⏳ Generating SVG with Graphviz neato..." + RESET);
-                try {
-                    result.exportToSvg(dotFilename, svgFilename);
-                    System.out.println(GREEN + "✓ Successfully generated " + svgFilename + RESET);
-                    System.out.println("  You can now open the SVG file in a web browser or image viewer.");
-                } catch (IOException e) {
-                    System.out.println(RED + "❌ SVG generation failed: " + e.getMessage() + RESET);
-                    System.out.println(YELLOW + "  You can manually generate it using: neato -Tsvg " + dotFilename + " -o " + svgFilename + RESET);
-                }
-            } else {
-                System.out.println(YELLOW + "ℹ You can manually generate SVG using: neato -Tsvg " + dotFilename + " -o backbone.svg" + RESET);
-            }
+            System.out.println(CYAN + "⏳ Generating SVG with Graphviz neato..." + RESET);
+            lastResult.exportToSvg(dotFilename, svgFilename);
+
+            System.out.println(GREEN + "✓ Files successfully generated" + RESET);
+            System.out.println("  • DOT: Outputs/" + dotFilename);
+            System.out.println("  • SVG: Outputs/" + svgFilename);
 
         } catch (Exception e) {
             System.out.println(RED + "Error: " + e.getMessage() + RESET);
@@ -161,13 +148,11 @@ public class MinimalBackboneUI implements Runnable {
         menu();
     }
 
+
     /**
      * Displays the calculated minimal backbone results.
-     *
-     * @param result the calculated minimal backbone result
-     * @param durationMs calculation duration in milliseconds
      */
-    private void displayResults(MinimalBackboneResult result, long durationMs) {
+    private void displayResults(MinimalBackboneResult result) {
         clear();
         System.out.println(CYAN + line(120));
         System.out.println("                                 MINIMAL BACKBONE NETWORK RESULTS");
@@ -182,7 +167,6 @@ public class MinimalBackboneUI implements Runnable {
         System.out.printf("  • Total Stations        : %d\n", result.getStationCount());
         System.out.printf("  • Total Connections     : %d\n", result.getConnectionCount());
         System.out.printf("  • Total Distance        : %.3f km\n", result.getTotalDistance());
-        System.out.printf("  • Calculation Time      : %d ms\n", durationMs);
         System.out.println();
 
         // Detailed connections
@@ -194,7 +178,6 @@ public class MinimalBackboneUI implements Runnable {
         MapGraph<Station, Double> graph = result.getBackboneGraph();
         List<EdgeInfo> edges = new ArrayList<>();
 
-        // Collect all edges (avoiding duplicates in undirected graph)
         java.util.Set<String> processed = new java.util.HashSet<>();
         for (Edge<Station, Double> edge : graph.edges()) {
             Station u = edge.getVOrig();
@@ -210,10 +193,8 @@ public class MinimalBackboneUI implements Runnable {
             }
         }
 
-        // Sort by distance
         edges.sort(Comparator.comparingDouble(e -> e.distance));
 
-        // Display
         for (EdgeInfo edge : edges) {
             System.out.printf("%-40s → %-40s   %10.3f km\n",
                     truncate(edge.origin, 40),
