@@ -6,6 +6,7 @@ title Use Case Diagram — BDAD
 
 actor "Product Owner" as PO
 actor "Planner" as PL
+actor "Freight Manager" as FM
 
 usecase "USBD01 - Create Data Glossary" as UC1
 usecase "USBD02 - Create Relational Model" as UC2
@@ -20,18 +21,36 @@ usecase "USBD25 - List Endpoints Passed Without Stop on a Planned Route" as UC9
 usecase "USBD27 - List Grain Wagons Used in Every Train" as UC10
 usecase "USBD29 - Know the Percentage of Electric Locomotives by Operator" as UC11
 
+' -------- Sprint 3 – Chosen Database User Stories --------
+usecase "USBD35 - Register New Facility" as UC35
+usecase "USBD36 - Add Building to Existing Facility" as UC36
+usecase "USBD38 - Add New Gauge" as UC38
+usecase "USBD39 - Associate Locomotive to Planned Train" as UC39
+usecase "USBD41 - Remove Freight from Planned Train" as UC41
+usecase "USBD43 - Add New Electric Locomotive Model" as UC43
+usecase "USBD44 - Add Segment to Line (with Siding)" as UC44
+usecase "USBD45 - Add New Line with at Least One Segment" as UC45
+
 PO --> UC1
 PO --> UC2
 PO --> UC3
 PO --> UC4
+PO --> UC8
+
 PL --> UC5
 PL --> UC6
 PL --> UC7
+PL --> UC35
+PL --> UC36
+PL --> UC38
+PL --> UC43
+PL --> UC44
+PL --> UC45
 
-PO --> UC8
-PL --> UC9
-PL --> UC10
-PL --> UC11
-
+FM --> UC9
+FM --> UC10
+FM --> UC11
+FM --> UC39
+FM --> UC41
 
 @enduml

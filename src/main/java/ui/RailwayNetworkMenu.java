@@ -27,15 +27,16 @@ public class RailwayNetworkMenu implements Runnable {
 
         displayGlobalStatus();
 
-        Option[] options = new Option[7];
+        Option[] options = new Option[8];
 
         options[0] = new Option("Load Railway Network from CSV", new LoadNetworkUI());
-        options[1] = new Option("Directed Line Upgrade Plan (USEI11)", new UpgradeOrderUI());
-        options[2] = new Option("Minimal Backbone Network (USEI12)", new MinimalBackboneUI());
-        options[3] = new Option("Rail Hub Centrality Analysis (USEI13)", new HubCentralityUI());
-        options[4] = new Option("Maximum Throughput Calculator (USEI14)", new MaxThroughputUI());
-        options[5] = new Option("Risk-Aware Shortest Paths (USEI15)", new RiskAwarePathUI());
-        options[6] = new Option(RED + "Back to Main Menu" + RESET, new MainMenu());
+        options[1] = new Option("List Stations", new ListStationsUI());
+        options[2] = new Option("Directed Line Upgrade Plan (USEI11)", new UpgradeOrderUI());
+        options[3] = new Option("Minimal Backbone Network (USEI12)", new MinimalBackboneUI());
+        options[4] = new Option("Rail Hub Centrality Analysis (USEI13)", new HubCentralityUI());
+        options[5] = new Option("Maximum Throughput Calculator (USEI14)", new MaxThroughputUI());
+        options[6] = new Option("Risk-Aware Shortest Paths (USEI15)", new RiskAwarePathUI());
+        options[7] = new Option(RED + "Back to Main Menu" + RESET, new MainMenu());
 
         Utils.listAndSelect(options);
     }

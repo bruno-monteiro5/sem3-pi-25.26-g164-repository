@@ -35,8 +35,6 @@ However, be aware, this is a pedagogical simplification. On further projects and
 | USAC15  | Send Data to Board                     |
 | USAC16  | Manage Station Tracks                  |
 
-
-
 ---
 
 ## BDDAD — Use Case Diagram
@@ -89,8 +87,6 @@ However, be aware, this is a pedagogical simplification. On further projects and
 | USEI14 | Maximum Throughput Between Two Hubs |
 | USEI15 | Risk-Aware Shortest Paths           |
 
-
-
 ---
 
 ## LAPR3 — Use Case Diagram
@@ -101,16 +97,17 @@ However, be aware, this is a pedagogical simplification. On further projects and
 
 ### Use Cases / User Stories — LAPR3
 
-| UC/US  | Description                      |
-|:-------|:---------------------------------|
-| USLP01 | Create Domain Model              |
-| USLP02 | Access Cargo Handling            |
-| USLP03 | Calculate Travel Time            |
-| USLP04 | Create Data Dictionary/Glossary  |
-| USLP05 | Update Conceptual Domain Model   |
-| USLP06 | Update Data Dictionary/Glossar   |
-| USLP07 | Use Scheduler to Dispatch Trains |
+| UC/US  | Description                                   |
+|:-------|:----------------------------------------------|
+| USLP01 | Create Domain Model                           |
+| USLP02 | Access Cargo Handling                         |
+| USLP03 | Calculate Travel Time                         |
+| USLP04 | Create Data Dictionary/Glossary               |
+| USLP05 | Update Conceptual Domain Model                |
+| USLP06 | Update Data Dictionary/Glossary               |
+| USLP07 | Use Scheduler to Dispatch Trains              |
+| USLP08 | Define/Assign Routes for Pending Freights     |
+| USLP09 | Assemble and Assign Train to Route            |
+| USLP10 | Schedule and Dispatch Trains  |
 
 ---
-
-

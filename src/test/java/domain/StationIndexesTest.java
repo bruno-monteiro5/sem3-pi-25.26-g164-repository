@@ -50,240 +50,112 @@ public class StationIndexesTest {
         }
     }
 
-    /**
-     * Tests latitude window queries, including filtering
-     * and the exceptional case where the minimum bound
-     * is greater than the maximum bound.
-     */
     @Test
     public void inLatitudeWindow() {
         StationIndexes indexes = new StationIndexes();
 
-        Station sLow = new Station(
-                "Low",
-                "PT",
-                new Location(10.0, 0.0),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
-        Station sMid = new Station(
-                "Mid",
-                "PT",
-                new Location(20.0, 0.0),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
-        Station sHigh = new Station(
-                "High",
-                "PT",
-                new Location(30.0, 0.0),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
+        indexes.add(new Station("Low", "PT", new Location(10, 0), "Europe/Lisbon", false, false, false));
+        indexes.add(new Station("Mid", "PT", new Location(20, 0), "Europe/Lisbon", false, false, false));
+        indexes.add(new Station("High", "PT", new Location(30, 0), "Europe/Lisbon", false, false, false));
 
-        indexes.add(sLow);
-        indexes.add(sMid);
-        indexes.add(sHigh);
-
-        List<Station> result = indexes.inLatitudeWindow(15.0, 25.0);
+        List<Station> result = indexes.inLatitudeWindow(15, 25);
 
         assertEquals(1, result.size());
-        assertSame(sMid, result.get(0));
+        assertEquals("Mid", result.get(0).getName());
 
         try {
-            indexes.inLatitudeWindow(50.0, 10.0);
-            fail("Expected IllegalArgumentException when minLatitude > maxLatitude");
+            indexes.inLatitudeWindow(30, 10);
+            fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException expected) {
         }
     }
 
-    /**
-     * Tests longitude window queries, including filtering
-     * and the exceptional case where the minimum bound
-     * is greater than the maximum bound.
-     */
     @Test
     public void inLongitudeWindow() {
         StationIndexes indexes = new StationIndexes();
 
-        Station sLeft = new Station(
-                "Left",
-                "PT",
-                new Location(0.0, -10.0),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
-        Station sCenter = new Station(
-                "Center",
-                "PT",
-                new Location(0.0, 0.0),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
-        Station sRight = new Station(
-                "Right",
-                "PT",
-                new Location(0.0, 10.0),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
+        indexes.add(new Station("Left", "PT", new Location(0, -10), "Europe/Lisbon", false, false, false));
+        indexes.add(new Station("Center", "PT", new Location(0, 0), "Europe/Lisbon", false, false, false));
+        indexes.add(new Station("Right", "PT", new Location(0, 10), "Europe/Lisbon", false, false, false));
 
-        indexes.add(sLeft);
-        indexes.add(sCenter);
-        indexes.add(sRight);
-
-        List<Station> result = indexes.inLongitudeWindow(-5.0, 5.0);
+        List<Station> result = indexes.inLongitudeWindow(-5, 5);
 
         assertEquals(1, result.size());
-        assertSame(sCenter, result.get(0));
+        assertEquals("Center", result.get(0).getName());
 
         try {
-            indexes.inLongitudeWindow(5.0, -5.0);
-            fail("Expected IllegalArgumentException when minLongitude > maxLongitude");
+            indexes.inLongitudeWindow(5, -5);
+            fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException expected) {
         }
     }
 
-    /**
-     * Tests querying stations by time zone group.
-     * Covers normal behavior and invalid parameter cases.
-     */
     @Test
     public void byTimeZoneGroup() {
         StationIndexes indexes = new StationIndexes();
 
-        Station lisPt = new Station(
-                "Lisbon-PT",
-                "PT",
-                new Location(38.7, -9.1),
-                "Europe/Lisbon",
-                true,
-                true,
-                false
-        );
-        Station lisEs = new Station(
-                "Lisbon-ES",
-                "ES",
-                new Location(36.0, -5.0),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
-        Station madPt = new Station(
-                "Madrid-PT",
-                "PT",
-                new Location(40.4, -3.7),
-                "Europe/Madrid",
-                false,
-                false,
-                false
-        );
-
-        indexes.add(lisPt);
-        indexes.add(lisEs);
-        indexes.add(madPt);
+        indexes.add(new Station("Lisbon-PT", "PT", new Location(38.7, -9.1), "Europe/Lisbon", true, true, false));
+        indexes.add(new Station("Lisbon-ES", "ES", new Location(36.0, -5.0), "Europe/Lisbon", false, false, false));
+        indexes.add(new Station("Madrid-PT", "PT", new Location(40.4, -3.7), "Europe/Madrid", false, false, false));
 
         List<Station> result = indexes.byTimeZoneGroup("Europe/Lisbon");
 
         assertEquals(2, result.size());
-        assertTrue(result.contains(lisPt));
-        assertTrue(result.contains(lisEs));
-        assertFalse(result.contains(madPt));
+        assertTrue(containsName(result, "Lisbon-PT"));
+        assertTrue(containsName(result, "Lisbon-ES"));
+        assertFalse(containsName(result, "Madrid-PT"));
 
         try {
             indexes.byTimeZoneGroup(null);
-            fail("Expected IllegalArgumentException for null timeZoneGroup");
+            fail();
         } catch (IllegalArgumentException expected) {
         }
 
         try {
             indexes.byTimeZoneGroup("   ");
-            fail("Expected IllegalArgumentException for blank timeZoneGroup");
+            fail();
         } catch (IllegalArgumentException expected) {
         }
     }
 
-    /**
-     * Tests querying stations by time zone group and country.
-     * Covers correct filtering and invalid parameter cases.
-     */
     @Test
     public void byTimeZoneAndCountry() {
         StationIndexes indexes = new StationIndexes();
 
-        Station lisPt1 = new Station(
-                "Lisbon-PT-1",
-                "PT",
-                new Location(38.7, -9.1),
-                "Europe/Lisbon",
-                true,
-                true,
-                false
-        );
-        Station lisPt2 = new Station(
-                "Lisbon-PT-2",
-                "PT",
-                new Location(38.8, -9.2),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
-        Station lisEs = new Station(
-                "Lisbon-ES",
-                "ES",
-                new Location(36.0, -5.0),
-                "Europe/Lisbon",
-                false,
-                false,
-                false
-        );
-        Station madPt = new Station(
-                "Madrid-PT",
-                "PT",
-                new Location(40.4, -3.7),
-                "Europe/Madrid",
-                false,
-                false,
-                false
-        );
-
-        indexes.add(lisPt1);
-        indexes.add(lisPt2);
-        indexes.add(lisEs);
-        indexes.add(madPt);
+        indexes.add(new Station("Lisbon-PT-1", "PT", new Location(38.7, -9.1), "Europe/Lisbon", true, true, false));
+        indexes.add(new Station("Lisbon-PT-2", "PT", new Location(38.8, -9.2), "Europe/Lisbon", false, false, false));
+        indexes.add(new Station("Lisbon-ES", "ES", new Location(36.0, -5.0), "Europe/Lisbon", false, false, false));
+        indexes.add(new Station("Madrid-PT", "PT", new Location(40.4, -3.7), "Europe/Madrid", false, false, false));
 
         List<Station> result = indexes.byTimeZoneAndCountry("Europe/Lisbon", "PT");
 
         assertEquals(2, result.size());
-        assertTrue(result.contains(lisPt1));
-        assertTrue(result.contains(lisPt2));
-        assertFalse(result.contains(lisEs));
-        assertFalse(result.contains(madPt));
+        assertTrue(containsName(result, "Lisbon-PT-1"));
+        assertTrue(containsName(result, "Lisbon-PT-2"));
+        assertFalse(containsName(result, "Lisbon-ES"));
+        assertFalse(containsName(result, "Madrid-PT"));
 
         try {
             indexes.byTimeZoneAndCountry(null, "PT");
-            fail("Expected IllegalArgumentException for null timeZoneGroup");
+            fail();
         } catch (IllegalArgumentException expected) {
         }
 
         try {
             indexes.byTimeZoneAndCountry("Europe/Lisbon", "   ");
-            fail("Expected IllegalArgumentException for blank country");
+            fail();
         } catch (IllegalArgumentException expected) {
         }
+    }
+
+    /* ---------- helper ---------- */
+
+    private boolean containsName(List<Station> stations, String name) {
+        for (Station s : stations) {
+            if (name.equals(s.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -177,7 +177,6 @@ public class HubCentralityUI implements Runnable {
 
         System.out.println(line(120));
         System.out.println("\nFormula: HubScore = 0.35 × Betweenness + 0.35 × Harmonic Closeness + 0.30 × Strength(norm)");
-        System.out.println("All metrics normalized to [0,1] per connected component.");
     }
 
     /**

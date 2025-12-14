@@ -42,10 +42,6 @@ public class MaxThroughputUI implements Runnable {
     @Override
     public void run() {
         repo = S3_RailwayRepository.getInstance();
-        System.out.println("print all graph(debug, remove");
-        for(Map.Entry<Integer, Station> s : repo.getStationsById().entrySet()) {
-            System.out.printf("%d- %s\n", s.getKey(), s.getValue().toString());
-        }
         menu();
     }
 
@@ -70,11 +66,12 @@ public class MaxThroughputUI implements Runnable {
         }
         System.out.println();
 
-        Option[] options = new Option[3];
+        Option[] options = new Option[4];
 
         options[0] = new Option("Load Railway Network (CSV)", this::loadNetworkAction);
-        options[1] = new Option("Generate Maximum Throughput data", this::genMaxThrough);
-        options[2] = new Option("Go Back", new RailwayNetworkMenu());
+        options[1] = new Option("Print station list", this::stationListPrinting);
+        options[2] = new Option("Generate Maximum Throughput data", this::genMaxThrough);
+        options[3] = new Option("Go Back", new RailwayNetworkMenu());
 
         Utils.listAndSelect(options);
     }
@@ -153,12 +150,6 @@ public class MaxThroughputUI implements Runnable {
             Station stationSrc = controller.getStationById(name);
             while(stationSrc == null) {
                 System.out.println("Invalid station ID. Please enter a valid station ID.");
-                Map<Integer, Station> graph = repo.getStationsById();
-                int i = 1;
-                for(Station s : graph.values()) {
-                    System.out.println(i+"-"+s.getName());
-                    i++;
-                }
                 System.out.print(CYAN + "Enter SOURCE station ID: " + RESET);
                 name = sc.nextLine().trim();
                 stationSrc = controller.getStationById(name);
@@ -169,12 +160,6 @@ public class MaxThroughputUI implements Runnable {
             Station stationDst = controller.getStationById(name);
             while(stationDst == null) {
                 System.out.println("Invalid station ID. Please enter a valid station ID.");
-                Map<Integer, Station> graph = repo.getStationsById();
-                int i = 1;
-                for(Station s : graph.values()) {
-                    System.out.println(i+"-"+s.getName());
-                    i++;
-                }
                 System.out.print(CYAN + "Enter TARGET station ID: " + RESET);
                 name = sc.nextLine().trim();
                 stationDst = controller.getStationById(name);
@@ -198,6 +183,15 @@ public class MaxThroughputUI implements Runnable {
         }
 
         pause();
+        menu();
+    }
+
+    /**
+     * Method to print all the existant station's at the user's request
+     */
+
+    public void stationListPrinting() {
+        System.out.println(controller.getStations());
         menu();
     }
 
