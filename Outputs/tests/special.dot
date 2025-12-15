@@ -1,0 +1,12 @@
+graph MinimalBackbone {
+  layout=neato;
+  overlap=false;
+  splines=true;
+  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
+  edge [color=blue, penwidth=2.0];
+
+  S1 [label="São \"João\"", pos="10,00,20,00"];
+  S2 [label="Test Station", pos="30,00,40,00"];
+
+  S1 -- S2 [label="25,00 km"];
+}

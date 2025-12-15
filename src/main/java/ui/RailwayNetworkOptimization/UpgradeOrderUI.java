@@ -61,62 +61,14 @@ public class UpgradeOrderUI implements Runnable {
         }
         System.out.println();
 
-        Option[] options = new Option[3];
+        Option[] options = new Option[2];
 
-        options[0] = new Option("Load Railway Network (CSV)", this::loadNetworkAction);
-        options[1] = new Option("Calculate Upgrade Order", this::calculateOrderAction);
-        options[2] = new Option("Go Back", new RailwayNetworkMenu());
+        options[0] = new Option("Calculate Upgrade Order", this::calculateOrderAction);
+        options[1] = new Option("Go Back", new RailwayNetworkMenu());
 
         Utils.listAndSelect(options);
     }
 
-    private void loadNetworkAction() {
-        Scanner sc = new Scanner(System.in);
-
-        System.out.print(CYAN + "➤ " + RESET + "Stations CSV [" + DEFAULT_STATIONS_CSV + "]: ");
-        String stationInput = sc.nextLine().trim();
-        String stationsCsv = stationInput.isEmpty() ? DEFAULT_STATIONS_CSV : stationInput;
-
-        System.out.print(CYAN + "➤ " + RESET + "Lines CSV [" + DEFAULT_LINES_CSV + "]: ");
-        String lineInput = sc.nextLine().trim();
-        String linesCsv = lineInput.isEmpty() ? DEFAULT_LINES_CSV : lineInput;
-
-        File stationsFile = new File(stationsCsv);
-        File linesFile = new File(linesCsv);
-
-        if (!stationsFile.isFile()) {
-            System.out.println(RED + "Stations CSV file not found: " + stationsCsv + RESET);
-            pause();
-            menu();
-            return;
-        }
-
-        if (!linesFile.isFile()) {
-            System.out.println(RED + "Lines CSV file not found: " + linesCsv + RESET);
-            pause();
-            menu();
-            return;
-        }
-
-        System.out.println("\n" + CYAN + "⏳ Loading railway network..." + RESET);
-
-        try {
-            long start = System.currentTimeMillis();
-            controller.buildGraphFromCsv(stationsCsv, linesCsv);
-            long duration = System.currentTimeMillis() - start;
-
-            System.out.printf(GREEN + "✓ Network loaded successfully in %.2f seconds\n" + RESET,
-                    duration / 1000.0);
-            System.out.printf("  • %d stations\n", controller.getStationCount());
-            System.out.printf("  • %d directed connections\n", controller.getLineCount());
-
-        } catch (IOException e) {
-            System.out.println(RED + "Error loading network: " + e.getMessage() + RESET);
-        }
-
-        pause();
-        menu();
-    }
 
     private void calculateOrderAction() {
         if (!controller.isGraphBuilt()) {

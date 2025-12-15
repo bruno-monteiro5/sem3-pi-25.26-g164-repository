@@ -1,0 +1,9 @@
+graph MinimalBackbone {
+  layout=neato;
+  overlap=false;
+  splines=true;
+  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
+  edge [color=blue, penwidth=2.0];
+
+
+}
