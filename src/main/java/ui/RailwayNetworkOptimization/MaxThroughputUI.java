@@ -15,6 +15,8 @@ import java.util.Scanner;
 import controller.MaxThroughputController;
 
 public class MaxThroughputUI implements Runnable {
+
+    //Creation of required class variables
     private static final String RESET = UIHelper.getReset();
     private static final String CYAN = UIHelper.getCyan();
     private static final String GREEN = UIHelper.getGreen();
@@ -50,6 +52,8 @@ public class MaxThroughputUI implements Runnable {
      */
 
     public void menu() {
+
+        //Cleaning any existant instances and creation of a new one
         clear();
         System.out.println(CYAN + line(72));
         System.out.println("           DIRECTED LINE UPGRADE PLAN (USEI11)");
@@ -57,6 +61,7 @@ public class MaxThroughputUI implements Runnable {
 
         System.out.println();
         System.out.println("Status:");
+        //Printing of any existant graph and its data
         if (controller.isGraphBuilt()) {
             System.out.println(GREEN + "  ✓ Railway network graph loaded" + RESET);
             System.out.printf("    • %d stations\n", controller.getStationCount());
@@ -66,7 +71,9 @@ public class MaxThroughputUI implements Runnable {
         }
         System.out.println();
 
-        Option[] options = new Option[3 ];
+        //Creation and display of user choices
+
+        Option[] options = new Option[3];
 
         options[0] = new Option("Print station list", this::stationListPrinting);
         options[1] = new Option("Generate Maximum Throughput data", this::genMaxThrough);
@@ -91,6 +98,7 @@ public class MaxThroughputUI implements Runnable {
             return;
         }
 
+        //Input of data
         Scanner sc = new Scanner(System.in);
         try {
             System.out.print(CYAN + "Enter SOURCE station ID: " + RESET);
@@ -112,6 +120,8 @@ public class MaxThroughputUI implements Runnable {
                 name = sc.nextLine().trim();
                 stationDst = controller.getStationById(name);
             }
+
+            //Sending of data to the controller for computation
 
             long start = System.currentTimeMillis();
             int maxFlow = controller.computeMaxFlow(stationSrc, stationDst);
