@@ -83,11 +83,13 @@ class Wagon  {
 }
 
 class WagonType {
+    name
 }
 
 class Train {
     id
-    date
+    maxLength
+    startPlanDate
 }
 
 
@@ -118,6 +120,7 @@ id
 
 class PathStep {
     order
+    mustStop
 }
 
 class CirculationLine {
@@ -212,6 +215,11 @@ class Location {
 class StationType {
 }
 
+class TrainMovement {
+    arrivalTime
+    departureTime
+}
+
 
 RailLine *-- "*" LineSegment : composed of
 SingleTrackSegment "1" -- "0..*" Siding : has crossing areas
@@ -228,7 +236,7 @@ Bay        "1" -- "0..1" Dimension : has >
 Freight "1"--- "1..*" Wagon : consists of
 Freight "1" --> "1" Station : from >
 Freight "1" --> "1" Station : to   >
-Train "1"--- "1..*" Freight : transports >
+Train "1"--> "1" Route : executes >
 Path "1" *-- "1..*" PathStep : consists of>
 PathStep "1" --> "1" LineSegment : via >
 PathStep "1" --> "1" Station : passes >
@@ -260,6 +268,8 @@ Warehouse "1" *--> "0..*" UnloadingDock  : has >
 Locomotive "1" -- "1..*" Gauge : supports >
 Wagon      "1" -- "1..*" Gauge : supports >
 Locomotive "1" --> "1" LocomotiveModel
+Train "1" -- "0..*" TrainMovement : has records >
+TrainMovement "1" --> "1" Station : at >
 
 
 
