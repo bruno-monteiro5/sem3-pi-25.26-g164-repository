@@ -5,9 +5,9 @@ graph MinimalBackbone {
   node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
   edge [color=blue, penwidth=2.0];
 
-  S1 [label="Porto", pos="100,00,200,00"];
-  S2 [label="Aveiro", pos="150,00,250,00"];
-  S3 [label="Coimbra", pos="200,00,300,00"];
+  S1 [label="Porto", pos="100.00,200.00!"];
+  S2 [label="Aveiro", pos="150.00,250.00!"];
+  S3 [label="Coimbra", pos="200.00,300.00!"];
 
   S1 -- S2 [label="50,50 km"];
   S2 -- S3 [label="75,30 km"];
