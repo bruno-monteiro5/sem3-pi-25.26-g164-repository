@@ -309,32 +309,32 @@ INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563089, TO
 INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563090, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
 INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563091, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
 INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563092, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823045, 1990, 1245, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823046, 1990, 1245, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823047, 1990, 1245, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823048, 1990, 1245, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741001, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741002, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741003, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741004, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741005, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741006, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811010, 1977, 1325, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811011, 1977, 1325, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811012, 1977, 1325, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811013, 1977, 1325, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811014, 1977, 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823045, TO_DATE('1990-01-07','YYYY-MM-DD'), 1245, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823046, TO_DATE('1990-01-07','YYYY-MM-DD'), 1245, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823047, TO_DATE('1990-01-07','YYYY-MM-DD'), 1245, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823048, TO_DATE('1990-01-07','YYYY-MM-DD'), 1245, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741001, TO_DATE('1987-03-02','YYYY-MM-DD'), 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741002, TO_DATE('1987-03-02','YYYY-MM-DD'), 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741003, TO_DATE('1987-03-02','YYYY-MM-DD'), 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741004, TO_DATE('1987-03-02','YYYY-MM-DD'), 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741005, TO_DATE('1987-03-02','YYYY-MM-DD'), 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741006, TO_DATE('1987-03-02','YYYY-MM-DD'), 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811010, TO_DATE('1987-03-02','YYYY-MM-DD'), 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811011, TO_DATE('1987-03-02','YYYY-MM-DD'), 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811012, TO_DATE('1987-03-02','YYYY-MM-DD'), 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811013, TO_DATE('1987-03-02','YYYY-MM-DD'), 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811014, TO_DATE('1987-03-02','YYYY-MM-DD'), 1325, 'PT509017800');
 
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330001, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330002, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330003, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330004, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330005, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330006, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330007, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330008, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330009, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330010, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330001, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330002, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330003, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330004, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330005, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330006, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330007, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330008, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330009, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330010, TO_DATE('2005-09-01','YYYY-MM-DD'), 1212, 'PT509017800');
 
 -- Tabela Locomotive_Train
 INSERT INTO Locomotive_Train (locomotive, train, position) VALUES (5621, 5421, 1);
@@ -343,7 +343,7 @@ INSERT INTO Locomotive_Train (locomotive, train, position) VALUES (5623, 5435, 1
 INSERT INTO Locomotive_Train (locomotive, train, position) VALUES (5621, 5437, 1);
 
 -- Tabela Freight+Wagon_Freight
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (2001,TO_DATE('2025-10-03','YYYY-MM-DD'), 50, 12, 5421);
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2001,TO_DATE('2025-10-03','YYYY-MM-DD'), 50, 12);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330001, 2001);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330002, 2001);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330003, 2001);
@@ -351,27 +351,39 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330004, 2001);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330005, 2001);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330006, 2001);
 
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (2002,TO_DATE('2025-10-03','YYYY-MM-DD'), 13, 11, 5421);
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2002,TO_DATE('2025-10-03','YYYY-MM-DD'), 13, 11;
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563089, 2002);
 
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (2003,TO_DATE('2025-10-03','YYYY-MM-DD'), 50, 11, 5421);
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2003,TO_DATE('2025-10-03','YYYY-MM-DD'), 50, 11);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (1811011, 2003);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (1811012, 2003);
 
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (2004,TO_DATE('2025-10-03','YYYY-MM-DD'), 50, 21, 5421);
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2004,TO_DATE('2025-10-03','YYYY-MM-DD'), 50, 21);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (1811013, 2004);
 
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (2005,TO_DATE('2025-10-03','YYYY-MM-DD'), 20, 11, 5421);
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2005,TO_DATE('2025-10-03','YYYY-MM-DD'), 20, 11);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563077, 2005);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563078, 2005);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563079, 2005);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563080, 2005);
 
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (2006,TO_DATE('2025-10-03','YYYY-MM-DD'), 12, 50, 5435);
+INSERT INTO Freight_Train (freight, train) VALUES (2001, 5421);
+INSERT INTO Freight_Train (freight, train) VALUES (2002, 5421);
+INSERT INTO Freight_Train (freight, train) VALUES (2003, 5421);
+INSERT INTO Freight_Train (freight, train) VALUES (2004, 5421);
+INSERT INTO Freight_Train (freight, train) VALUES (2005, 5421);
+
+
+
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2006,TO_DATE('2025-10-03','YYYY-MM-DD'), 12, 50);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330003, 2006);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330007, 2006);
 
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (2050,TO_DATE('2025-10-06','YYYY-MM-DD'), 12, 50, 5437);
+INSERT INTO Freight_Train (freight, train) VALUES (2006, 5435);
+
+
+
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2050,TO_DATE('2025-10-06','YYYY-MM-DD'), 12, 50);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330001, 2050);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330002, 2050);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330003, 2050);
@@ -379,7 +391,7 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330004, 2050);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330005, 2050);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330006, 2050);
 
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (2051,TO_DATE('2025-10-06','YYYY-MM-DD'), 11, 50, 5437);
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2051,TO_DATE('2025-10-06','YYYY-MM-DD'), 11, 50);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (1811011, 2051);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (1811012, 2051);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563077, 2051);
@@ -387,12 +399,14 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563078, 2051);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563079, 2051);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563080, 2051);
 
-
-INSERT INTO Freight (id, "date", origin, destination, train) VALUES (3000, DATE '2025-10-03', 50, 12, 5421);
-INSERT INTO Wagon_Freight (wagon, freight) VALUES (823046, 3000);
-
+INSERT INTO Freight_Train (freight, train) VALUES (2050, 5437);
+INSERT INTO Freight_Train (freight, train) VALUES (2051, 5437);
 
 
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335006, 'Trovão', 'Stadler', 'E4000', 2019, 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
+
+
+
+
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335006, 'Trovão', 'Stadler', 'E4000', TO_DATE('2019-05-07','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (335006, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width = 1668), 335006);
