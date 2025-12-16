@@ -18,13 +18,14 @@ import java.util.*;
 public class MaxThroughputController {
 
     private final S3_RailwayRepository repo;
-    private MapGraph<Station, Double> graph= null;
+    private MapGraph<Station, Double> graph;
 
     /**
      * Basic constructor gets any existant repository instance in order to retrieve any existance graph
      */
     public MaxThroughputController() {
         this.repo = S3_RailwayRepository.getInstance();
+        graph = repo.getGraph();
     }
 
     /**
