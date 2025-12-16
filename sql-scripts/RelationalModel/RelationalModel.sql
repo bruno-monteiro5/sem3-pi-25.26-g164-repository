@@ -30,13 +30,13 @@ CREATE TABLE Endpoint (
   metafacility number(10) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Locomotive (
-  id           number(10) NOT NULL, 
-  name         varchar2(255) NOT NULL, 
-  entry_year   number(10) NOT NULL, 
-  total_weight number(10) NOT NULL, 
-  op_speed     number(10) NOT NULL, 
-  operator     varchar2(255) NOT NULL, 
-  model        number(10) NOT NULL, 
+  id            number(10) NOT NULL, 
+  name          varchar2(255) NOT NULL, 
+  service_start date NOT NULL, 
+  total_weight  number(10) NOT NULL, 
+  op_speed      number(10) NOT NULL, 
+  operator      varchar2(255) NOT NULL, 
+  model         number(10) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Operator (
   vat        varchar2(255) NOT NULL, 
@@ -44,10 +44,10 @@ CREATE TABLE Operator (
   short_name varchar2(255) NOT NULL UNIQUE, 
   PRIMARY KEY (vat));
 CREATE TABLE Wagon (
-  id           number(10) NOT NULL, 
-  service_year number(10) NOT NULL, 
-  wagon_model  number(10) NOT NULL, 
-  operator     varchar2(255) NOT NULL, 
+  id            number(10) NOT NULL, 
+  service_start date NOT NULL, 
+  wagon_model   number(10) NOT NULL, 
+  operator      varchar2(255) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Wagon_Model (
   id            number(10) NOT NULL, 
@@ -149,7 +149,7 @@ CREATE TABLE Siding (
   PRIMARY KEY (segment, 
   length));
 CREATE TABLE Locomotive_Model (
-  id                number(10) GENERATED AS IDENTITY, 
+  id                number(10) NOT NULL, 
   name              varchar2(255) NOT NULL, 
   make              varchar2(255) NOT NULL, 
   number_bogies     number(10) NOT NULL, 
@@ -234,115 +234,140 @@ ALTER TABLE Passage ADD CONSTRAINT FKPassage102422 FOREIGN KEY (movement) REFERE
 ALTER TABLE Freight_Train ADD CONSTRAINT FKFreight_Tr432283 FOREIGN KEY (freight) REFERENCES Freight (id);
 ALTER TABLE Freight_Train ADD CONSTRAINT FKFreight_Tr820123 FOREIGN KEY (train) REFERENCES Train (id);
 CREATE OR REPLACE TRIGGER trg_check_train_length_loco
-AFTER INSERT OR UPDATE OR DELETE ON Locomotive_Train
-FOR EACH ROW
-DECLARE
-    v_train_id       Train.id%TYPE;
-    v_max_length     Train.max_length%TYPE;
-    v_loco_length    NUMBER := 0;
-    v_wagon_length   NUMBER := 0;
-BEGIN
-    -- 1) Descobrir qual é o train afetado
-    IF INSERTING OR UPDATING THEN
-        v_train_id := :NEW.train;
-    ELSIF DELETING THEN
-        v_train_id := :OLD.train;
-    END IF;
+FOR INSERT OR UPDATE OR DELETE ON Locomotive_Train
+COMPOUND TRIGGER
 
-    -- 2) Ler o comprimento máximo desse train
-    SELECT max_length
-      INTO v_max_length
-      FROM Train
-     WHERE id = v_train_id;
+  -- Guarda os trains afetados nesta statement (para validar no fim)
+  TYPE t_train_map IS TABLE OF PLS_INTEGER INDEX BY VARCHAR2(30);
+  g_train_map t_train_map;
 
-    -- 3) Somar comprimento das locomotivas desse train
-    SELECT NVL(SUM(lm.length), 0)
-      INTO v_loco_length
-      FROM Locomotive_Train lt
-      JOIN Locomotive l
-        ON lt.locomotive = l.id
-      JOIN Locomotive_Model lm
-        ON l.model = lm.id
-     WHERE lt.train = v_train_id;
+  AFTER EACH ROW IS
+    v_key VARCHAR2(30);
+  BEGIN
+    v_key := TO_CHAR(NVL(:NEW.train, :OLD.train));
+    g_train_map(v_key) := 1;
+  END AFTER EACH ROW;
 
-    -- 4) Somar comprimento dos wagons desse train
-    --    via Freight_Train → Wagon_Freight → Wagon → Wagon_Model
-    SELECT NVL(SUM(wm.length), 0)
-      INTO v_wagon_length
-      FROM Freight_Train ft
-      JOIN Wagon_Freight wf
-        ON wf.freight = ft.freight
-      JOIN Wagon w
-        ON wf.wagon = w.id
-      JOIN Wagon_Model wm
-        ON w.wagon_model = wm.id
-     WHERE ft.train = v_train_id;
+  AFTER STATEMENT IS
+    v_key          VARCHAR2(30);
+    v_train_id     Train.id%TYPE;
+    v_max_length   Train.max_length%TYPE;
+    v_loco_length  NUMBER := 0;
+    v_wagon_length NUMBER := 0;
+  BEGIN
+    v_key := g_train_map.FIRST;
+    WHILE v_key IS NOT NULL LOOP
+      v_train_id := TO_NUMBER(v_key);
 
-    -- 5) Verificar regra
-    IF v_loco_length + v_wagon_length > v_max_length THEN
+      -- 1) comprimento máximo do train
+      SELECT max_length
+        INTO v_max_length
+        FROM Train
+       WHERE id = v_train_id;
+
+      -- 2) soma comprimento locomotivas do train
+      SELECT NVL(SUM(lm.length), 0)
+        INTO v_loco_length
+        FROM Locomotive_Train lt
+        JOIN Locomotive l
+          ON lt.locomotive = l.id
+        JOIN Locomotive_Model lm
+          ON l.model = lm.id
+       WHERE lt.train = v_train_id;
+
+      -- 3) soma comprimento wagons do train (via freight)
+      SELECT NVL(SUM(wm.length), 0)
+        INTO v_wagon_length
+        FROM Freight_Train ft
+        JOIN Wagon_Freight wf
+          ON wf.freight = ft.freight
+        JOIN Wagon w
+          ON wf.wagon = w.id
+        JOIN Wagon_Model wm
+          ON w.wagon_model = wm.id
+       WHERE ft.train = v_train_id;
+
+      -- 4) regra
+      IF v_loco_length + v_wagon_length > v_max_length THEN
         raise_application_error(
-            -20033,
-            'Train ' || v_train_id ||
-            ' exceeds max length (' || v_max_length || ')'
+          -20033,
+          'Train ' || v_train_id || ' exceeds max length (' || v_max_length || ')'
         );
-    END IF;
+      END IF;
+
+      v_key := g_train_map.NEXT(v_key);
+    END LOOP;
+  END AFTER STATEMENT;
+
 END;
 /
 ;
 /
 CREATE OR REPLACE TRIGGER trg_check_train_length_freight
-AFTER INSERT OR UPDATE OR DELETE ON Freight_Train
-FOR EACH ROW
-DECLARE
-    v_train_id       Train.id%TYPE;
-    v_max_length     Train.max_length%TYPE;
-    v_loco_length    NUMBER := 0;
-    v_wagon_length   NUMBER := 0;
-BEGIN
-    -- 1) Descobrir qual é o train afetado
-    IF INSERTING OR UPDATING THEN
-        v_train_id := :NEW.train;
-    ELSIF DELETING THEN
-        v_train_id := :OLD.train;
-    END IF;
+FOR INSERT OR UPDATE OR DELETE ON Freight_Train
+COMPOUND TRIGGER
 
-    -- 2) Ler o comprimento máximo desse train
-    SELECT max_length
-      INTO v_max_length
-      FROM Train
-     WHERE id = v_train_id;
+  -- trains afetados nesta statement
+  TYPE t_train_map IS TABLE OF PLS_INTEGER INDEX BY VARCHAR2(30);
+  g_train_map t_train_map;
 
-    -- 3) Somar comprimento das locomotivas desse train
-    SELECT NVL(SUM(lm.length), 0)
-      INTO v_loco_length
-      FROM Locomotive_Train lt
-      JOIN Locomotive l
-        ON lt.locomotive = l.id
-      JOIN Locomotive_Model lm
-        ON l.model = lm.id
-     WHERE lt.train = v_train_id;
+  AFTER EACH ROW IS
+    v_key VARCHAR2(30);
+  BEGIN
+    v_key := TO_CHAR(NVL(:NEW.train, :OLD.train));
+    g_train_map(v_key) := 1;
+  END AFTER EACH ROW;
 
-    -- 4) Somar comprimento dos wagons desse train
-    --    via Freight_Train → Wagon_Freight → Wagon → Wagon_Model
-    SELECT NVL(SUM(wm.length), 0)
-      INTO v_wagon_length
-      FROM Freight_Train ft
-      JOIN Wagon_Freight wf
-        ON wf.freight = ft.freight
-      JOIN Wagon w
-        ON wf.wagon = w.id
-      JOIN Wagon_Model wm
-        ON w.wagon_model = wm.id
-     WHERE ft.train = v_train_id;
+  AFTER STATEMENT IS
+    v_key          VARCHAR2(30);
+    v_train_id     Train.id%TYPE;
+    v_max_length   Train.max_length%TYPE;
+    v_loco_length  NUMBER := 0;
+    v_wagon_length NUMBER := 0;
+  BEGIN
+    v_key := g_train_map.FIRST;
+    WHILE v_key IS NOT NULL LOOP
+      v_train_id := TO_NUMBER(v_key);
 
-    -- 5) Verificar regra
-    IF v_loco_length + v_wagon_length > v_max_length THEN
+      -- max_length do train
+      SELECT max_length
+        INTO v_max_length
+        FROM Train
+       WHERE id = v_train_id;
+
+      -- soma comprimento locomotivas (do train)
+      SELECT NVL(SUM(lm.length), 0)
+        INTO v_loco_length
+        FROM Locomotive_Train lt
+        JOIN Locomotive l
+          ON lt.locomotive = l.id
+        JOIN Locomotive_Model lm
+          ON l.model = lm.id
+       WHERE lt.train = v_train_id;
+
+      -- soma comprimento wagons (do train) via freights
+      SELECT NVL(SUM(wm.length), 0)
+        INTO v_wagon_length
+        FROM Freight_Train ft
+        JOIN Wagon_Freight wf
+          ON wf.freight = ft.freight
+        JOIN Wagon w
+          ON wf.wagon = w.id
+        JOIN Wagon_Model wm
+          ON w.wagon_model = wm.id
+       WHERE ft.train = v_train_id;
+
+      IF v_loco_length + v_wagon_length > v_max_length THEN
         raise_application_error(
-            -20033,
-            'Train ' || v_train_id ||
-            ' exceeds max length (' || v_max_length || ')'
+          -20034,
+          'Train ' || v_train_id || ' exceeds max length (' || v_max_length || ')'
         );
-    END IF;
+      END IF;
+
+      v_key := g_train_map.NEXT(v_key);
+    END LOOP;
+  END AFTER STATEMENT;
+
 END;
 /
 ;
