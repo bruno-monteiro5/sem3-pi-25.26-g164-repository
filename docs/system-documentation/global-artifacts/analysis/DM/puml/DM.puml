@@ -43,15 +43,11 @@ class Station{
 class Warehouse {
 }
 
-class RefrigeratedArea {
-}
-
-class GrainSilo {
-}
 
 
 class Gauge {
     code
+    name
     width
 }
 
@@ -64,11 +60,11 @@ class Locomotive {
     bogieCount
 }
 
-class DieselLocomotive extends Locomotive  {
+class DieselLocomotive extends LocomotiveModel  {
     fuelCapacity
 }
 
-class ElectricLocomotive extends Locomotive  {
+class ElectricLocomotive extends LocomotiveModel  {
     voltage
     frequency
 }
@@ -83,7 +79,7 @@ class Wagon  {
 }
 
 class WagonType {
-    name
+    typeName
 }
 
 class Train {
@@ -109,13 +105,10 @@ class LocomotiveModel {
 }
 
 
-class Route {
-id
-complexity
-}
+
 
 class Path {
-id
+    id
 }
 
 class PathStep {
@@ -123,13 +116,7 @@ class PathStep {
     mustStop
 }
 
-class CirculationLine {
-    id
-}
 
-class ParkingLine {
-    id
-}
 
 class UnloadingDock {
     id
@@ -213,6 +200,7 @@ class Location {
 }
 
 class StationType {
+    typeName
 }
 
 class TrainMovement {
@@ -225,24 +213,16 @@ RailLine *-- "*" LineSegment : composed of
 SingleTrackSegment "1" -- "0..*" Siding : has crossing areas
 RailLine "1" --> "1" Station : from
 RailLine "1" --> "1" Station : to
-Station "1" *-- "0..*" RefrigeratedArea : may include
-Station "1" *-- "0..*" GrainSilo : may include
 Train "1" -- "1..*" Locomotive : is composed of >
-Train "1" -- "0..*" Wagon      : is composed of >
-Train "*" ---> "*" RailLine : run on >
 Locomotive "1" -- "0..1" Dimension : has >
 Wagon      "1" -- "0..1" Dimension : has >
 Bay        "1" -- "0..1" Dimension : has >
 Freight "1"--- "1..*" Wagon : consists of
 Freight "1" --> "1" Station : from >
 Freight "1" --> "1" Station : to   >
-Train "1"--> "1" Route : executes >
 Path "1" *-- "1..*" PathStep : consists of>
-PathStep "1" --> "1" LineSegment : via >
+PathStep "1" --> "1" RailLine : via >
 PathStep "1" --> "1" Station : passes >
-Route "1" -- "1..*" Freight : groups >
-Station "1" *-- "0..*" CirculationLine : may include >
-Station "1" *-- "0..*" ParkingLine    : may include >
 Warehouse "1" -- "1..*" Aisle : organized in >
 Aisle     "1" -- "1..*" Bay : has >
 Bay "1" -- "0..*" Box : stores >
@@ -270,6 +250,8 @@ Wagon      "1" -- "1..*" Gauge : supports >
 Locomotive "1" --> "1" LocomotiveModel
 Train "1" -- "0..*" TrainMovement : has records >
 TrainMovement "1" --> "1" Station : at >
+Train "1" -- "0..*" Freight : carries
+Train "1" --> "0..1" Path : follows
 
 
 
