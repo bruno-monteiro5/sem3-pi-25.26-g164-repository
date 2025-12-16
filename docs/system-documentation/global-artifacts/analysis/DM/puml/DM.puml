@@ -13,6 +13,7 @@ class RailLine {
 }
 
 class LineSegment {
+    id
     length
     maxWeight
     speedLimit
@@ -47,7 +48,7 @@ class Warehouse {
 
 
 class Gauge {
-    code
+    id
     name
     width
 }
@@ -104,6 +105,7 @@ class Dimension {
 
 class Freight {
     id
+    date
 }
 
 class LocomotiveModel {
