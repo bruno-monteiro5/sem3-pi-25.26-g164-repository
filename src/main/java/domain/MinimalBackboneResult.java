@@ -115,7 +115,6 @@ public class MinimalBackboneResult {
                 double y = station.getCordY();
                 String label = escapeLabel(station.getName());
 
-                // SEM "!" - deixar neato ajustar ligeiramente se necessário
                 writer.write(String.format(
                         Locale.US,
                         "  %s [label=\"%s\", pos=\"%.2f,%.2f!\"];\n",
