@@ -27,7 +27,8 @@ class MultipleTrackSegment extends LineSegment {
 }
 
 class Siding {
-  name
+   length
+   position
 }
 
 
@@ -53,11 +54,10 @@ class Gauge {
 
 class Locomotive {
     id
+    name
     entryYear
-    power
-    acceleration
     weight
-    bogieCount
+    opSpeed
 }
 
 class DieselLocomotive extends LocomotiveModel  {
@@ -71,21 +71,28 @@ class ElectricLocomotive extends LocomotiveModel  {
 
 class Wagon  {
     id
-    make
-    model
-    payload
-    volCapacity
-    tare
+    servYear
 }
 
 class WagonType {
+    modelName
+    make
+    bogies
+    length
+    width
+    height
+    weight
+    maxSpeed
+    payload
+    volume
     typeName
 }
 
 class Train {
     id
     maxLength
-    startPlanDate
+    date
+    time
 }
 
 
@@ -102,6 +109,13 @@ class Freight {
 class LocomotiveModel {
     make
     modelName
+    bogies
+    power
+    length
+    width
+    maxSpeed
+    height
+    traction
 }
 
 
@@ -109,10 +123,11 @@ class LocomotiveModel {
 
 class Path {
     id
+    name
 }
 
 class PathStep {
-    order
+    seq
     mustStop
 }
 
@@ -206,6 +221,7 @@ class StationType {
 class TrainMovement {
     arrivalTime
     departureTime
+    isStop
 }
 
 
@@ -241,7 +257,6 @@ Return "1" *-- "1..*" InspectionLog : recorded in >
 Return "1" --> "1" Item : refers to >
 Station "1" --> "1" Location : has >
 Siding "1" --> "1" Location : has >
-Wagon "1" --> "1" WagonType : has >
 Station "1" --> "1" StationType : has >
 Station "1" *-- "0..*" Warehouse : has >
 Warehouse "1" *--> "0..*" UnloadingDock  : has >
