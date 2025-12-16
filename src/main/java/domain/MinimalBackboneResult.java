@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Locale;
+
 
 /**
  * Result object containing the minimal backbone network computed by USEI12.
@@ -114,7 +116,11 @@ public class MinimalBackboneResult {
                 String label = escapeLabel(station.getName());
 
                 // SEM "!" - deixar neato ajustar ligeiramente se necessário
-                writer.write(String.format("  %s [label=\"%s\", pos=\"%.2f,%.2f\"];\n", nodeId, label, x, y));
+                writer.write(String.format(
+                        Locale.US,
+                        "  %s [label=\"%s\", pos=\"%.2f,%.2f!\"];\n",
+                        nodeId, label, x, y
+                ));
             }
 
             writer.write("\n");
@@ -165,6 +171,7 @@ public class MinimalBackboneResult {
             String svgPath = outputPath(svgFilename);
             String[] command = {
                     "neato",
+                    "-n2",
                     "-Tsvg",
                     dotPath,
                     "-o",
