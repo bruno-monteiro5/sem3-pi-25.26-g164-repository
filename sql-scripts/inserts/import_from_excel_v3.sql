@@ -22,8 +22,8 @@ INSERT INTO BuildingType (id, name) VALUES (10, 'Refrigerated Area');
 
 
 -- Tabela Gauge
-INSERT INTO Gauge (id, width) VALUES (1, 1435);
-INSERT INTO Gauge (id, width) VALUES (2, 1668);
+INSERT INTO Gauge (id, width, name) VALUES (1, 1435, 'Bitola internacional');
+INSERT INTO Gauge (id, width, name) VALUES (2, 1668, 'Bitola ibérica');
 
 -- Tabela Metafacility
 INSERT INTO Metafacility (id, name) VALUES (1, 'São Romão');
@@ -222,36 +222,39 @@ INSERT INTO Train (id, operator, time, path, "date", "start", "end") VALUES (543
 INSERT INTO Train (id, operator, time, path, "date", "start", "end") VALUES (5437, 'PT509017800', TO_TIMESTAMP('10:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-06','YYYY-MM-DD'),11 ,50);
 
 -- Tabela Locomotive/Tipos/Gauge
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5621, 'Inês', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70, 300,'Bo-Bo');
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5621, 'Inês', 'Siemens', 'Eurosprinter', TO_DATE('1995-01-01','YYYY-MM-DD'), 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70, 300,'Bo-Bo');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5621, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5621);
 
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5623, 'Paz', 'Siemens', 'Eurosprinter', 1995, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5623, 'Paz', 'Siemens', 'Eurosprinter', TO_DATE('1995-04-01','YYYY-MM-DD'), 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5623, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5623);
 
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5630, 'Helena', 'Siemens', 'Eurosprinter', 1996, 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5630, 'Helena', 'Siemens', 'Eurosprinter', TO_DATE('1996-01-02','YYYY-MM-DD'), 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5630, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5630);
 
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (1903, 'Eva', '	Sorefame - Alsthom', 'CP 1900', 1981, 1623, 0, 19.084, 3.062, 4.31, 117, 2, 'PT509017800', 100.0, 42.5, 396,'Co-Co');
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (1903, 'Eva', '	Sorefame - Alsthom', 'CP 1900', TO_DATE('1981-04-07','YYYY-MM-DD'), 1623, 0, 19.084, 3.062, 4.31, 117, 2, 'PT509017800', 100.0, 42.5, 396,'Co-Co');
 INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (1903, 4882);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 1903);
 
 
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5034, 'Adriana', 'Stadler', 'E4000', 2017, 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT509017800', 120.0, 100.0, 400,'Co-Co');
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5034, 'Adriana', 'Stadler', 'E4000', TO_DATE('2017-02-15','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT509017800', 120.0, 100.0, 400,'Co-Co');
 INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (5034, 6700);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5034);
 
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5036, 'Marina', 'Stadler', 'E4000', 2017, 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT509017800', 120.0, 100.0, 400,'Co-Co');
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5036, 'Marina', 'Stadler', 'E4000', TO_DATE('2017-02-01','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT509017800', 120.0, 100.0, 400,'Co-Co');
 INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (5036, 6700);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5036);
 
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335001, 'Não', 'Stadler', 'E4000', 2019, 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
+
+
+
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335001, 'Não', 'Stadler', 'E4000', TO_DATE('2019-05-07','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
 INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (335001, 6700);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 335001);
 
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335003, 'Especificado', 'Stadler', 'E4000', 2019, 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335003, 'Especificado', 'Stadler', 'E4000', TO_DATE('2019-06-03','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
 INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (335003, 6700);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 335003);
 
@@ -290,48 +293,48 @@ INSERT INTO Wagon_Model (id, model, maker, number_bogies, length, width, height,
 INSERT INTO Wagon_Model_Gauge (Wagon_Modelid, Gaugeid) VALUES (1212, (SELECT id FROM Gauge WHERE width=1668));
 
 -- Tabela Wagon
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563077, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563078, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563079, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563080, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563081, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563082, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563083, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563084, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563085, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563086, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563087, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563088, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563089, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563090, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563091, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3563092, 1987, 1104, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (823045, 1990, 1245, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (823046, 1990, 1245, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (823047, 1990, 1245, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (823048, 1990, 1245, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (741001, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (741002, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (741003, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (741004, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (741005, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (741006, 1977, 1278, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (1811010, 1977, 1325, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (1811011, 1977, 1325, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (1811012, 1977, 1325, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (1811013, 1977, 1325, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (1811014, 1977, 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563077, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563078, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563079, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563080, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563081, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563082, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563083, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563084, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563085, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563086, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563087, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563088, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563089, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563090, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563091, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3563092, TO_DATE('1987-05-02','YYYY-MM-DD'), 1104, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823045, 1990, 1245, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823046, 1990, 1245, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823047, 1990, 1245, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (823048, 1990, 1245, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741001, 1977, 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741002, 1977, 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741003, 1977, 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741004, 1977, 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741005, 1977, 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (741006, 1977, 1278, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811010, 1977, 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811011, 1977, 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811012, 1977, 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811013, 1977, 1325, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (1811014, 1977, 1325, 'PT509017800');
 
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330001, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330002, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330003, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330004, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330005, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330006, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330007, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330008, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330009, 2005, 1212, 'PT509017800');
-INSERT INTO Wagon (id, service_year, wagon_model, operator) VALUES (3330010, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330001, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330002, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330003, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330004, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330005, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330006, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330007, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330008, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330009, 2005, 1212, 'PT509017800');
+INSERT INTO Wagon (id, service_start, wagon_model, operator) VALUES (3330010, 2005, 1212, 'PT509017800');
 
 -- Tabela Locomotive_Train
 INSERT INTO Locomotive_Train (locomotive, train, position) VALUES (5621, 5421, 1);
@@ -390,6 +393,6 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (823046, 3000);
 
 
 
-INSERT INTO Locomotive (id, name, make, model, entry_year, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335006, 'Trovão', 'Stadler', 'E4000', 2019, 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
+INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335006, 'Trovão', 'Stadler', 'E4000', 2019, 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
 INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (335006, 25, 50);
 INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width = 1668), 335006);
