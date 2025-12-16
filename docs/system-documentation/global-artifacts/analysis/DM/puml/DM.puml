@@ -74,7 +74,7 @@ class Wagon  {
     servYear
 }
 
-class WagonType {
+class WagonModel {
     modelName
     make
     bogies
@@ -257,6 +257,7 @@ Return "1" *-- "1..*" InspectionLog : recorded in >
 Return "1" --> "1" Item : refers to >
 Station "1" --> "1" Location : has >
 Siding "1" --> "1" Location : has >
+Wagon "1" --> "1" WagonModel : has >
 Station "1" --> "1" StationType : has >
 Station "1" *-- "0..*" Warehouse : has >
 Warehouse "1" *--> "0..*" UnloadingDock  : has >
