@@ -6,7 +6,7 @@ import domain.HubScore;
 import domain.Line;
 import domain.RailwayGraphBuilder;
 import domain.Station;
-import domain.graph.Edge;
+import domain.graph.Algorithms;
 import domain.graph.map.MapGraph;
 import repository.S3_RailwayRepository;
 
@@ -83,14 +83,20 @@ public class HubCentralityController {
             indexMap.put(vertices.get(i), i);
         }
 
+        // Find connected components
         List<int[]> components = getConnectedComponents(graph, vertices, indexMap);
 
+        // Compute basic metrics
         Map<Station, Integer> degreeMap = computeDegree(graph, vertices);
         Map<Station, Double> strengthMap = computeStrength(graph, vertices);
 
+        // Compute betweenness using shortest paths
         Map<Station, Double> betweennessMap = computeBetweenness(graph, vertices, indexMap, components);
+
+        // Compute harmonic closeness
         Map<Station, Double> harmonicMap = computeHarmonicCloseness(graph, vertices, indexMap, components);
 
+        // Normalize strength per component
         Map<Station, Double> strengthNormMap = normalizeStrengthPerComponent(strengthMap, vertices, components);
 
         return buildHubScores(vertices, degreeMap, strengthMap, strengthNormMap, betweennessMap, harmonicMap);
@@ -108,7 +114,7 @@ public class HubCentralityController {
         Map<Station, Double> strengthMap = new HashMap<>();
         for (Station v : vertices) {
             double strength = 0.0;
-            for (Edge<Station, Double> e : graph.outgoingEdges(v)) {
+            for (domain.graph.Edge<Station, Double> e : graph.outgoingEdges(v)) {
                 strength += e.getWeight();
             }
             strengthMap.put(v, strength);
@@ -117,8 +123,13 @@ public class HubCentralityController {
     }
 
     /**
-     * Betweenness (Brandes-style accumulation) with Dijkstra O(n^2) per source.
-     * Normalized per connected component to [0,1] (undirected).
+     * Computes betweenness centrality using shortest paths from Algorithms class.
+     * For each pair of vertices (s,t), we compute all shortest paths and count
+     * how many pass through each intermediate vertex.
+     *
+     * Betweenness(v) = sum over all pairs (s,t) of: (number of shortest s-t paths through v) / (total number of shortest s-t paths)
+     *
+     * Normalized per connected component to [0,1] (undirected graph).
      */
     private Map<Station, Double> computeBetweenness(
             MapGraph<Station, Double> graph,
@@ -129,27 +140,53 @@ public class HubCentralityController {
         int n = vertices.size();
         double[] betw = new double[n];
 
-        for (int s = 0; s < n; s++) {
-            DijkstraResult r = dijkstraWithPathCounting(graph, vertices, indexMap, s);
+        // For each source vertex
+        for (Station source : vertices) {
+            // Use shortestPaths from Algorithms to get all paths from source
+            ArrayList<LinkedList<Station>> paths = new ArrayList<>();
+            ArrayList<Double> dists = new ArrayList<>();
 
-            // dependency accumulation
-            double[] delta = new double[n];
+            Algorithms.shortestPaths(graph, source,
+                    Double::compare, Double::sum, 0.0, paths, dists);
 
-            // process vertices in non-increasing distance order (stack order from Dijkstra)
-            for (int i = r.stackSize - 1; i >= 0; i--) {
-                int w = r.stack[i];
-                for (int pred : r.preds[w]) {
-                    if (r.sigma[w] > 0) {
-                        delta[pred] += ((double) r.sigma[pred] / (double) r.sigma[w]) * (1.0 + delta[w]);
-                    }
+            // For each destination vertex
+            for (int destIdx = 0; destIdx < n; destIdx++) {
+                Station dest = vertices.get(destIdx);
+                if (source.equals(dest)) continue;
+
+                Double distToDest = dists.get(destIdx);
+                if (distToDest == null || distToDest == Double.POSITIVE_INFINITY) {
+                    continue; // No path
                 }
-                if (w != s) {
-                    betw[w] += delta[w];
+
+                // Count shortest paths from source to dest
+                List<LinkedList<Station>> shortestPaths = findAllShortestPaths(
+                        graph, source, dest, distToDest);
+
+                if (shortestPaths.isEmpty()) continue;
+
+                int totalPaths = shortestPaths.size();
+
+                // For each intermediate vertex, count how many shortest paths pass through it
+                for (int vIdx = 0; vIdx < n; vIdx++) {
+                    Station v = vertices.get(vIdx);
+                    if (v.equals(source) || v.equals(dest)) continue;
+
+                    int pathsThrough = 0;
+                    for (LinkedList<Station> path : shortestPaths) {
+                        if (path.contains(v)) {
+                            pathsThrough++;
+                        }
+                    }
+
+                    if (pathsThrough > 0 && totalPaths > 0) {
+                        betw[vIdx] += (double) pathsThrough / totalPaths;
+                    }
                 }
             }
         }
 
-        // normalize per component (undirected: divide by 2 first, then by component divisor)
+        // Normalize per component (undirected: divide by 2 first, then by component divisor)
         normalizeBetweennessPerComponent(betw, components);
 
         Map<Station, Double> betweennessMap = new HashMap<>();
@@ -160,8 +197,46 @@ public class HubCentralityController {
     }
 
     /**
-     * Harmonic closeness per station:
-     * harmonic(s) = (1/(k-1)) * sum_{t != s, reachable} 1/d(s,t) inside its component.
+     * Finds all shortest paths from source to dest with the given distance.
+     */
+    private List<LinkedList<Station>> findAllShortestPaths(
+            MapGraph<Station, Double> graph,
+            Station source,
+            Station dest,
+            double targetDist) {
+
+        List<LinkedList<Station>> result = new ArrayList<>();
+        ArrayList<LinkedList<Station>> allPaths = Algorithms.allPaths(graph, source, dest);
+
+        for (LinkedList<Station> path : allPaths) {
+            double pathDist = calculatePathDistance(graph, path);
+            if (Math.abs(pathDist - targetDist) < 1e-9) {
+                result.add(path);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Calculates the total distance of a path.
+     */
+    private double calculatePathDistance(MapGraph<Station, Double> graph, LinkedList<Station> path) {
+        double dist = 0.0;
+        for (int i = 0; i < path.size() - 1; i++) {
+            domain.graph.Edge<Station, Double> e = graph.edge(path.get(i), path.get(i + 1));
+            if (e != null) {
+                dist += e.getWeight();
+            }
+        }
+        return dist;
+    }
+
+    /**
+     * Computes harmonic closeness using shortestPaths from Algorithms.
+     * Harmonic closeness(v) = (1/(n-1)) * sum_{u != v, reachable} 1/d(v,u)
+     *
+     * Normalized per connected component.
      */
     private Map<Station, Double> computeHarmonicCloseness(
             MapGraph<Station, Double> graph,
@@ -172,22 +247,31 @@ public class HubCentralityController {
         int n = vertices.size();
         double[] harmonic = new double[n];
 
-        // compute raw sum(1/dist) for each source
-        for (int s = 0; s < n; s++) {
-            double[] dist = dijkstraDistances(graph, vertices, indexMap, s);
+        // For each source vertex
+        for (int srcIdx = 0; srcIdx < n; srcIdx++) {
+            Station source = vertices.get(srcIdx);
 
-            double acc = 0.0;
-            for (int t = 0; t < n; t++) {
-                if (t == s) continue;
-                double d = dist[t];
-                if (d > 0.0 && d < Double.POSITIVE_INFINITY) {
-                    acc += 1.0 / d;
+            // Use shortestPaths from Algorithms
+            ArrayList<LinkedList<Station>> paths = new ArrayList<>();
+            ArrayList<Double> dists = new ArrayList<>();
+
+            Algorithms.shortestPaths(graph, source,
+                    Double::compare, Double::sum, 0.0, paths, dists);
+
+            double sum = 0.0;
+            for (int destIdx = 0; destIdx < n; destIdx++) {
+                if (srcIdx == destIdx) continue;
+
+                Double dist = dists.get(destIdx);
+                if (dist != null && dist > 0.0 && dist < Double.POSITIVE_INFINITY) {
+                    sum += 1.0 / dist;
                 }
             }
-            harmonic[s] = acc;
+
+            harmonic[srcIdx] = sum;
         }
 
-        // normalize per component by (k-1)
+        // Normalize per component by (k-1)
         normalizeHarmonicPerComponent(harmonic, components);
 
         Map<Station, Double> harmonicMap = new HashMap<>();
@@ -232,6 +316,7 @@ public class HubCentralityController {
                 betw[idx] = betw[idx] / 2.0;
             }
 
+            // normalize by (k-1)*(k-2)/2
             double divisor = (k - 1) * (k - 2) / 2.0;
             if (divisor > 0.0) {
                 for (int idx : comp) {
@@ -303,7 +388,8 @@ public class HubCentralityController {
     }
 
     /**
-     * Connected components for an undirected graph, returned as arrays of vertex indices.
+     * Connected components for an undirected graph using BFS.
+     * Uses BreadthFirstSearch from Algorithms class.
      */
     private List<int[]> getConnectedComponents(
             MapGraph<Station, Double> graph,
@@ -317,187 +403,24 @@ public class HubCentralityController {
         for (int i = 0; i < n; i++) {
             if (visited[i]) continue;
 
-            // BFS using indices
-            int[] queue = new int[n];
-            int qh = 0;
-            int qt = 0;
+            Station start = vertices.get(i);
+            LinkedList<Station> component = Algorithms.BreadthFirstSearch(graph, start);
 
-            int[] temp = new int[n];
-            int size = 0;
+            if (component == null || component.isEmpty()) continue;
 
-            visited[i] = true;
-            queue[qt++] = i;
-
-            while (qh < qt) {
-                int cur = queue[qh++];
-                temp[size++] = cur;
-
-                Station curS = vertices.get(cur);
-                for (Station nb : graph.adjVertices(curS)) {
-                    Integer nbIdxObj = indexMap.get(nb);
-                    if (nbIdxObj == null) continue;
-                    int nbIdx = nbIdxObj;
-
-                    if (!visited[nbIdx]) {
-                        visited[nbIdx] = true;
-                        queue[qt++] = nbIdx;
-                    }
+            int[] compIndices = new int[component.size()];
+            int idx = 0;
+            for (Station s : component) {
+                Integer sIdx = indexMap.get(s);
+                if (sIdx != null) {
+                    visited[sIdx] = true;
+                    compIndices[idx++] = sIdx;
                 }
             }
 
-            int[] comp = new int[size];
-            System.arraycopy(temp, 0, comp, 0, size);
-            comps.add(comp);
+            comps.add(compIndices);
         }
 
         return comps;
-    }
-
-
-    private static class DijkstraResult {
-        final double[] dist;
-        final int[] sigma;
-        final int[][] preds;
-        final int[] stack;
-        int stackSize;
-
-        DijkstraResult(int n) {
-            this.dist = new double[n];
-            this.sigma = new int[n];
-            this.preds = new int[n][];
-            this.stack = new int[n];
-            this.stackSize = 0;
-        }
-    }
-
-    /**
-     * Dijkstra with:
-     * - dist[]
-     * - sigma[] (number of shortest paths)
-     * - preds[] as int-lists (predecessor indices)
-     * - stack[] in order of "settled" vertices
-     */
-    private DijkstraResult dijkstraWithPathCounting(
-            MapGraph<Station, Double> graph,
-            List<Station> vertices,
-            Map<Station, Integer> indexMap,
-            int sourceIdx) {
-
-        int n = vertices.size();
-        DijkstraResult resultD = new DijkstraResult(n);
-
-        boolean[] visited = new boolean[n];
-        @SuppressWarnings("unchecked")
-        ArrayList<Integer>[] predLists = new ArrayList[n];
-        for (int i = 0; i < n; i++) {
-            resultD.dist[i] = Double.POSITIVE_INFINITY;
-            resultD.sigma[i] = 0;
-            predLists[i] = new ArrayList<>();
-        }
-
-        resultD.dist[sourceIdx] = 0.0;
-        resultD.sigma[sourceIdx] = 1;
-
-        while (true) {
-            int u = selectMinUnvisited(resultD.dist, visited);
-            if (u == -1) break;
-
-            visited[u] = true;
-            resultD.stack[resultD.stackSize++] = u;
-
-            Station uS = vertices.get(u);
-            for (Station nb : graph.adjVertices(uS)) {
-                Integer vObj = indexMap.get(nb);
-                if (vObj == null) continue;
-                int v = vObj;
-
-                if (visited[v]) {
-                }
-
-                Edge<Station, Double> e = graph.edge(uS, nb);
-                if (e == null) continue;
-
-                double w = e.getWeight();
-                double alt = resultD.dist[u] + w;
-
-                if (alt < resultD.dist[v]) {
-                    resultD.dist[v] = alt;
-                    resultD.sigma[v] = resultD.sigma[u];
-                    predLists[v].clear();
-                    predLists[v].add(u);
-                } else if (Math.abs(alt - resultD.dist[v]) < 1e-9) {
-                    resultD.sigma[v] += resultD.sigma[u];
-                    predLists[v].add(u);
-                }
-            }
-        }
-
-        // convert predecessor lists to int arrays
-        for (int i = 0; i < n; i++) {
-            ArrayList<Integer> list = predLists[i];
-            int[] arr = new int[list.size()];
-            for (int j = 0; j < list.size(); j++) {
-                arr[j] = list.get(j);
-            }
-            resultD.preds[i] = arr;
-        }
-
-        return resultD;
-    }
-
-    private double[] dijkstraDistances(
-            MapGraph<Station, Double> graph,
-            List<Station> vertices,
-            Map<Station, Integer> indexMap,
-            int sourceIdx) {
-
-        int n = vertices.size();
-        double[] dist = new double[n];
-        boolean[] visited = new boolean[n];
-
-        for (int i = 0; i < n; i++) dist[i] = Double.POSITIVE_INFINITY;
-        dist[sourceIdx] = 0.0;
-
-        while (true) {
-            int u = selectMinUnvisited(dist, visited);
-            if (u == -1) break;
-
-            visited[u] = true;
-
-            Station uS = vertices.get(u);
-            for (Station nb : graph.adjVertices(uS)) {
-                Integer vObj = indexMap.get(nb);
-                if (vObj == null) continue;
-                int v = vObj;
-
-                Edge<Station, Double> e = graph.edge(uS, nb);
-                if (e == null) continue;
-
-                double alt = dist[u] + e.getWeight();
-                if (alt < dist[v]) {
-                    dist[v] = alt;
-                }
-            }
-        }
-
-        return dist;
-    }
-
-    /**
-     * Returns index of unvisited vertex with smallest dist, or -1 if none reachable.
-     * This removes the "minDist == POSITIVE_INFINITY always false" warning.
-     */
-    private int selectMinUnvisited(double[] dist, boolean[] visited) {
-        int best = -1;
-        double bestDist = Double.POSITIVE_INFINITY;
-
-        for (int i = 0; i < dist.length; i++) {
-            if (!visited[i] && dist[i] < bestDist) {
-                bestDist = dist[i];
-                best = i;
-            }
-        }
-
-        return best;
     }
 }
