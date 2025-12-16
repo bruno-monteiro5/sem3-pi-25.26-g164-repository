@@ -217,46 +217,79 @@ INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (2, 11, 48, 'Y
 INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (2, 12, 50, 'Y');
 
 -- Tabela Train
-INSERT INTO Train (id, operator, time, path, "date", "start", "end") VALUES (5421, 'PT509017800', TO_TIMESTAMP('09:45:00','HH24:MI:SS'), 1, TO_DATE('2025-10-03','YYYY-MM-DD'),50, 11);
-INSERT INTO Train (id, operator, time, path, "date", "start", "end") VALUES (5435, 'PT509017800', TO_TIMESTAMP('18:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-03','YYYY-MM-DD'),11, 50);
-INSERT INTO Train (id, operator, time, path, "date", "start", "end") VALUES (5437, 'PT509017800', TO_TIMESTAMP('10:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-06','YYYY-MM-DD'),11 ,50);
+INSERT INTO Train (id, operator, time, path, "date", max_length) VALUES (5421, 'PT509017800', TO_TIMESTAMP('09:45:00','HH24:MI:SS'), 1, TO_DATE('2025-10-03','YYYY-MM-DD'), 740000);
+INSERT INTO Train (id, operator, time, path, "date", max_length) VALUES (5435, 'PT509017800', TO_TIMESTAMP('18:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-03','YYYY-MM-DD'),740000);
+INSERT INTO Train (id, operator, time, path, "date", max_length) VALUES (5437, 'PT509017800', TO_TIMESTAMP('10:00:00','HH24:MI:SS'), 2, TO_DATE('2025-10-06','YYYY-MM-DD'),740000);
 
 -- Tabela Locomotive/Tipos/Gauge
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5621, 'Inês', 'Siemens', 'Eurosprinter', TO_DATE('1995-01-01','YYYY-MM-DD'), 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70, 300,'Bo-Bo');
-INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5621, 25, 50);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5621);
 
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5623, 'Paz', 'Siemens', 'Eurosprinter', TO_DATE('1995-04-01','YYYY-MM-DD'), 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
-INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5623, 25, 50);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5623);
+-- MODELOS
+INSERT INTO Locomotive_Model
+(id, name, make, number_bogies, bogie_arrangement, power, length, width, height, max_speed, traction)
+VALUES
+    (1, 'Eurosprinter', 'Siemens', 2, 'Bo-Bo', 5600, 19.200, 3.000, 4.375, 220, 300);
 
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5630, 'Helena', 'Siemens', 'Eurosprinter', TO_DATE('1996-01-02','YYYY-MM-DD'), 5600, 0, 19.2, 3.0, 4.375, 87, 2, 'PT509017800', 220.0, 70.0, 300,'Bo-Bo');
-INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (5630, 25, 50);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5630);
+INSERT INTO Locomotive_Model
+(id, name, make, number_bogies, bogie_arrangement, power, length, width, height, max_speed, traction)
+VALUES
+    (2, 'CP 1900', 'Sorefame - Alsthom', 2, 'Co-Co', 1623, 19.084, 3.062, 4.310, 100, 396);
 
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (1903, 'Eva', '	Sorefame - Alsthom', 'CP 1900', TO_DATE('1981-04-07','YYYY-MM-DD'), 1623, 0, 19.084, 3.062, 4.31, 117, 2, 'PT509017800', 100.0, 42.5, 396,'Co-Co');
-INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (1903, 4882);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 1903);
+INSERT INTO Locomotive_Model
+(id, name, make, number_bogies, bogie_arrangement, power, length, width, height, max_speed, traction)
+VALUES
+    (3, 'E4000', 'Stadler', 3, 'Co-Co', 3178, 23.020, 3.000, 4.264, 120, 400);
 
+--Gauges dos modelos
+INSERT INTO Locomotive_Model_Gauge (Locomotive_Modelid, Gaugeid)
+VALUES (1, (SELECT id FROM Gauge WHERE width = 1668));
 
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5034, 'Adriana', 'Stadler', 'E4000', TO_DATE('2017-02-15','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT509017800', 120.0, 100.0, 400,'Co-Co');
-INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (5034, 6700);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5034);
+INSERT INTO Locomotive_Model_Gauge (Locomotive_Modelid, Gaugeid)
+VALUES (2, (SELECT id FROM Gauge WHERE width = 1668));
 
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (5036, 'Marina', 'Stadler', 'E4000', TO_DATE('2017-02-01','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT509017800', 120.0, 100.0, 400,'Co-Co');
-INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (5036, 6700);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 5036);
+INSERT INTO Locomotive_Model_Gauge (Locomotive_Modelid, Gaugeid)
+VALUES (3, (SELECT id FROM Gauge WHERE width = 1668));
 
+--ELETRICS/DIESEL MODEL
+-- Eurosprinter é elétrica
+INSERT INTO Electric_Locomotive_Model (voltage, frequency, model)
+VALUES (25, 50, 1);
 
+-- CP 1900 e E4000 são diesel
+INSERT INTO Diesel_Locomotive_Model (fuel_capacity, model)
+VALUES (4882, 2);
 
+INSERT INTO Diesel_Locomotive_Model (fuel_capacity, model)
+VALUES (6700, 3);
 
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335001, 'Não', 'Stadler', 'E4000', TO_DATE('2019-05-07','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
-INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (335001, 6700);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 335001);
+-------------------------
+--LOCOMOTIVAS------
+---------------------
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (5621, 'Inês',   TO_DATE('1995-01-01','YYYY-MM-DD'),  87,  70, 'PT509017800', 1);
 
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335003, 'Especificado', 'Stadler', 'E4000', TO_DATE('2019-06-03','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
-INSERT INTO Diesel_Locomotive (locomotive, fuel_capacity) VALUES (335003, 6700);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width=1668), 335003);
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (5623, 'Paz',    TO_DATE('1995-04-01','YYYY-MM-DD'),  87,  70, 'PT509017800', 1);
+
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (5630, 'Helena', TO_DATE('1996-01-02','YYYY-MM-DD'),  87,  70, 'PT509017800', 1);
+
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (1903, 'Eva',    TO_DATE('1981-04-07','YYYY-MM-DD'), 117,  43, 'PT509017800', 2);
+
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (5034, 'Adriana',TO_DATE('2017-02-15','YYYY-MM-DD'), 124, 100, 'PT509017800', 3);
+
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (5036, 'Marina', TO_DATE('2017-02-01','YYYY-MM-DD'), 124, 100, 'PT509017800', 3);
+
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (335001, 'Não',   TO_DATE('2019-05-07','YYYY-MM-DD'), 124, 100, 'PT507832388', 3);
+
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (335003, 'Especificado', TO_DATE('2019-06-03','YYYY-MM-DD'), 124, 100, 'PT507832388', 3);
+
+INSERT INTO Locomotive (id, name, service_start, total_weight, op_speed, operator, model)
+VALUES (335006, 'Trovão', TO_DATE('2019-05-07','YYYY-MM-DD'), 124, 100, 'PT507832388', 3);
 
 
 
@@ -351,7 +384,7 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330004, 2001);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330005, 2001);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330006, 2001);
 
-INSERT INTO Freight (id, "date", origin, destination) VALUES (2002,TO_DATE('2025-10-03','YYYY-MM-DD'), 13, 11;
+INSERT INTO Freight (id, "date", origin, destination) VALUES (2002,TO_DATE('2025-10-03','YYYY-MM-DD'), 13, 11);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563089, 2002);
 
 INSERT INTO Freight (id, "date", origin, destination) VALUES (2003,TO_DATE('2025-10-03','YYYY-MM-DD'), 50, 11);
@@ -401,12 +434,3 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563080, 2051);
 
 INSERT INTO Freight_Train (freight, train) VALUES (2050, 5437);
 INSERT INTO Freight_Train (freight, train) VALUES (2051, 5437);
-
-
-
-
-
-
-INSERT INTO Locomotive (id, name, make, model, service_start, power, acceleration, length, width, height, total_weight, number_bogies, operator, max_speed, op_speed, traction, bogie_arrangement) VALUES (335006, 'Trovão', 'Stadler', 'E4000', TO_DATE('2019-05-07','YYYY-MM-DD'), 3178, 0, 23.02, 3000, 4.264, 124, 3, 'PT507832388', 120.0, 100.0, 400,'Co-Co');
-INSERT INTO Electric_Locomotive (locomotive, voltage, frequency) VALUES (335006, 25, 50);
-INSERT INTO Locomotive_Gauge (gauge, locomotive) VALUES ((SELECT id FROM Gauge WHERE width = 1668), 335006);
