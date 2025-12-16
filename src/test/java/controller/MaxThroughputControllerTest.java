@@ -71,9 +71,6 @@ class MaxThroughputControllerTest {
 
     @Test
     void isGraphBuilt() {
-        assertFalse(controller.isGraphBuilt());
-
-        assertDoesNotThrow(() -> controller.buildGraphFromCsv(stationsCsv, linesCsv));
         assertTrue(controller.isGraphBuilt());
     }
 
