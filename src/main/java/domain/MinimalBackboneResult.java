@@ -24,7 +24,7 @@ public class MinimalBackboneResult {
     private final double totalDistance;
 
     private static final String OUTPUT_DIR = "Outputs";
-
+    private static final double COORD_SCALE = 3.5;
 
     /**
      * Creates a new result object.
@@ -100,19 +100,29 @@ public class MinimalBackboneResult {
         try {
             writer = new FileWriter(outputPath(filename));
             writer.write("graph MinimalBackbone {\n");
+
             writer.write("  layout=neato;\n");
             writer.write("  overlap=false;\n");
             writer.write("  splines=true;\n");
-            writer.write("  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];\n");
-            writer.write("  edge [color=blue, penwidth=2.0];\n");
+            writer.write("  pad=10;\n");
+            writer.write("  fontname=\"Arial\";\n");
+
+            writer.write("  bgcolor=\"#F9F1D0\";\n");
+
+            writer.write("  fontname=\"Arial\";\n");
+
+            writer.write("  node [shape=circle, style=filled, fillcolor=\"#C0392B\", color=\"black\", penwidth=1.0, fixedsize=true, width=1.0, label=\"\", fontname=\"Arial\", fontsize=8, fontcolor=\"white\"];\n");
+
+            writer.write("  edge [color=\"#2F4F4F\", penwidth=2.0, fontname=\"Arial\", fontsize=8, fontcolor=\"#444444\"];\n");
+
             writer.write("\n");
 
             // Write vertices with XY coordinates
             List<Station> vertices = backboneGraph.vertices();
             for (Station station : vertices) {
                 String nodeId = createNodeId(station);
-                double x = station.getCordX();
-                double y = station.getCordY();
+                double x = station.getCordX() * COORD_SCALE;
+                double y = station.getCordY() * COORD_SCALE;
                 String label = escapeLabel(station.getName());
 
                 writer.write(String.format(
