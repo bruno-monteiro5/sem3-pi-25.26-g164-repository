@@ -111,18 +111,28 @@ public class HubCentralityController {
     /**
      * Computes strength centrality.
      */
-    private Map<Station, Double> computeStrength(MapGraph<Station, Double> graph,
-                                                 List<Station> vertices) {
+    private Map<Station, Double> computeStrength(
+            MapGraph<Station, Double> graph,
+            List<Station> vertices) {
+
         Map<Station, Double> strengthMap = new HashMap<>();
+
         for (Station v : vertices) {
-            double strength = 0.0;
-            for (Edge<Station, Double> e : graph.outgoingEdges(v)) {
-                strength += e.getWeight();
-            }
-            strengthMap.put(v, strength);
+            strengthMap.put(v, 0.0);
         }
+
+        for (Line line : repo.getLines()) {
+            Station o = line.getOrigin();
+            Station d = line.getDestination();
+            double cap = line.getCapacity();
+
+            strengthMap.put(o, strengthMap.get(o) + cap);
+            strengthMap.put(d, strengthMap.get(d) + cap);
+        }
+
         return strengthMap;
     }
+
 
     /**
      * Computes betweenness centrality using Brandes-style accumulation.
