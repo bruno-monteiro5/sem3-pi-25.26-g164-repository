@@ -116,6 +116,41 @@ BEGIN
             DBMS_OUTPUT.PUT_LINE('TEST 7 (id = 0): OK -> ' || SQLERRM);
     END;
 
+    ----------------------------------------------------------------
+    -- TEST 8: negative id
+    ----------------------------------------------------------------
+    BEGIN
+        c := USBD36_ADD_BUILDING(-1, 2, 'Building Test USBD36 W', 5);
+        DBMS_OUTPUT.PUT_LINE('TEST 8 (negative id): FAILED');
+        CLOSE c;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('TEST 8 (negative id): OK -> ' || SQLERRM);
+    END;
+
+    ----------------------------------------------------------------
+    -- TEST 9: type <= 0
+    ----------------------------------------------------------------
+    BEGIN
+        c := USBD36_ADD_BUILDING(999008, 0, 'Building Test USBD36 Y', 5);
+        DBMS_OUTPUT.PUT_LINE('TEST 9 (type <= 0): FAILED');
+        CLOSE c;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('TEST 9 (type <= 0): OK -> ' || SQLERRM);
+    END;
+
+    ----------------------------------------------------------------
+    -- TEST 10: facility <= 0
+    ----------------------------------------------------------------
+    BEGIN
+        c := USBD36_ADD_BUILDING(999009, 2, 'Building Test USBD36 Z', 0);
+        DBMS_OUTPUT.PUT_LINE('TEST 10 (facility <= 0): FAILED');
+        CLOSE c;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('TEST 10 (facility <= 0): OK -> ' || SQLERRM);
+    END;
 
 END;
 /
