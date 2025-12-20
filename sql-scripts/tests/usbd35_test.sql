@@ -34,7 +34,33 @@ EXCEPTION
 END;
     DBMS_OUTPUT.PUT_LINE('');
 
+BEGIN
+        DBMS_OUTPUT.PUT_LINE('Test 3: Trying to add facility with empty name...');
+        USBD35_ADD_FACILITY(
+            p_id   => 100,
+            p_name => '   ',
+            p_type => 1
+        );
+        DBMS_OUTPUT.PUT_LINE('✗ Error: Should have raised empty name error!');
+EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('✓ Expected error: ' || SQLERRM);
+END;
+    DBMS_OUTPUT.PUT_LINE('');
 
+BEGIN
+        DBMS_OUTPUT.PUT_LINE('Test 4: Trying to add facility with invalid type...');
+        USBD35_ADD_FACILITY(
+            p_id   => 101,
+            p_name => 'Test Facility Invalid Type',
+            p_type => 9999  -- não existe
+        );
+        DBMS_OUTPUT.PUT_LINE('✗ Error: Should have raised invalid type error!');
+EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('✓ Expected error: ' || SQLERRM);
+END;
+    DBMS_OUTPUT.PUT_LINE('');
 
 DELETE FROM Facility WHERE id = v_new_facility_id;
 DELETE FROM Metafacility WHERE id = v_new_facility_id;
