@@ -6,8 +6,9 @@ CREATE OR REPLACE FUNCTION USBD36_ADD_BUILDING (
 )
     RETURN SYS_REFCURSOR
 AS
-    v_cnt NUMBER;
-    v_cur SYS_REFCURSOR;
+    v_cnt  NUMBER;
+    v_cur  SYS_REFCURSOR;
+    v_name Building.name%TYPE;
 BEGIN
     -- facility tem de existir
     SELECT COUNT(*)
@@ -29,16 +30,16 @@ BEGIN
         raise_application_error(-20036, 'Building type does not exist.');
     END IF;
 
-    -- name não pode ser vazio
-    IF p_name IS NULL OR LENGTH(TRIM(p_name)) = 0 THEN
+    -- normalizar e validar nome
+    v_name := TRIM(p_name);
+
+    IF v_name IS NULL OR LENGTH(v_name) = 0 THEN
         raise_application_error(-20036, 'Building name is required.');
     END IF;
 
-    -- insert
     INSERT INTO Building (id, type, name, facility)
-    VALUES (p_id, p_type, TRIM(p_name), p_facility);
+    VALUES (p_id, p_type, v_name, p_facility);
 
-    -- devolver o registo inserido
     OPEN v_cur FOR
         SELECT id, type, name, facility
         FROM Building
