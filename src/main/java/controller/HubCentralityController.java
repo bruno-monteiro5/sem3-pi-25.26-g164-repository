@@ -271,47 +271,82 @@ public class HubCentralityController {
         Map<Station, Double> out = new HashMap<>();
 
         for (int[] comp : components) {
+
             double max = 0.0;
             for (int idx : comp) {
-                max = Math.max(max, strengthMap.get(vertices.get(idx)));
+                double value = strengthMap.get(vertices.get(idx));
+                if (value > max) {
+                    max = value;
+                }
             }
+
             for (int idx : comp) {
                 Station v = vertices.get(idx);
-                out.put(v, max > 0.0 ? strengthMap.get(v) / max : 0.0);
+                double normalized;
+
+                if (max > 0.0) {
+                    normalized = strengthMap.get(v) / max;
+                } else {
+                    normalized = 0.0;
+                }
+
+                out.put(v, normalized);
             }
         }
+
         return out;
     }
+
 
     /**
      * Normalizes betweenness per connected component.
      */
-    private void normalizeBetweennessPerComponent(double[] betw,
-                                                  List<int[]> components) {
+    private void normalizeBetweennessPerComponent(
+            double[] betw,
+            List<int[]> components) {
+
         for (int[] comp : components) {
+
             int k = comp.length;
+
             for (int idx : comp) {
-                betw[idx] /= 2.0;
+                betw[idx] = betw[idx] / 2.0;
             }
+
             double divisor = (k - 1) * (k - 2) / 2.0;
+
             for (int idx : comp) {
-                betw[idx] = divisor > 0 ? betw[idx] / divisor : 0.0;
+                if (divisor > 0.0) {
+                    betw[idx] = betw[idx] / divisor;
+                } else {
+                    betw[idx] = 0.0;
+                }
             }
         }
     }
 
+
     /**
      * Normalizes harmonic closeness per connected component.
      */
-    private void normalizeHarmonicPerComponent(double[] harmonic,
-                                               List<int[]> components) {
+    private void normalizeHarmonicPerComponent(
+            double[] harmonic,
+            List<int[]> components) {
+
         for (int[] comp : components) {
+
             double divisor = comp.length - 1.0;
+
             for (int idx : comp) {
-                harmonic[idx] = divisor > 0 ? harmonic[idx] / divisor : 0.0;
+                if (divisor > 0.0) {
+                    harmonic[idx] = harmonic[idx] / divisor;
+                } else {
+                    harmonic[idx] = 0.0;
+                }
             }
         }
     }
+
 
     /**
      * Builds and sorts hub scores.
