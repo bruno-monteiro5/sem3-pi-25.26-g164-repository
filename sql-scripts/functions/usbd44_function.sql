@@ -25,7 +25,32 @@ IF v_cnt = 0 THEN
         raise_application_error(-20044, 'Line id does not exist: ' || p_line_id);
 END IF;
 
-RETURN NULL;
+    -- Validate track_type
+    IF UPPER(p_track_type) NOT IN ('SINGLE', 'MULTIPLE') THEN
+        raise_application_error(-20044, 'track_type must be SINGLE or MULTIPLE.');
+END IF;
+
+    -- Insert Line_Segment
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line)
+VALUES (p_segment_id, p_is_electrified, p_speed_limit, p_max_weight, p_length, p_line_id);
+
+-- Insert track type specialization
+IF UPPER(p_track_type) = 'SINGLE' THEN
+        INSERT INTO Single_Track (segment)
+        VALUES (p_segment_id);
+
+        -- If siding parameters provided, add siding
+        IF p_siding_position IS NOT NULL AND p_siding_length IS NOT NULL THEN
+            INSERT INTO Siding (segment, position, length)
+            VALUES (p_segment_id, p_siding_position, p_siding_length);
+END IF;
+
+    ELSIF UPPER(p_track_type) = 'MULTIPLE' THEN
+        INSERT INTO Multiple_Tracks (segment, number_tracks)
+        VALUES (p_segment_id, p_number_tracks);
+END IF;
+
+RETURN p_segment_id;
 
 EXCEPTION
     WHEN OTHERS THEN
