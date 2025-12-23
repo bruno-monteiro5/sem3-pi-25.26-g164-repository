@@ -83,7 +83,7 @@ public class HubCentralityUI implements Runnable {
         System.out.println("\n" + CYAN + "⏳ Calculating hub centrality metrics..." + RESET);
 
         try {
-            List<HubScore> results = controller.calculateHubCentrality();
+            List<HubScore> results = controller.calculateHubCentrality(false);
             displayResults(results);
 
         } catch (Exception e) {

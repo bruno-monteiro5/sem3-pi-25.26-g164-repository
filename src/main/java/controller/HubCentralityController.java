@@ -16,512 +16,661 @@ import repository.S3_RailwayRepository;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * Controller for USEI13 - Rail Hub Centrality Analysis.
- *
- * Computes centrality metrics for railway stations:
- * - Degree: number of direct connections
- * - Strength: sum of edge weights
- * - Betweenness: fraction of shortest paths passing through a station
- * - Harmonic Closeness: accessibility to all other stations
- * - HubScore: weighted composite metric
- *
- * All normalized metrics are normalized to [0,1] per connected component.
- */
 public class HubCentralityController {
 
-    private final S3_RailwayRepository repo;
+    private final S3_RailwayRepository repository;
 
     public HubCentralityController() {
-        this.repo = S3_RailwayRepository.getInstance();
+        this.repository = S3_RailwayRepository.getInstance();
     }
 
-    /**
-     * Loads railway network from CSV files and updates the repository.
-     */
     public void buildGraphFromCsv(String stationsCsvPath, String linesCsvPath) throws IOException {
         StationCsvLoaderS3 stationLoader = new StationCsvLoaderS3();
         List<Station> stations = stationLoader.load(stationsCsvPath);
 
         Map<Integer, Station> stationsById = new HashMap<>();
-        for (Station s : stations) {
-            stationsById.put(s.getId(), s);
+        for (int i = 0; i < stations.size(); i++) {
+            Station station = stations.get(i);
+            stationsById.put(station.getId(), station);
         }
 
         LineCsvLoader lineLoader = new LineCsvLoader();
         List<Line> lines = lineLoader.load(linesCsvPath, stationsById);
 
-        repo.loadStations(stations);
-        repo.loadLines(lines);
+        repository.loadStations(stations);
+        repository.loadLines(lines);
     }
 
     public boolean isGraphBuilt() {
-        return repo.isDataLoaded();
+        return repository.isDataLoaded();
     }
 
     /**
-     * Computes all hub centrality metrics and returns a ranked list.
+     * USEI13 - Hub Centrality.
+     *
+     * Shortest path metrics (betweenness + harmonic) use DISTANCE as edge weight
+     * because Dijkstra requires non-negative weights.
+     *
+     * Strength uses CAPACITY from the repository lines (separate metric).
      */
-    public List<HubScore> calculateHubCentrality() {
-        if (!repo.isDataLoaded()) {
+    public List<HubScore> calculateHubCentrality(boolean directedGraph) {
+
+        if (!repository.isDataLoaded()) {
             throw new IllegalStateException("Data not loaded.");
         }
 
-        RailwayGraphBuilder builder = new RailwayGraphBuilder(repo);
-        MapGraph<Station, Double> graph = builder.buildUndirectedGraph();
+        RailwayGraphBuilder builder = new RailwayGraphBuilder(repository);
 
-        List<Station> vertices = new ArrayList<>(graph.vertices());
-        int n = vertices.size();
-
-        Map<Station, Integer> indexMap = new HashMap<>();
-        for (int i = 0; i < n; i++) {
-            indexMap.put(vertices.get(i), i);
+        MapGraph<Station, Double> graph;
+        if (directedGraph) {
+            graph = builder.buildDirectedGraphWithDistance();
+        } else {
+            graph = builder.buildUndirectedGraph();
         }
 
-        List<int[]> components = getConnectedComponentsUsingBFS(graph, vertices, indexMap);
+        List<Station> stationList = new ArrayList<>(graph.vertices());
+        int numberOfStations = stationList.size();
 
-        Map<Station, Integer> degreeMap = computeDegree(graph, vertices);
-        Map<Station, Double> strengthMap = computeStrength(graph, vertices);
+        Map<Station, Integer> stationIndexMap = new HashMap<>();
+        for (int i = 0; i < numberOfStations; i++) {
+            stationIndexMap.put(stationList.get(i), i);
+        }
+
+        List<int[]> components;
+        if (graph.isDirected()) {
+            components = computeWeakComponentsUsingEdges(graph, stationList, stationIndexMap);
+        } else {
+            components = computeComponentsBFS(graph, stationList, stationIndexMap);
+        }
+
+        Map<Station, Integer> degreeMap = computeDegree(graph, stationList);
+
+        // Strength is about CAPACITY (business sense for hub traffic), not distance
+        Map<Station, Double> strengthMap = computeStrengthFromLinesCapacity(stationList, directedGraph);
 
         Map<Station, Double> betweennessMap =
-                computeBetweenness(graph, vertices, indexMap, components);
+                computeBetweenness(graph, stationList, stationIndexMap, components, graph.isDirected());
 
         Map<Station, Double> harmonicMap =
-                computeHarmonicCloseness(graph, vertices, indexMap, components);
+                computeHarmonicCloseness(graph, stationList, stationIndexMap, components);
 
-        Map<Station, Double> strengthNormMap =
-                normalizeStrengthPerComponent(strengthMap, vertices, components);
+        Map<Station, Double> normalizedStrength =
+                normalizeStrengthPerComponent(strengthMap, stationList, components);
 
-        return buildHubScores(vertices, degreeMap, strengthMap,
-                strengthNormMap, betweennessMap, harmonicMap);
+        return buildHubScoreList(
+                stationList,
+                degreeMap,
+                strengthMap,
+                normalizedStrength,
+                betweennessMap,
+                harmonicMap
+        );
     }
 
-    /**
-     * Computes degree centrality.
-     */
+    /* ================= DEGREE ================= */
+
     private Map<Station, Integer> computeDegree(MapGraph<Station, Double> graph,
-                                                List<Station> vertices) {
+                                                List<Station> stationList) {
+
         Map<Station, Integer> degreeMap = new HashMap<>();
-        for (Station v : vertices) {
-            degreeMap.put(v, graph.outDegree(v));
+
+        for (int i = 0; i < stationList.size(); i++) {
+            Station station = stationList.get(i);
+            int degree;
+
+            if (graph.isDirected()) {
+                degree = graph.inDegree(station) + graph.outDegree(station);
+            } else {
+                degree = graph.outDegree(station);
+            }
+
+            degreeMap.put(station, degree);
         }
         return degreeMap;
     }
 
+    /* ================= STRENGTH (CAPACITY) ================= */
+
     /**
-     * Computes strength centrality.
+     * Strength for USEI13:
+     * - uses line CAPACITY (not distance)
+     * - undirected: adds capacity to both endpoints
+     * - directed: outgoing strength (adds capacity only to origin)
      */
-    private Map<Station, Double> computeStrength(
-            MapGraph<Station, Double> graph,
-            List<Station> vertices) {
+    private Map<Station, Double> computeStrengthFromLinesCapacity(List<Station> stationList,
+                                                                  boolean directedGraph) {
 
         Map<Station, Double> strengthMap = new HashMap<>();
 
-        for (Station v : vertices) {
-            strengthMap.put(v, 0.0);
+        for (int i = 0; i < stationList.size(); i++) {
+            strengthMap.put(stationList.get(i), 0.0);
         }
 
-        for (Line line : repo.getLines()) {
-            Station o = line.getOrigin();
-            Station d = line.getDestination();
-            double cap = line.getCapacity();
+        List<Line> lines = repository.getLines();
+        for (int i = 0; i < lines.size(); i++) {
+            Line line = lines.get(i);
 
-            strengthMap.put(o, strengthMap.get(o) + cap);
-            strengthMap.put(d, strengthMap.get(d) + cap);
+            Station origin = line.getOrigin();
+            Station destination = line.getDestination();
+            double capacity = line.getCapacity();
+
+            if (directedGraph) {
+                strengthMap.put(origin, strengthMap.get(origin) + capacity);
+            } else {
+                strengthMap.put(origin, strengthMap.get(origin) + capacity);
+                strengthMap.put(destination, strengthMap.get(destination) + capacity);
+            }
         }
 
         return strengthMap;
     }
 
+    /* ================= HARMONIC ================= */
 
-    /**
-     * Computes betweenness centrality using Brandes-style accumulation.
-     */
-    private Map<Station, Double> computeBetweenness(
-            MapGraph<Station, Double> graph,
-            List<Station> vertices,
-            Map<Station, Integer> indexMap,
-            List<int[]> components) {
-
-        int n = vertices.size();
-        double[] betw = new double[n];
-
-        for (int s = 0; s < n; s++) {
-            DijkstraResult r = dijkstraWithPathCounting(graph, vertices, indexMap, s);
-            double[] delta = new double[n];
-
-            for (int i = r.stackSize - 1; i >= 0; i--) {
-                int w = r.stack[i];
-                for (int pred : r.preds[w]) {
-                    if (r.sigma[w] > 0) {
-                        delta[pred] +=
-                                ((double) r.sigma[pred] / (double) r.sigma[w]) *
-                                        (1.0 + delta[w]);
-                    }
-                }
-                if (w != s) {
-                    betw[w] += delta[w];
-                }
-            }
-        }
-
-        normalizeBetweennessPerComponent(betw, components);
-
-        Map<Station, Double> result = new HashMap<>();
-        for (int i = 0; i < n; i++) {
-            result.put(vertices.get(i), betw[i]);
-        }
-        return result;
-    }
-
-    /**
-     * Computes harmonic closeness centrality using heap-based Dijkstra distances.
-     */
     private Map<Station, Double> computeHarmonicCloseness(
             MapGraph<Station, Double> graph,
-            List<Station> vertices,
-            Map<Station, Integer> indexMap,
+            List<Station> stationList,
+            Map<Station, Integer> stationIndexMap,
             List<int[]> components) {
 
-        int n = vertices.size();
-        double[] harmonic = new double[n];
+        int n = stationList.size();
+        double[] harmonicValues = new double[n];
 
-        for (int s = 0; s < n; s++) {
-            double[] dist = dijkstraDistancesWithHeap(graph, vertices, indexMap, s);
+        for (int sourceIndex = 0; sourceIndex < n; sourceIndex++) {
 
-            double acc = 0.0;
-            for (int t = 0; t < n; t++) {
-                if (t == s) continue;
-                double d = dist[t];
-                if (d > 0.0 && d < Double.POSITIVE_INFINITY) {
-                    acc += 1.0 / d;
+            double[] distances = dijkstraDistances(graph, stationList, stationIndexMap, sourceIndex);
+            double sum = 0.0;
+
+            for (int targetIndex = 0; targetIndex < n; targetIndex++) {
+                if (targetIndex == sourceIndex) continue;
+
+                double distance = distances[targetIndex];
+                if (distance > 0.0 && distance < Double.POSITIVE_INFINITY) {
+                    sum += 1.0 / distance;
                 }
             }
-            harmonic[s] = acc;
+            harmonicValues[sourceIndex] = sum;
         }
 
-        normalizeHarmonicPerComponent(harmonic, components);
+        normalizeHarmonicPerComponent(harmonicValues, components);
 
         Map<Station, Double> result = new HashMap<>();
         for (int i = 0; i < n; i++) {
-            result.put(vertices.get(i), harmonic[i]);
+            result.put(stationList.get(i), harmonicValues[i]);
         }
         return result;
     }
 
     /**
-     * Heap-based Dijkstra that returns only distances from a source to all vertices.
+     * Guarantees [0,1] per component:
+     * 1) divide by (k-1) (size normalization)
+     * 2) rescale by max in component (forces [0,1])
      */
-    private double[] dijkstraDistancesWithHeap(
-            MapGraph<Station, Double> graph,
-            List<Station> vertices,
-            Map<Station, Integer> indexMap,
-            int sourceIdx) {
+    private void normalizeHarmonicPerComponent(double[] harmonic,
+                                               List<int[]> components) {
 
-        int n = vertices.size();
-        double[] dist = new double[n];
-        boolean[] visited = new boolean[n];
+        for (int c = 0; c < components.size(); c++) {
+            int[] component = components.get(c);
 
-        for (int i = 0; i < n; i++) {
-            dist[i] = Double.POSITIVE_INFINITY;
+            int size = component.length;
+            double divisor;
+            if (size > 1) {
+                divisor = size - 1.0;
+            } else {
+                divisor = 0.0;
+            }
+
+
+            double maxValue = 0.0;
+
+            for (int i = 0; i < component.length; i++) {
+                int index = component[i];
+
+                double sizeNormalized;
+                if (divisor > 0.0) {
+                    sizeNormalized = harmonic[index] / divisor;
+                } else {
+                    sizeNormalized = 0.0;
+                }
+
+                harmonic[index] = sizeNormalized;
+
+                if (sizeNormalized > maxValue) {
+                    maxValue = sizeNormalized;
+                }
+            }
+
+            for (int i = 0; i < component.length; i++) {
+                int index = component[i];
+                if (maxValue > 0.0) {
+                    harmonic[index] = harmonic[index] / maxValue;
+                } else {
+                    harmonic[index] = 0.0;
+                }
+
+            }
         }
-        dist[sourceIdx] = 0.0;
+    }
 
-        HeapPriorityQueue<Double, Integer> pq = new HeapPriorityQueue<>();
-        pq.insert(0.0, sourceIdx);
+    /* ================= BETWEENNESS ================= */
 
-        while (!pq.isEmpty()) {
-            Entry<Double, Integer> entry = pq.removeMin();
-            int u = entry.getValue();
+    private Map<Station, Double> computeBetweenness(
+            MapGraph<Station, Double> graph,
+            List<Station> stationList,
+            Map<Station, Integer> stationIndexMap,
+            List<int[]> components,
+            boolean directedGraph) {
 
-            if (visited[u]) continue;
-            visited[u] = true;
+        int n = stationList.size();
+        double[] betweenness = new double[n];
 
-            Station uS = vertices.get(u);
+        for (int sourceIndex = 0; sourceIndex < n; sourceIndex++) {
 
-            for (Station nb : graph.adjVertices(uS)) {
-                Integer vObj = indexMap.get(nb);
-                if (vObj == null) continue;
-                int v = vObj;
+            DijkstraResult dijkstraResult =
+                    dijkstraWithPathCounting(graph, stationList, stationIndexMap, sourceIndex);
 
-                if (visited[v]) continue;
+            double[] dependency = new double[n];
 
-                Edge<Station, Double> e = graph.edge(uS, nb);
-                if (e == null) continue;
+            for (int i = dijkstraResult.stackSize - 1; i >= 0; i--) {
+                int w = dijkstraResult.stack[i];
 
-                double alt = dist[u] + e.getWeight();
-                if (alt < dist[v]) {
-                    dist[v] = alt;
-                    pq.insert(alt, v);
+                int[] predecessorArray = dijkstraResult.predecessors[w];
+                for (int p = 0; p < predecessorArray.length; p++) {
+                    int predecessor = predecessorArray[p];
+
+                    if (dijkstraResult.sigma[w] > 0) {
+                        dependency[predecessor] +=
+                                (dijkstraResult.sigma[predecessor] / (double) dijkstraResult.sigma[w]) *
+                                        (1.0 + dependency[w]);
+                    }
+                }
+
+                if (w != sourceIndex) {
+                    betweenness[w] += dependency[w];
                 }
             }
         }
 
-        return dist;
+        normalizeBetweennessPerComponent(betweenness, components, directedGraph);
+
+        Map<Station, Double> result = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            result.put(stationList.get(i), betweenness[i]);
+        }
+        return result;
     }
 
     /**
-     * Normalizes strength per connected component.
+     * - undirected: divide by 2, then by (k-1)(k-2)/2
+     * - directed: by (k-1)(k-2)
      */
+    private void normalizeBetweennessPerComponent(double[] betweenness,
+                                                  List<int[]> components,
+                                                  boolean directedGraph) {
+
+        for (int c = 0; c < components.size(); c++) {
+            int[] component = components.get(c);
+
+            int k = component.length;
+            double divisor;
+
+            if (directedGraph) {
+                divisor = (k - 1.0) * (k - 2.0);
+            } else {
+                for (int i = 0; i < component.length; i++) {
+                    int index = component[i];
+                    betweenness[index] = betweenness[index] / 2.0;
+                }
+                divisor = (k - 1.0) * (k - 2.0) / 2.0;
+            }
+
+            for (int i = 0; i < component.length; i++) {
+                int index = component[i];
+                if (divisor > 0.0) {
+                    betweenness[index] = betweenness[index] / divisor;
+                } else {
+                    betweenness[index] = 0.0;
+                }
+
+            }
+        }
+    }
+
+    /* ================= STRENGTH NORMALIZATION ================= */
+
     private Map<Station, Double> normalizeStrengthPerComponent(
             Map<Station, Double> strengthMap,
-            List<Station> vertices,
+            List<Station> stationList,
             List<int[]> components) {
 
-        Map<Station, Double> out = new HashMap<>();
+        Map<Station, Double> normalizedStrength = new HashMap<>();
 
-        for (int[] comp : components) {
+        for (int c = 0; c < components.size(); c++) {
+            int[] component = components.get(c);
 
-            double max = 0.0;
-            for (int idx : comp) {
-                double value = strengthMap.get(vertices.get(idx));
-                if (value > max) {
-                    max = value;
+            double maxValue = 0.0;
+
+            for (int i = 0; i < component.length; i++) {
+                int index = component[i];
+                Station station = stationList.get(index);
+                double value = strengthMap.get(station);
+                if (value > maxValue) {
+                    maxValue = value;
                 }
             }
 
-            for (int idx : comp) {
-                Station v = vertices.get(idx);
-                double normalized;
+            for (int i = 0; i < component.length; i++) {
+                int index = component[i];
+                Station station = stationList.get(index);
 
-                if (max > 0.0) {
-                    normalized = strengthMap.get(v) / max;
+                double normalized;
+                if (maxValue > 0.0) {
+                    normalized = strengthMap.get(station) / maxValue;
                 } else {
                     normalized = 0.0;
                 }
 
-                out.put(v, normalized);
+                normalizedStrength.put(station, normalized);
             }
         }
 
-        return out;
+        return normalizedStrength;
     }
 
+    /* ================= HUB SCORE ================= */
 
-    /**
-     * Normalizes betweenness per connected component.
-     */
-    private void normalizeBetweennessPerComponent(
-            double[] betw,
-            List<int[]> components) {
-
-        for (int[] comp : components) {
-
-            int k = comp.length;
-
-            for (int idx : comp) {
-                betw[idx] = betw[idx] / 2.0;
-            }
-
-            double divisor = (k - 1) * (k - 2) / 2.0;
-
-            for (int idx : comp) {
-                if (divisor > 0.0) {
-                    betw[idx] = betw[idx] / divisor;
-                } else {
-                    betw[idx] = 0.0;
-                }
-            }
-        }
-    }
-
-
-    /**
-     * Normalizes harmonic closeness per connected component.
-     */
-    private void normalizeHarmonicPerComponent(
-            double[] harmonic,
-            List<int[]> components) {
-
-        for (int[] comp : components) {
-
-            double divisor = comp.length - 1.0;
-
-            for (int idx : comp) {
-                if (divisor > 0.0) {
-                    harmonic[idx] = harmonic[idx] / divisor;
-                } else {
-                    harmonic[idx] = 0.0;
-                }
-            }
-        }
-    }
-
-
-    /**
-     * Builds and sorts hub scores.
-     */
-    private List<HubScore> buildHubScores(
-            List<Station> vertices,
+    private List<HubScore> buildHubScoreList(
+            List<Station> stationList,
             Map<Station, Integer> degreeMap,
             Map<Station, Double> strengthMap,
-            Map<Station, Double> strengthNormMap,
+            Map<Station, Double> normalizedStrength,
             Map<Station, Double> betweennessMap,
             Map<Station, Double> harmonicMap) {
 
-        List<HubScore> result = new ArrayList<>();
+        List<HubScore> resultList = new ArrayList<>();
 
-        for (Station v : vertices) {
+        for (int i = 0; i < stationList.size(); i++) {
+            Station station = stationList.get(i);
+
             double hubScore =
-                    0.35 * betweennessMap.get(v)
-                            + 0.35 * harmonicMap.get(v)
-                            + 0.30 * strengthNormMap.get(v);
+                    0.35 * betweennessMap.get(station)
+                            + 0.35 * harmonicMap.get(station)
+                            + 0.30 * normalizedStrength.get(station);
 
-            result.add(new HubScore(
-                    v,
-                    degreeMap.get(v),
-                    strengthMap.get(v),
-                    betweennessMap.get(v),
-                    harmonicMap.get(v),
-                    hubScore));
+            resultList.add(new HubScore(
+                    station,
+                    degreeMap.get(station),
+                    strengthMap.get(station),
+                    betweennessMap.get(station),
+                    harmonicMap.get(station),
+                    hubScore
+            ));
         }
 
-        for (int i = 1; i < result.size(); i++) {
-            HubScore key = result.get(i);
+        // insertion sort descending
+        for (int i = 1; i < resultList.size(); i++) {
+            HubScore key = resultList.get(i);
             int j = i - 1;
-            while (j >= 0 && result.get(j).getHubScore() < key.getHubScore()) {
-                result.set(j + 1, result.get(j));
+
+            while (j >= 0 && resultList.get(j).getHubScore() < key.getHubScore()) {
+                resultList.set(j + 1, resultList.get(j));
                 j--;
             }
-            result.set(j + 1, key);
+            resultList.set(j + 1, key);
+        }
+
+        return resultList;
+    }
+
+    /* ================= COMPONENTS ================= */
+
+    private List<int[]> computeComponentsBFS(
+            MapGraph<Station, Double> graph,
+            List<Station> stationList,
+            Map<Station, Integer> stationIndexMap) {
+
+        boolean[] visited = new boolean[stationList.size()];
+        List<int[]> components = new ArrayList<>();
+
+        for (int i = 0; i < stationList.size(); i++) {
+            Station startStation = stationList.get(i);
+            int startIndex = stationIndexMap.get(startStation);
+
+            if (visited[startIndex]) continue;
+
+            LinkedList<Station> bfsResult =
+                    Algorithms.BreadthFirstSearch(graph, startStation);
+
+            int[] temp = new int[bfsResult.size()];
+            int count = 0;
+
+            for (int j = 0; j < bfsResult.size(); j++) {
+                Station station = bfsResult.get(j);
+                int index = stationIndexMap.get(station);
+
+                if (!visited[index]) {
+                    visited[index] = true;
+                    temp[count++] = index;
+                }
+            }
+
+            components.add(Arrays.copyOf(temp, count));
+        }
+
+        return components;
+    }
+
+    /**
+     * Weak components for directed graphs:
+     * Uses graph.edges() to connect origin<->destination (ignores orientation).
+     */
+    private List<int[]> computeWeakComponentsUsingEdges(
+            MapGraph<Station, Double> graph,
+            List<Station> stationList,
+            Map<Station, Integer> stationIndexMap) {
+
+        Map<Station, List<Station>> neighborsMap = new HashMap<>();
+
+        for (int i = 0; i < stationList.size(); i++) {
+            neighborsMap.put(stationList.get(i), new ArrayList<Station>());
+        }
+
+        for (Edge<Station, Double> edge : graph.edges()) {
+            Station origin = edge.getVOrig();
+            Station destination = edge.getVDest();
+
+            neighborsMap.get(origin).add(destination);
+            neighborsMap.get(destination).add(origin);
+        }
+
+        boolean[] visited = new boolean[stationList.size()];
+        List<int[]> components = new ArrayList<>();
+
+        for (int i = 0; i < stationList.size(); i++) {
+            Station startStation = stationList.get(i);
+            int startIndex = stationIndexMap.get(startStation);
+
+            if (visited[startIndex]) continue;
+
+            Stack<Station> stack = new Stack<>();
+            stack.push(startStation);
+            visited[startIndex] = true;
+
+            int[] temp = new int[stationList.size()];
+            int count = 0;
+
+            while (!stack.isEmpty()) {
+                Station currentStation = stack.pop();
+                int currentIndex = stationIndexMap.get(currentStation);
+
+                temp[count++] = currentIndex;
+
+                List<Station> neighborList = neighborsMap.get(currentStation);
+                for (int j = 0; j < neighborList.size(); j++) {
+                    Station neighbor = neighborList.get(j);
+                    int neighborIndex = stationIndexMap.get(neighbor);
+
+                    if (!visited[neighborIndex]) {
+                        visited[neighborIndex] = true;
+                        stack.push(neighbor);
+                    }
+                }
+            }
+
+            components.add(Arrays.copyOf(temp, count));
+        }
+
+        return components;
+    }
+
+    /* ================= DIJKSTRA (DISTANCES) ================= */
+
+    private double[] dijkstraDistances(
+            MapGraph<Station, Double> graph,
+            List<Station> stationList,
+            Map<Station, Integer> stationIndexMap,
+            int sourceIndex) {
+
+        int n = stationList.size();
+        double[] distances = new double[n];
+        boolean[] visited = new boolean[n];
+
+        for (int i = 0; i < n; i++) {
+            distances[i] = Double.POSITIVE_INFINITY;
+        }
+        distances[sourceIndex] = 0.0;
+
+        HeapPriorityQueue<Double, Integer> priorityQueue = new HeapPriorityQueue<>();
+        priorityQueue.insert(0.0, sourceIndex);
+
+        while (!priorityQueue.isEmpty()) {
+
+            Entry<Double, Integer> entry = priorityQueue.removeMin();
+            int currentIndex = entry.getValue();
+
+            if (visited[currentIndex]) continue;
+            visited[currentIndex] = true;
+
+            Station currentStation = stationList.get(currentIndex);
+
+            for (Station neighbor : graph.adjVertices(currentStation)) {
+
+                int neighborIndex = stationIndexMap.get(neighbor);
+                if (visited[neighborIndex]) continue;
+
+                Edge<Station, Double> edge = graph.edge(currentStation, neighbor);
+                if (edge == null || edge.getWeight() == null) continue;
+
+                double newDistance = distances[currentIndex] + edge.getWeight();
+                if (newDistance < distances[neighborIndex]) {
+                    distances[neighborIndex] = newDistance;
+                    priorityQueue.insert(newDistance, neighborIndex);
+                }
+            }
+        }
+
+        return distances;
+    }
+
+    /* ================= DIJKSTRA WITH PATH COUNTING ================= */
+
+    private static class DijkstraResult {
+        final double[] distances;
+        final long[] sigma;
+        final int[][] predecessors;
+        final int[] stack;
+        int stackSize;
+
+        DijkstraResult(int n) {
+            distances = new double[n];
+            sigma = new long[n];
+            predecessors = new int[n][];
+            stack = new int[n];
+        }
+    }
+
+    private DijkstraResult dijkstraWithPathCounting(
+            MapGraph<Station, Double> graph,
+            List<Station> stationList,
+            Map<Station, Integer> stationIndexMap,
+            int sourceIndex) {
+
+        int n = stationList.size();
+        DijkstraResult result = new DijkstraResult(n);
+
+        boolean[] visited = new boolean[n];
+        List<List<Integer>> predecessorLists = new ArrayList<List<Integer>>();
+
+        for (int i = 0; i < n; i++) {
+            result.distances[i] = Double.POSITIVE_INFINITY;
+            result.sigma[i] = 0;
+            predecessorLists.add(new ArrayList<Integer>());
+        }
+
+        result.distances[sourceIndex] = 0.0;
+        result.sigma[sourceIndex] = 1;
+
+        HeapPriorityQueue<Double, Integer> priorityQueue = new HeapPriorityQueue<>();
+        priorityQueue.insert(0.0, sourceIndex);
+
+        while (!priorityQueue.isEmpty()) {
+
+            Entry<Double, Integer> entry = priorityQueue.removeMin();
+            int currentIndex = entry.getValue();
+
+            if (visited[currentIndex]) continue;
+            visited[currentIndex] = true;
+
+            result.stack[result.stackSize++] = currentIndex;
+
+            Station currentStation = stationList.get(currentIndex);
+
+            for (Station neighbor : graph.adjVertices(currentStation)) {
+
+                int neighborIndex = stationIndexMap.get(neighbor);
+
+                Edge<Station, Double> edge = graph.edge(currentStation, neighbor);
+                if (edge == null || edge.getWeight() == null) continue;
+
+                double newDistance = result.distances[currentIndex] + edge.getWeight();
+
+                if (newDistance < result.distances[neighborIndex]) {
+
+                    result.distances[neighborIndex] = newDistance;
+                    result.sigma[neighborIndex] = result.sigma[currentIndex];
+
+                    predecessorLists.get(neighborIndex).clear();
+                    predecessorLists.get(neighborIndex).add(currentIndex);
+
+                    priorityQueue.insert(newDistance, neighborIndex);
+
+                } else if (Math.abs(newDistance - result.distances[neighborIndex]) < 1e-9) {
+
+                    result.sigma[neighborIndex] += result.sigma[currentIndex];
+                    predecessorLists.get(neighborIndex).add(currentIndex);
+                }
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            List<Integer> list = predecessorLists.get(i);
+            int[] predecessorArray = new int[list.size()];
+
+            for (int j = 0; j < list.size(); j++) {
+                predecessorArray[j] = list.get(j);
+            }
+
+            result.predecessors[i] = predecessorArray;
         }
 
         return result;
     }
 
-    /**
-     * Computes connected components using BFS from Algorithms.
-     */
-    private List<int[]> getConnectedComponentsUsingBFS(
-            MapGraph<Station, Double> graph,
-            List<Station> vertices,
-            Map<Station, Integer> indexMap) {
-
-        boolean[] visited = new boolean[vertices.size()];
-        List<int[]> comps = new ArrayList<>();
-
-        for (Station start : vertices) {
-            int startIdx = indexMap.get(start);
-            if (visited[startIdx]) continue;
-
-            LinkedList<Station> bfs =
-                    Algorithms.BreadthFirstSearch(graph, start);
-
-            int[] temp = new int[bfs.size()];
-            int size = 0;
-
-            for (Station v : bfs) {
-                int idx = indexMap.get(v);
-                if (!visited[idx]) {
-                    visited[idx] = true;
-                    temp[size++] = idx;
-                }
-            }
-
-            comps.add(Arrays.copyOf(temp, size));
-        }
-        return comps;
-    }
-
-    /**
-     * Result container for Dijkstra with path counting.
-     */
-    private static class DijkstraResult {
-        final double[] dist;
-        final long[] sigma;
-        final int[][] preds;
-        final int[] stack;
-        int stackSize;
-
-        DijkstraResult(int n) {
-            dist = new double[n];
-            sigma = new long[n];
-            preds = new int[n][];
-            stack = new int[n];
-        }
-    }
-
-    /**
-     * Dijkstra algorithm with path counting for betweenness computation using a heap-based priority queue.
-     */
-    private DijkstraResult dijkstraWithPathCounting(
-            MapGraph<Station, Double> graph,
-            List<Station> vertices,
-            Map<Station, Integer> indexMap,
-            int sourceIdx) {
-
-        int n = vertices.size();
-        DijkstraResult r = new DijkstraResult(n);
-
-        boolean[] visited = new boolean[n];
-        List<List<Integer>> predLists = new ArrayList<>();
-
-        for (int i = 0; i < n; i++) {
-            r.dist[i] = Double.POSITIVE_INFINITY;
-            r.sigma[i] = 0;
-            predLists.add(new ArrayList<>());
-        }
-
-        r.dist[sourceIdx] = 0.0;
-        r.sigma[sourceIdx] = 1;
-
-        HeapPriorityQueue<Double, Integer> pq = new HeapPriorityQueue<>();
-        pq.insert(0.0, sourceIdx);
-
-        while (!pq.isEmpty()) {
-            Entry<Double, Integer> entry = pq.removeMin();
-            int u = entry.getValue();
-
-            if (visited[u]) continue;
-            visited[u] = true;
-
-            r.stack[r.stackSize++] = u;
-
-            Station uS = vertices.get(u);
-
-            for (Station nb : graph.adjVertices(uS)) {
-                Integer vObj = indexMap.get(nb);
-                if (vObj == null) continue;
-                int v = vObj;
-
-                if (visited[v]) continue;
-
-                Edge<Station, Double> e = graph.edge(uS, nb);
-                if (e == null) continue;
-
-                double alt = r.dist[u] + e.getWeight();
-
-                if (alt < r.dist[v]) {
-                    r.dist[v] = alt;
-                    r.sigma[v] = r.sigma[u];
-                    predLists.get(v).clear();
-                    predLists.get(v).add(u);
-                    pq.insert(alt, v);
-                } else if (Math.abs(alt - r.dist[v]) < 1e-9) {
-                    r.sigma[v] += r.sigma[u];
-                    predLists.get(v).add(u);
-                }
-            }
-        }
-
-        for (int i = 0; i < n; i++) {
-            r.preds[i] = predLists.get(i).stream().mapToInt(Integer::intValue).toArray();
-        }
-
-        return r;
-    }
-
-    /**
-     * Returns the number of loaded stations.
-     */
     public int getStationCount() {
-        return repo.getStationCount();
+        return repository.getStationCount();
     }
 
-    /**
-     * Returns the number of loaded lines/connections.
-     */
     public int getLineCount() {
-        return repo.getLineCount();
+        return repository.getLineCount();
     }
 }
