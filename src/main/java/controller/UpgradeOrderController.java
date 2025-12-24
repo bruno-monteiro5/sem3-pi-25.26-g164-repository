@@ -88,15 +88,19 @@ public class UpgradeOrderController {
             throw new IllegalStateException("Graph not built. Call buildGraphFromCsv first.");
         }
 
-        // Primeiro, detectar ciclos
+
         List<List<Station>> cycles = detectCycles();
 
         if (!cycles.isEmpty()) {
-            // Grafo tem ciclos - não é possível ordenação topológica
-            return new UpgradeOrderResult(cycles);
-        }
+            List<Station> firstCycle = cycles.get(0);
 
-        // Grafo é acíclico - calcular ordenação topológica
+            Set<Station> cycleStations = new LinkedHashSet<>();
+            for (int i = 0; i < firstCycle.size() - 1; i++) {
+                cycleStations.add(firstCycle.get(i));
+            }
+
+            return new UpgradeOrderResult(cycleStations);
+        }
         LinkedList<Station> topoOrder = Algorithms.topologicalSort(graph);
 
         return new UpgradeOrderResult(topoOrder);
@@ -188,7 +192,6 @@ public class UpgradeOrderController {
 
         boolean inCycle = false;
 
-        // Percorrer o path de trás para frente
         for (Station s : path) {
             if (s.equals(cycleStart)) {
                 inCycle = true;
@@ -198,8 +201,7 @@ public class UpgradeOrderController {
                 cycle.add(s);
             }
         }
-
-        // Adicionar novamente o início do ciclo para fechar
+        
         if (!cycle.isEmpty()) {
             cycle.add(cycleStart);
         }

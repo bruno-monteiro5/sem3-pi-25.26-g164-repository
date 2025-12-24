@@ -1,6 +1,5 @@
 package ui.RailwayNetworkOptimization;
 
-
 import controller.UpgradeOrderController;
 import domain.Option;
 import domain.Station;
@@ -10,10 +9,8 @@ import ui.RailwayNetworkMenu;
 import ui.UIHelper;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.Set;
 
 /**
  * UI para USEI11 - Directed Line Upgrade Plan
@@ -68,7 +65,6 @@ public class UpgradeOrderUI implements Runnable {
 
         Utils.listAndSelect(options);
     }
-
 
     private void calculateOrderAction() {
         if (!controller.isGraphBuilt()) {
@@ -126,38 +122,23 @@ public class UpgradeOrderUI implements Runnable {
     }
 
     private void displayCycleResult(UpgradeOrderResult result) {
-        List<List<Station>> cycles = result.getCycles();
+        Set<Station> cycleStations = result.getCycleStations();
 
         System.out.println(RED + "❌ Cycles detected - topological ordering NOT possible" + RESET);
         System.out.println();
-        System.out.printf("Found %d cycle(s) in the network:\n", cycles.size());
+        System.out.println("Stations that are part of at least one cycle:");
         System.out.println(line(72));
 
-        int cycleNum = 1;
-        for (List<Station> cycle : cycles) {
-            System.out.println(YELLOW + "Cycle #" + cycleNum++ + RESET);
-            System.out.print("  ");
-
-            for (int i = 0; i < cycle.size(); i++) {
-                Station s = cycle.get(i);
-                System.out.print(s.getName());
-
-                if (i < cycle.size() - 1) {
-                    System.out.print(" → ");
-                }
-            }
-            System.out.println();
-
-            System.out.print("  Stations involved: ");
-            for (int i = 0; i < cycle.size() - 1; i++) { // -1 para não repetir o último
-                if (i > 0) System.out.print(", ");
-                System.out.print(cycle.get(i).getName());
-            }
-            System.out.println("\n");
+        int i = 1;
+        for (Station s : cycleStations) {
+            System.out.printf("%3d. %-40s [ID: %d]\n",
+                    i++,
+                    truncate(s.getName(), 40),
+                    s.getId());
         }
 
         System.out.println(line(72));
-        System.out.println(RED + "⚠ Recommendation: Review track dependencies to eliminate cycles" + RESET);
+        System.out.printf("Total stations in cycle(s): %d\n", result.getStationCount());
     }
 
     private String truncate(String s, int maxLen) {
