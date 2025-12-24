@@ -2,9 +2,9 @@ package domain;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,36 +33,31 @@ class UpgradeOrderResultTest {
         assertFalse(result.hasCycle(), "Não deve ter ciclos");
         assertNotNull(result.getUpgradeOrder());
         assertEquals(3, result.getUpgradeOrder().size());
-        assertNull(result.getCycles(), "Cycles deve ser null quando não há ciclos");
+        assertNull(result.getCycleStations(), "CycleStations deve ser null quando não há ciclos");
         assertEquals(3, result.getStationCount());
     }
 
     /**
-     * Teste 2: Construtor com ciclos detectados
+     * Teste 2: Construtor com ciclos detectados (set de estações)
      */
     @Test
     void testCycleConstructor() {
         // Arrange
-        List<List<Station>> cycles = new ArrayList<>();
-
-        List<Station> cycle1 = new ArrayList<>();
-        cycle1.add(createStation(1, "Station A"));
-        cycle1.add(createStation(2, "Station B"));
-        cycle1.add(createStation(3, "Station C"));
-        cycle1.add(createStation(1, "Station A")); // fecha o ciclo
-
-        cycles.add(cycle1);
+        Set<Station> cycleStations = new LinkedHashSet<>();
+        cycleStations.add(createStation(1, "Station A"));
+        cycleStations.add(createStation(2, "Station B"));
+        cycleStations.add(createStation(3, "Station C"));
 
         // Act
-        UpgradeOrderResult result = new UpgradeOrderResult(cycles);
+        UpgradeOrderResult result = new UpgradeOrderResult(cycleStations);
 
         // Assert
         assertNotNull(result);
         assertTrue(result.hasCycle(), "Deve ter ciclos");
         assertNull(result.getUpgradeOrder(), "Order deve ser null quando há ciclos");
-        assertNotNull(result.getCycles());
-        assertEquals(1, result.getCycles().size());
-        assertEquals(4, result.getStationCount()); // 4 elementos no ciclo (incluindo repetição)
+        assertNotNull(result.getCycleStations());
+        assertEquals(3, result.getCycleStations().size());
+        assertEquals(3, result.getStationCount()); // únicas (sem repetição de fecho)
     }
 
     /**
@@ -84,54 +79,47 @@ class UpgradeOrderResultTest {
     }
 
     /**
-     * Teste 4: Lista de ciclos vazia
+     * Teste 4: Set de ciclos vazio
      */
     @Test
-    void testEmptyCycles() {
+    void testEmptyCycleStations() {
         // Arrange
-        List<List<Station>> emptyCycles = new ArrayList<>();
+        Set<Station> emptyCycleStations = new LinkedHashSet<>();
 
         // Act
-        UpgradeOrderResult result = new UpgradeOrderResult(emptyCycles);
+        UpgradeOrderResult result = new UpgradeOrderResult(emptyCycleStations);
 
         // Assert
         assertTrue(result.hasCycle());
-        assertNotNull(result.getCycles());
-        assertTrue(result.getCycles().isEmpty());
+        assertNotNull(result.getCycleStations());
+        assertTrue(result.getCycleStations().isEmpty());
         assertEquals(0, result.getStationCount());
     }
 
     /**
-     * Teste 5: Múltiplos ciclos
+     * Teste 5: Múltiplos ciclos (união das estações únicas)
      */
     @Test
-    void testMultipleCycles() {
+    void testMultipleCyclesStationsUnion() {
         // Arrange
-        List<List<Station>> cycles = new ArrayList<>();
+        Set<Station> cycleStations = new LinkedHashSet<>();
 
-        // Ciclo 1: A → B → C → A
-        List<Station> cycle1 = new ArrayList<>();
-        cycle1.add(createStation(1, "Station A"));
-        cycle1.add(createStation(2, "Station B"));
-        cycle1.add(createStation(3, "Station C"));
-        cycle1.add(createStation(1, "Station A"));
+        // Ciclo 1: A, B, C
+        cycleStations.add(createStation(1, "Station A"));
+        cycleStations.add(createStation(2, "Station B"));
+        cycleStations.add(createStation(3, "Station C"));
 
-        // Ciclo 2: D → E → D
-        List<Station> cycle2 = new ArrayList<>();
-        cycle2.add(createStation(4, "Station D"));
-        cycle2.add(createStation(5, "Station E"));
-        cycle2.add(createStation(4, "Station D"));
-
-        cycles.add(cycle1);
-        cycles.add(cycle2);
+        // Ciclo 2: D, E
+        cycleStations.add(createStation(4, "Station D"));
+        cycleStations.add(createStation(5, "Station E"));
 
         // Act
-        UpgradeOrderResult result = new UpgradeOrderResult(cycles);
+        UpgradeOrderResult result = new UpgradeOrderResult(cycleStations);
 
         // Assert
         assertTrue(result.hasCycle());
-        assertEquals(2, result.getCycles().size());
-        assertEquals(7, result.getStationCount()); // 4 + 3 elementos nos ciclos
+        assertEquals(5, result.getCycleStations().size());
+        assertEquals(5, result.getStationCount()); // únicas (não soma repetições)
     }
 
     /**
@@ -141,7 +129,8 @@ class UpgradeOrderResultTest {
     void testSingleStationOrder() {
         // Arrange
         LinkedList<Station> order = new LinkedList<>();
-        order.add(createStation(1, "Station A"));
+        Station s = createStation(1, "Station A");
+        order.add(s);
 
         // Act
         UpgradeOrderResult result = new UpgradeOrderResult(order);
@@ -149,7 +138,7 @@ class UpgradeOrderResultTest {
         // Assert
         assertFalse(result.hasCycle());
         assertEquals(1, result.getStationCount());
-        assertEquals(createStation(1, "Station A"), result.getUpgradeOrder().getFirst());
+        assertEquals(s, result.getUpgradeOrder().getFirst());
     }
 
     /**
@@ -173,49 +162,23 @@ class UpgradeOrderResultTest {
     }
 
     /**
-     * Teste 8: Imutabilidade - modificar lista original não deve afetar resultado
-     *
-    //@Test
-    void testImmutability() {
-        // Arrange
-        LinkedList<Station> order = new LinkedList<>();
-        Station s1 = createStation(1, "Station A");
-        Station s2 = createStation(2, "Station B");
-        order.add(s1);
-        order.add(s2);
-
-        UpgradeOrderResult result = new UpgradeOrderResult(order);
-
-        // Act - modificar lista original
-        order.add(createStation(3, "Station C"));
-
-        // Assert - resultado não deve ser afetado
-        assertEquals(2, result.getStationCount(),
-                "Modificar lista original não deve afetar resultado");
-    }
-    **/
-    /**
-     * Teste 9: Verificar contagem de estações em ciclos complexos
+     * Teste 9: Verificar contagem de estações em ciclo "complexo" (únicas)
      */
     @Test
     void testStationCountInComplexCycles() {
         // Arrange
-        List<List<Station>> cycles = new ArrayList<>();
+        Set<Station> cycleStations = new LinkedHashSet<>();
 
-        // Ciclo com 5 estações
-        List<Station> largeCycle = new ArrayList<>();
+        // Ciclo com 5 estações (únicas)
         for (int i = 1; i <= 5; i++) {
-            largeCycle.add(createStation(i, "Station " + i));
+            cycleStations.add(createStation(i, "Station " + i));
         }
-        largeCycle.add(createStation(1, "Station 1")); // fecha ciclo
-
-        cycles.add(largeCycle);
 
         // Act
-        UpgradeOrderResult result = new UpgradeOrderResult(cycles);
+        UpgradeOrderResult result = new UpgradeOrderResult(cycleStations);
 
         // Assert
-        assertEquals(6, result.getStationCount()); // 5 estações + 1 repetição
+        assertEquals(5, result.getStationCount()); // únicas
     }
 
     /**

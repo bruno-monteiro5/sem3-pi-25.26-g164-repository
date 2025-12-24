@@ -4,7 +4,6 @@ import domain.Line;
 import domain.Location;
 import domain.Station;
 import domain.UpgradeOrderResult;
-import domain.graph.map.MapGraph;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import repository.S3_RailwayRepository;
@@ -13,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -119,15 +119,15 @@ class UpgradeOrderControllerTest {
         assertNotNull(result);
         assertTrue(result.hasCycle(), "Deve detetar ciclo");
 
-        List<List<Station>> cycles = result.getCycles();
-        assertNotNull(cycles);
-        assertFalse(cycles.isEmpty(), "Deve conter pelo menos um ciclo");
+        Set<Station> cycleStations = result.getCycleStations();
+        assertNotNull(cycleStations);
+        assertFalse(cycleStations.isEmpty(), "Deve conter pelo menos uma estação em ciclo");
 
-        // Verificar se o ciclo contém as 3 estações
-        List<Station> cycle = cycles.get(0);
-        assertTrue(cycle.size() >= 3, "Ciclo deve ter pelo menos 3 estações");
-        assertTrue(cycle.contains(a) || cycle.contains(b) || cycle.contains(c),
-                "Ciclo deve conter estações do grafo");
+        // Como este grafo tem um ciclo com A,B,C, o set deve conter as três
+        assertTrue(cycleStations.contains(a), "Deve conter A");
+        assertTrue(cycleStations.contains(b), "Deve conter B");
+        assertTrue(cycleStations.contains(c), "Deve conter C");
+        assertEquals(3, cycleStations.size(), "Deve conter exatamente as 3 estações do ciclo");
     }
 
     /**
@@ -227,13 +227,24 @@ class UpgradeOrderControllerTest {
         // Assert
         assertTrue(result.hasCycle());
 
-        List<List<Station>> cycles = result.getCycles();
-        assertNotNull(cycles);
-        assertTrue(cycles.size() >= 1, "Deve detetar pelo menos um ciclo");
+        Set<Station> cycleStations = result.getCycleStations();
+        assertNotNull(cycleStations);
+        assertFalse(cycleStations.isEmpty(), "Deve devolver estações de pelo menos um ciclo");
+
+        // Como o DFS devolve o primeiro ciclo encontrado, aceitamos:
+        // - ou {A,B,C}
+        // - ou {D,E}
+        boolean isABC = cycleStations.contains(a) && cycleStations.contains(b) && cycleStations.contains(c)
+                && cycleStations.size() == 3;
+
+        boolean isDE = cycleStations.contains(d) && cycleStations.contains(e)
+                && cycleStations.size() == 2;
+
+        assertTrue(isABC || isDE, "O set devolvido deve corresponder a um dos ciclos existentes (ABC ou DE)");
     }
 
     /**
-     * Teste 5: Grafo vazio - deve retornar ordenação vazia
+     * Teste 5: Grafo vazio - deve retornar exceção (grafo não construído)
      */
     @Test
     void testEmptyGraph() {
@@ -242,13 +253,11 @@ class UpgradeOrderControllerTest {
         controller = new UpgradeOrderController();
 
         // Act & Assert
-
-
         assertThrows(IllegalStateException.class, controller::calculateUpgradeOrder);
     }
 
     /**
-     * Teste 6: Grafo com uma única estação - deve retornar ordem com 1 elemento
+     * Teste 6: Grafo com uma única estação - neste setup (sem linhas) o controller não constrói grafo
      */
     @Test
     void testSingleStation() {
@@ -260,7 +269,6 @@ class UpgradeOrderControllerTest {
         repository.loadLines(new ArrayList<>()); // sem linhas
 
         controller = new UpgradeOrderController();
-
 
         // Assert
         assertThrows(IllegalStateException.class, controller::calculateUpgradeOrder);
@@ -306,7 +314,7 @@ class UpgradeOrderControllerTest {
             int idx1 = order.indexOf(linearStations.get(i));
             int idx2 = order.indexOf(linearStations.get(i + 1));
             assertTrue(idx1 < idx2,
-                    String.format("Station %d deve vir antes de Station %d", i, i+1));
+                    String.format("Station %d deve vir antes de Station %d", i, i + 1));
         }
     }
 
@@ -336,6 +344,8 @@ class UpgradeOrderControllerTest {
 
         // Assert
         assertTrue(result.hasCycle(), "Self-loop deve ser detetado como ciclo");
+        assertNotNull(result.getCycleStations());
+        assertTrue(result.getCycleStations().contains(a), "Self-loop deve incluir a estação A");
     }
 
     /**
