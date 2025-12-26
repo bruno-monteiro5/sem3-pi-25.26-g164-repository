@@ -1,108 +1,53 @@
 DECLARE
-    c SYS_REFCURSOR;
+    modelCursor SYS_REFCURSOR;
 
-    v_id NUMBER;
-    v_name VARCHAR2(255);
-    v_make VARCHAR2(255);
-    v_voltage NUMBER;
-    v_frequency NUMBER;
-    v_gauge NUMBER;
+    insertedModelId NUMBER;
+    insertedModelName VARCHAR2(255);
+    insertedModelMake VARCHAR2(255);
+    insertedVoltage NUMBER;
+    insertedFrequency NUMBER;
+    insertedGaugeId NUMBER;
 BEGIN
-    -- válido (deve passar)
-    c := USBD43_ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-            99001,
-            'Model Test USBD43',
-            'TestMaker',
-            2,
-            'Bo-Bo',
-            5000,
-            19.200,
-            3.000,
-            4.300,
-            200,
-            300,
-            25,
-            50,
-            2
-         );
+    -- insert valido
+    modelCursor := ADD_ELECTRIC_LOCOMOTIVE_MODEL(99001,'Model Test USBD43','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300, 200, 300, 25,50,2);
 
-    FETCH c INTO v_id, v_name, v_make, v_voltage, v_frequency, v_gauge;
-    DBMS_OUTPUT.PUT_LINE('TEST 1 (valid): OK -> id='||v_id||', '||v_name||', '||v_make||', '||v_voltage||'kV '||v_frequency||'Hz, gauge='||v_gauge);
-    CLOSE c;
+    FETCH modelCursor
+        INTO insertedModelId, insertedModelName, insertedModelMake, insertedVoltage, insertedFrequency, insertedGaugeId;
 
-    -- id repetido (deve falhar)
+    DBMS_OUTPUT.PUT_LINE('TEST OK: model inserted');
+    CLOSE modelCursor;
+
+    -- id duplicado
     BEGIN
-        c := USBD43_ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99001,
-                'Dup',
-                'Dup',
-                2,
-                'Bo-Bo',
-                5000,
-                19.200,
-                3.000,
-                4.300,
-                200,
-                300,
-                25,
-                50,
-                2
-             );
-        DBMS_OUTPUT.PUT_LINE('TEST 2 (duplicate id): FAILED');
-        CLOSE c;
+        modelCursor := ADD_ELECTRIC_LOCOMOTIVE_MODEL(99001,'Dup','Dup',2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50, 2);
+
+        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (duplicate id)');
+        CLOSE modelCursor;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST 2 (duplicate id): OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST OK: duplicate id check works');
     END;
 
-    -- gauge não existe (deve falhar)
+    -- gauge invalido
     BEGIN
-        c := USBD43_ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99002,
-                'Gauge Fail',
-                'TestMaker',
-                2,
-                'Bo-Bo',
-                5000,
-                19.200,
-                3.000,
-                4.300,
-                200,
-                300,
-                25,
-                50,
-                999999
-             );
-        DBMS_OUTPUT.PUT_LINE('TEST 3 (invalid gauge): FAILED');
-        CLOSE c;
+        modelCursor := ADD_ELECTRIC_LOCOMOTIVE_MODEL(99002,'Gauge Fail','TestMaker', 2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50,999999);
+
+        DBMS_OUTPUT.PUT_LINE('TEST  ERROR: should fail (invalid gauge)');
+        CLOSE modelCursor;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST 3 (invalid gauge): OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST  OK: gauge check works');
     END;
 
-    -- name só espaços (deve falhar)
+    -- empty name
     BEGIN
-        c := USBD43_ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99003,
-                '   ',
-                'TestMaker',
-                2,
-                'Bo-Bo',
-                5000,
-                19.200,
-                3.000,
-                4.300,
-                200,
-                300,
-                25,
-                50,
-                2
-             );
-        DBMS_OUTPUT.PUT_LINE('TEST 4 (empty name): FAILED');
-        CLOSE c;
+        modelCursor := ADD_ELECTRIC_LOCOMOTIVE_MODEL(99003,'   ','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50,2);
+
+        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (empty name)');
+        CLOSE modelCursor;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST 4 (empty name): OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST OK: name check works');
     END;
 
 END;
