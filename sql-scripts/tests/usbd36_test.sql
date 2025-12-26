@@ -1,56 +1,59 @@
 DECLARE
-    c SYS_REFCURSOR;
+    buildingCursor SYS_REFCURSOR;
 
-    v_id       NUMBER;
-    v_type     NUMBER;
-    v_name     VARCHAR2(255);
-    v_facility NUMBER;
+    insertedBuildingId       NUMBER;
+    insertedBuildingTypeId   NUMBER;
+    insertedBuildingName     VARCHAR2(255);
+    insertedFacilityId       NUMBER;
 BEGIN
-    -- insert válido (deve passar)
-    c := USBD36_ADD_BUILDING(999001, 2, 'Building Test USBD36 A', 5);
+    -- insert válido
+    buildingCursor := ADD_BUILDING(999001, 2, 'Building Test USBD36 A', 5);
 
-    FETCH c INTO v_id, v_type, v_name, v_facility;
-    DBMS_OUTPUT.PUT_LINE('TEST 1 (valid): OK -> id='||v_id||', type='||v_type||', name='||v_name||', facility='||v_facility);
-    CLOSE c;
+    FETCH buildingCursor
+        INTO insertedBuildingId, insertedBuildingTypeId, insertedBuildingName, insertedFacilityId;
 
-    -- facility does not exist (deve falhar)
+    DBMS_OUTPUT.PUT_LINE('TEST OK: building inserted');
+
+    CLOSE buildingCursor;
+
+    -- facility nao existe
     BEGIN
-        c := USBD36_ADD_BUILDING(999002, 2, 'Building Test USBD36 B', 999999);
-        DBMS_OUTPUT.PUT_LINE('TEST 2 (facility not exists): FAILED');
-        CLOSE c;
+        buildingCursor := ADD_BUILDING(999002, 2, 'Building Test USBD36 B', 999999);
+        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should not insert (facility)');
+        CLOSE buildingCursor;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST 2 (facility not exists): OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST OK: facility check works');
     END;
 
-    -- type does not exist (deve falhar)
+    -- building type nao existe
     BEGIN
-        c := USBD36_ADD_BUILDING(999003, 999999, 'Building Test USBD36 C', 5);
-        DBMS_OUTPUT.PUT_LINE('TEST 3 (type not exists): FAILED');
-        CLOSE c;
+        buildingCursor := ADD_BUILDING(999003, 999999, 'Building Test USBD36 C', 5);
+        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should not insert (type)');
+        CLOSE buildingCursor;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST 3 (type not exists): OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST OK: type check works');
     END;
 
-    -- empty name (deve falhar)
+    -- empty name
     BEGIN
-        c := USBD36_ADD_BUILDING(999004, 2, '   ', 5);
-        DBMS_OUTPUT.PUT_LINE('TEST 4 (empty name): FAILED');
-        CLOSE c;
+        buildingCursor := ADD_BUILDING(999004, 2, '   ', 5);
+        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should not insert (empty name)');
+        CLOSE buildingCursor;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST 4 (empty name): OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST OK: name check works');
     END;
 
-    -- NULL name (deve falhar)
+    -- NULL name
     BEGIN
-        c := USBD36_ADD_BUILDING(999005, 2, NULL, 5);
-        DBMS_OUTPUT.PUT_LINE('TEST 5 (NULL name): FAILED');
-        CLOSE c;
+        buildingCursor := ADD_BUILDING(999005, 2, NULL, 5);
+        DBMS_OUTPUT.PUT_LINE('TEST  ERROR: should not insert (null name)');
+        CLOSE buildingCursor;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST 5 (NULL name): OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST OK: name check works');
     END;
 
 END;
