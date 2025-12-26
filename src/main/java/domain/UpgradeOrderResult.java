@@ -1,18 +1,17 @@
 package domain;
 
-import domain.Station;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Resultado da análise de ordenação de upgrade de estações.
- * Contém ou uma ordem válida, ou ciclos detectados.
+ * Contém ou uma ordem válida, ou as estações que pertencem a pelo menos 1 ciclo.
  */
 public class UpgradeOrderResult {
 
     private final boolean hasCycle;
     private final LinkedList<Station> upgradeOrder;
-    private final List<List<Station>> cycles;
+    private final Set<Station> cycleStations;
 
     /**
      * Construtor para caso sem ciclos (ordenação válida)
@@ -20,16 +19,17 @@ public class UpgradeOrderResult {
     public UpgradeOrderResult(LinkedList<Station> upgradeOrder) {
         this.hasCycle = false;
         this.upgradeOrder = upgradeOrder;
-        this.cycles = null;
+        this.cycleStations = null;
     }
 
     /**
      * Construtor para caso com ciclos
+     * (set de estações que pertencem a pelo menos um ciclo)
      */
-    public UpgradeOrderResult(List<List<Station>> cycles) {
+    public UpgradeOrderResult(Set<Station> cycleStations) {
         this.hasCycle = true;
         this.upgradeOrder = null;
-        this.cycles = cycles;
+        this.cycleStations = cycleStations;
     }
 
     public boolean hasCycle() {
@@ -40,16 +40,13 @@ public class UpgradeOrderResult {
         return upgradeOrder;
     }
 
-    public List<List<Station>> getCycles() {
-        return cycles;
+    public Set<Station> getCycleStations() {
+        return cycleStations;
     }
 
     public int getStationCount() {
         if (hasCycle) {
-            return cycles.stream()
-                    .flatMap(List::stream)
-                    .mapToInt(s -> 1)
-                    .sum();
+            return cycleStations != null ? cycleStations.size() : 0;
         }
         return upgradeOrder != null ? upgradeOrder.size() : 0;
     }
