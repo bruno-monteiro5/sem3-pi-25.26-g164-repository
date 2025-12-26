@@ -85,7 +85,6 @@ public class HubCentralityController {
 
         Map<Station, Integer> degreeMap = computeDegree(graph, stationList);
 
-        // Strength is about CAPACITY (business sense for hub traffic), not distance
         Map<Station, Double> strengthMap = computeStrengthFromLinesCapacity(stationList, directedGraph);
 
         Map<Station, Double> betweennessMap =
@@ -107,7 +106,6 @@ public class HubCentralityController {
         );
     }
 
-    /* ================= DEGREE ================= */
 
     private Map<Station, Integer> computeDegree(MapGraph<Station, Double> graph,
                                                 List<Station> stationList) {
@@ -129,7 +127,6 @@ public class HubCentralityController {
         return degreeMap;
     }
 
-    /* ================= STRENGTH (CAPACITY) ================= */
 
     /**
      * Strength for USEI13:
@@ -165,7 +162,6 @@ public class HubCentralityController {
         return strengthMap;
     }
 
-    /* ================= HARMONIC ================= */
 
     private Map<Station, Double> computeHarmonicCloseness(
             MapGraph<Station, Double> graph,
@@ -252,7 +248,6 @@ public class HubCentralityController {
         }
     }
 
-    /* ================= BETWEENNESS ================= */
 
     private Map<Station, Double> computeBetweenness(
             MapGraph<Station, Double> graph,
@@ -336,7 +331,6 @@ public class HubCentralityController {
         }
     }
 
-    /* ================= STRENGTH NORMALIZATION ================= */
 
     private Map<Station, Double> normalizeStrengthPerComponent(
             Map<Station, Double> strengthMap,
@@ -377,7 +371,6 @@ public class HubCentralityController {
         return normalizedStrength;
     }
 
-    /* ================= HUB SCORE ================= */
 
     private List<HubScore> buildHubScoreList(
             List<Station> stationList,
@@ -422,7 +415,6 @@ public class HubCentralityController {
         return resultList;
     }
 
-    /* ================= COMPONENTS ================= */
 
     private List<int[]> computeComponentsBFS(
             MapGraph<Station, Double> graph,
@@ -523,7 +515,9 @@ public class HubCentralityController {
         return components;
     }
 
-    /* ================= DIJKSTRA (DISTANCES) ================= */
+
+
+
 
     private double[] dijkstraDistances(
             MapGraph<Station, Double> graph,
@@ -572,7 +566,9 @@ public class HubCentralityController {
         return distances;
     }
 
-    /* ================= DIJKSTRA WITH PATH COUNTING ================= */
+
+
+
 
     private static class DijkstraResult {
         final double[] distances;
