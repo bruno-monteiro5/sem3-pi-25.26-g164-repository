@@ -1,50 +1,50 @@
-CREATE OR REPLACE FUNCTION USBD36_ADD_BUILDING (
-    p_id       IN Building.id%TYPE,
-    p_type     IN Building.type%TYPE,
-    p_name     IN Building.name%TYPE,
-    p_facility IN Building.facility%TYPE
+CREATE OR REPLACE FUNCTION ADD_BUILDING (
+    buildingId       IN Building.id%TYPE,
+    buildingTypeId   IN Building.type%TYPE,
+    buildingName     IN Building.name%TYPE,
+    facilityId       IN Building.facility%TYPE
 )
     RETURN SYS_REFCURSOR
 AS
-    v_cnt  NUMBER;
-    v_cur  SYS_REFCURSOR;
-    v_name Building.name%TYPE;
+    matchingFacilities   NUMBER;
+    matchingBuildingTypes NUMBER;
+    normalizedBuildingName Building.name%TYPE;
+    resultCursor         SYS_REFCURSOR;
 BEGIN
-    -- facility tem de existir
     SELECT COUNT(*)
-    INTO v_cnt
+    INTO matchingFacilities
     FROM Facility
-    WHERE id = p_facility;
+    WHERE id = facilityId;
 
-    IF v_cnt = 0 THEN
+    IF matchingFacilities = 0 THEN
         raise_application_error(-20036, 'Facility does not exist.');
     END IF;
 
-    -- type tem de existir
     SELECT COUNT(*)
-    INTO v_cnt
+    INTO matchingBuildingTypes
     FROM BuildingType
-    WHERE id = p_type;
+    WHERE id = buildingTypeId;
 
-    IF v_cnt = 0 THEN
+    IF matchingBuildingTypes = 0 THEN
         raise_application_error(-20036, 'Building type does not exist.');
     END IF;
 
-    -- normalizar e validar nome
-    v_name := TRIM(p_name);
+    normalizedBuildingName := TRIM(buildingName);
 
-    IF v_name IS NULL OR LENGTH(v_name) = 0 THEN
+    IF normalizedBuildingName IS NULL OR LENGTH(normalizedBuildingName) = 0 THEN
         raise_application_error(-20036, 'Building name is required.');
     END IF;
 
-    INSERT INTO Building (id, type, name, facility)
-    VALUES (p_id, p_type, v_name, p_facility);
 
-    OPEN v_cur FOR
+
+    INSERT INTO Building (id, type, name, facility)
+    VALUES (buildingId, buildingTypeId, normalizedBuildingName, facilityId);
+
+    OPEN resultCursor FOR
         SELECT id, type, name, facility
         FROM Building
-        WHERE id = p_id;
+        WHERE id = buildingId;
 
-    RETURN v_cur;
+    RETURN resultCursor;
 END;
 /
