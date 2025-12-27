@@ -9,7 +9,11 @@ DECLARE
     insertedGaugeId NUMBER;
 BEGIN
     -- insert valido
-    modelCursor := ADD_ELECTRIC_LOCOMOTIVE_MODEL(99001,'Model Test USBD43','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300, 200, 300, 25,50,2);
+    ADD_ELECTRIC_LOCOMOTIVE_MODEL(
+            99001,'Model Test USBD43','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,
+            200,300,25,50,2,
+            modelCursor
+    );
 
     FETCH modelCursor
         INTO insertedModelId, insertedModelName, insertedModelMake, insertedVoltage, insertedFrequency, insertedGaugeId;
@@ -19,7 +23,11 @@ BEGIN
 
     -- id duplicado
     BEGIN
-        modelCursor := ADD_ELECTRIC_LOCOMOTIVE_MODEL(99001,'Dup','Dup',2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50, 2);
+        ADD_ELECTRIC_LOCOMOTIVE_MODEL(
+                99001,'Dup','Dup',2,'Bo-Bo',5000,19.200,3.000,4.300,
+                200,300,25,50,2,
+                modelCursor
+        );
 
         DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (duplicate id)');
         CLOSE modelCursor;
@@ -30,18 +38,26 @@ BEGIN
 
     -- gauge invalido
     BEGIN
-        modelCursor := ADD_ELECTRIC_LOCOMOTIVE_MODEL(99002,'Gauge Fail','TestMaker', 2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50,999999);
+        ADD_ELECTRIC_LOCOMOTIVE_MODEL(
+                99002,'Gauge Fail','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,
+                200,300,25,50,999999,
+                modelCursor
+        );
 
-        DBMS_OUTPUT.PUT_LINE('TEST  ERROR: should fail (invalid gauge)');
+        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (invalid gauge)');
         CLOSE modelCursor;
     EXCEPTION
         WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST  OK: gauge check works');
+            DBMS_OUTPUT.PUT_LINE('TEST OK: gauge check works');
     END;
 
     -- empty name
     BEGIN
-        modelCursor := ADD_ELECTRIC_LOCOMOTIVE_MODEL(99003,'   ','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50,2);
+        ADD_ELECTRIC_LOCOMOTIVE_MODEL(
+                99003,'   ','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,
+                200,300,25,50,2,
+                modelCursor
+        );
 
         DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (empty name)');
         CLOSE modelCursor;

@@ -1,28 +1,26 @@
-CREATE OR REPLACE FUNCTION ADD_ELECTRIC_LOCOMOTIVE_MODEL (
-    modelId           IN Locomotive_Model.id%TYPE,
-    modelName         IN Locomotive_Model.name%TYPE,
-    modelMake         IN Locomotive_Model.make%TYPE,
-    numberBogies      IN Locomotive_Model.number_bogies%TYPE,
-    bogieArrangement  IN Locomotive_Model.bogie_arrangement%TYPE,
-    powerValue        IN Locomotive_Model.power%TYPE,
-    modelLength       IN Locomotive_Model.length%TYPE,
-    modelWidth        IN Locomotive_Model.width%TYPE,
-    modelHeight       IN Locomotive_Model.height%TYPE,
-    maxSpeed          IN Locomotive_Model.max_speed%TYPE,
-    tractionValue     IN Locomotive_Model.traction%TYPE,
-    voltageValue      IN Electric_Locomotive_Model.voltage%TYPE,
-    frequencyValue    IN Electric_Locomotive_Model.frequency%TYPE,
-    gaugeId           IN Gauge.id%TYPE
+CREATE OR REPLACE PROCEDURE ADD_ELECTRIC_LOCOMOTIVE_MODEL (
+    modelId           IN  Locomotive_Model.id%TYPE,
+    modelName         IN  Locomotive_Model.name%TYPE,
+    modelMake         IN  Locomotive_Model.make%TYPE,
+    numberBogies      IN  Locomotive_Model.number_bogies%TYPE,
+    bogieArrangement  IN  Locomotive_Model.bogie_arrangement%TYPE,
+    powerValue        IN  Locomotive_Model.power%TYPE,
+    modelLength       IN  Locomotive_Model.length%TYPE,
+    modelWidth        IN  Locomotive_Model.width%TYPE,
+    modelHeight       IN  Locomotive_Model.height%TYPE,
+    maxSpeed          IN  Locomotive_Model.max_speed%TYPE,
+    tractionValue     IN  Locomotive_Model.traction%TYPE,
+    voltageValue      IN  Electric_Locomotive_Model.voltage%TYPE,
+    frequencyValue    IN  Electric_Locomotive_Model.frequency%TYPE,
+    gaugeId           IN  Gauge.id%TYPE,
+    resultCursor      OUT SYS_REFCURSOR
 )
-    RETURN SYS_REFCURSOR
 AS
     matchingModels NUMBER;
     matchingGauges NUMBER;
 
     normalizedModelName Locomotive_Model.name%TYPE;
     normalizedModelMake Locomotive_Model.make%TYPE;
-
-    resultCursor SYS_REFCURSOR;
 BEGIN
     normalizedModelName := TRIM(modelName);
     normalizedModelMake := TRIM(modelMake);
@@ -64,14 +62,15 @@ BEGIN
     INSERT INTO Locomotive_Model
     (id, name, make, number_bogies, bogie_arrangement, power,
      length, width, height, max_speed, traction)
-    VALUES (modelId, normalizedModelName, normalizedModelMake, numberBogies, bogieArrangement, powerValue,modelLength, modelWidth, modelHeight, maxSpeed, tractionValue);
+    VALUES
+        (modelId, normalizedModelName, normalizedModelMake, numberBogies, bogieArrangement, powerValue,
+         modelLength, modelWidth, modelHeight, maxSpeed, tractionValue);
 
     INSERT INTO Electric_Locomotive_Model (voltage, frequency, model)
     VALUES (voltageValue, frequencyValue, modelId);
 
     INSERT INTO Locomotive_Model_Gauge (Locomotive_Modelid, Gaugeid)
     VALUES (modelId, gaugeId);
-
 
     OPEN resultCursor FOR
         SELECT locomotiveModel.id,
@@ -86,7 +85,5 @@ BEGIN
                  JOIN Locomotive_Model_Gauge modelGauge
                       ON modelGauge.Locomotive_Modelid = locomotiveModel.id
         WHERE locomotiveModel.id = modelId;
-
-    RETURN resultCursor;
 END;
 /
