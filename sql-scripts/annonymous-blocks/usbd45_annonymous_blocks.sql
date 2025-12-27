@@ -12,9 +12,9 @@ WHERE id = 30
 
 
 IF counter != 0 THEN
-    DBMS_OUTPUT.PUT_LINE('Locomotive sucessfully added to train');
+    DBMS_OUTPUT.PUT_LINE('Line and segments sucessfully created');
 ELSE
-    DBMS_OUTPUT.PUT_LINE('Locomotive not added to train');
+    DBMS_OUTPUT.PUT_LINE('Line and segments created');
 END IF;
 
 END;
