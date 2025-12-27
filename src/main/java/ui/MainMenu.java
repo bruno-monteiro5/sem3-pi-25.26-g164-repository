@@ -2,6 +2,7 @@ package ui;
 
 import domain.Option;
 import domain.Utils;
+import ui.FreightUI.RoutePlannerUI;
 import ui.RailwayUI.TravelTimeCalculatorUI;
 import ui.SchedulingUI.SchedulerUI;
 
@@ -22,22 +23,29 @@ public class MainMenu implements Runnable {
         clear();
         System.out.println(CYAN + line(72));
         System.out.println("                                MAIN MENU");
-        System.out.println(line(72 )+ RESET);
+        System.out.println(line(72) + RESET);
 
-        Option[] options = new Option[6];
+        Option[] options = new Option[7];
         Runnable warehouse = new WarehouseManagementMenu();
         Runnable travelTime = new TravelTimeCalculatorUI();
         Runnable infraIndex  = new InfraestructureIndexMenu();
         Runnable scheduler = new SchedulerUI();
+        Runnable routePlanner = new RoutePlannerUI();
         Runnable optimizer = new RailwayNetworkMenu();
-        Runnable exit = new Runnable() { public void run() { System.exit(0); } };
+        Runnable exit = new Runnable() {
+            public void run() {
+                System.out.println(CYAN + "\n✓ Thank you for using Logistics On Rails!" + RESET);
+                System.exit(0);
+            }
+        };
 
         options[0] = new Option("Warehouse Management Functions (Sprint 1 ESINF)", warehouse);
         options[1] = new Option("Infrastructure Index (Sprint 2 ESINF)", infraIndex);
         options[2] = new Option("Railway Network Optimization (Sprint 3 ESINF)", optimizer);
-        options[3] = new Option("Calculate Travel Time (USLP03)" , travelTime);
-        options[4] = new Option("Train Dispatch Scheduler (USLP07)" , scheduler);
-        options[5] = new Option(RED   + "Exit" + RESET, exit);
+        options[3] = new Option("Calculate Travel Time (USLP03)", travelTime);
+        options[4] = new Option("Train Dispatch Scheduler (USLP07)", scheduler);
+        options[5] = new Option("Route Planner for Freights (USLP08)", routePlanner);
+        options[6] = new Option(RED + "Exit" + RESET, exit);
 
         Utils.listAndSelect(options);
     }
@@ -46,6 +54,7 @@ public class MainMenu implements Runnable {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
+
     private static String line(int n) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++) sb.append(SEP);
