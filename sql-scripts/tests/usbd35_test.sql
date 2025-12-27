@@ -1,79 +1,91 @@
 SET SERVEROUTPUT ON;
 
-DECLARE
-v_new_facility_id NUMBER := 99;
-    v_result          NUMBER;
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('=== Testing USBD35_ADD_FACILITY ===');
-    DBMS_OUTPUT.PUT_LINE('');
+  DBMS_OUTPUT.PUT_LINE('=== USBD35_ADD_FACILITY Test ===');
 
+  -------------------------------------------------------------------
+  -- Setup: insert a valid facility (should succeed without error)
+  -------------------------------------------------------------------
+  USBD35_ADD_FACILITY(999001, 'Test Facility Alpha', 1);
+  DBMS_OUTPUT.PUT_LINE('Setup: Facility 999001 inserted -> OK');
+
+  -------------------------------------------------------------------
+  -- TEST 1: Duplicate ID (should fail – ID 999001 already exists)
+  -------------------------------------------------------------------
 BEGIN
-        DBMS_OUTPUT.PUT_LINE('Test 1: Adding valid facility...');
-        v_result := USBD35_ADD_FACILITY(
-            p_id   => v_new_facility_id,
-            p_name => 'Test Facility Porto',
-            p_type => 1
-        );
-COMMIT;
-DBMS_OUTPUT.PUT_LINE('✓ Success: Facility added with id=' || v_result);
-        DBMS_OUTPUT.PUT_LINE('');
+    USBD35_ADD_FACILITY(999001, 'Duplicate ID Facility', 2);
+    DBMS_OUTPUT.PUT_LINE('TEST 1 (duplicate id): FAILED (error not raised)');
 EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('✗ Error: ' || SQLERRM);
+    WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('TEST 1 (duplicate id): OK -> ' || SQLERRM);
 END;
 
+  -------------------------------------------------------------------
+  -- TEST 2: Empty name (should fail – name cannot be just whitespace)
+  -------------------------------------------------------------------
 BEGIN
-        DBMS_OUTPUT.PUT_LINE('Test 2: Trying to add facility with duplicate id...');
-        v_result := USBD35_ADD_FACILITY(
-            p_id   => v_new_facility_id,
-            p_name => 'Another Facility',
-            p_type => 2
-        );
-COMMIT;
-DBMS_OUTPUT.PUT_LINE('✗ Error: Should have raised duplicate id error!');
+    USBD35_ADD_FACILITY(999002, '   ', 1);
+    DBMS_OUTPUT.PUT_LINE('TEST 2 (empty name): FAILED (error not raised)');
 EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('✓ Expected error: ' || SQLERRM);
+    WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('TEST 2 (empty name): OK -> ' || SQLERRM);
 END;
-    DBMS_OUTPUT.PUT_LINE('');
 
+  -------------------------------------------------------------------
+  -- TEST 3: NULL name (should fail – name cannot be NULL)
+  -------------------------------------------------------------------
 BEGIN
-        DBMS_OUTPUT.PUT_LINE('Test 3: Trying to add facility with empty name...');
-        v_result := USBD35_ADD_FACILITY(
-            p_id   => 100,
-            p_name => '   ',
-            p_type => 1
-        );
-COMMIT;
-DBMS_OUTPUT.PUT_LINE('✗ Error: Should have raised empty name error!');
+    USBD35_ADD_FACILITY(999003, NULL, 1);
+    DBMS_OUTPUT.PUT_LINE('TEST 3 (NULL name): FAILED (error not raised)');
 EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('✓ Expected error: ' || SQLERRM);
+    WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('TEST 3 (NULL name): OK -> ' || SQLERRM);
 END;
-    DBMS_OUTPUT.PUT_LINE('');
 
+  -------------------------------------------------------------------
+  -- TEST 4: Invalid type (should fail – type id does not exist)
+  -------------------------------------------------------------------
 BEGIN
-        DBMS_OUTPUT.PUT_LINE('Test 4: Trying to add facility with invalid type...');
-        v_result := USBD35_ADD_FACILITY(
-            p_id   => 101,
-            p_name => 'Test Facility Invalid Type',
-            p_type => 9999  -- não existe
-        );
-COMMIT;
-DBMS_OUTPUT.PUT_LINE('✗ Error: Should have raised invalid type error!');
+    USBD35_ADD_FACILITY(999004, 'Invalid Type Facility', 9999);
+    DBMS_OUTPUT.PUT_LINE('TEST 4 (invalid type): FAILED (error not raised)');
 EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('✓ Expected error: ' || SQLERRM);
+    WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('TEST 4 (invalid type): OK -> ' || SQLERRM);
 END;
-    DBMS_OUTPUT.PUT_LINE('');
 
-DELETE FROM Facility WHERE id = v_new_facility_id;
-DELETE FROM Metafacility WHERE id = v_new_facility_id;
-COMMIT;
-DBMS_OUTPUT.PUT_LINE('Test data cleaned up.');
+  -------------------------------------------------------------------
+  -- TEST 5: NULL type (should fail – type cannot be NULL)
+  -------------------------------------------------------------------
+BEGIN
+    USBD35_ADD_FACILITY(999005, 'No Type Facility', NULL);
+    DBMS_OUTPUT.PUT_LINE('TEST 5 (NULL type): FAILED (error not raised)');
+EXCEPTION
+    WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('TEST 5 (NULL type): OK -> ' || SQLERRM);
+END;
+
+  -------------------------------------------------------------------
+  -- TEST 6: ID = 0 (should fail – id must be > 0)
+  -------------------------------------------------------------------
+BEGIN
+    USBD35_ADD_FACILITY(0, 'Invalid ID Facility A', 1);
+    DBMS_OUTPUT.PUT_LINE('TEST 6 (id = 0): FAILED (error not raised)');
+EXCEPTION
+    WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('TEST 6 (id = 0): OK -> ' || SQLERRM);
+END;
+
+  -------------------------------------------------------------------
+  -- TEST 7: Negative ID (should fail – id must be > 0)
+  -------------------------------------------------------------------
+BEGIN
+    USBD35_ADD_FACILITY(-5, 'Invalid ID Facility B', 1);
+    DBMS_OUTPUT.PUT_LINE('TEST 7 (negative id): FAILED (error not raised)');
+EXCEPTION
+    WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('TEST 7 (negative id): OK -> ' || SQLERRM);
+END;
+
 END;
 /
+ROLLBACK;
