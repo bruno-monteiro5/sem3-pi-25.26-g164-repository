@@ -7,18 +7,17 @@ DECLARE
     insertedFacilityId       NUMBER;
 BEGIN
     -- insert válido
-    buildingCursor := ADD_BUILDING(999001, 2, 'Building Test USBD36 A', 5);
+    ADD_BUILDING(999001, 2, 'Building Test USBD36 A', 5, buildingCursor);
 
     FETCH buildingCursor
         INTO insertedBuildingId, insertedBuildingTypeId, insertedBuildingName, insertedFacilityId;
 
     DBMS_OUTPUT.PUT_LINE('TEST OK: building inserted');
-
     CLOSE buildingCursor;
 
     -- facility nao existe
     BEGIN
-        buildingCursor := ADD_BUILDING(999002, 2, 'Building Test USBD36 B', 999999);
+        ADD_BUILDING(999002, 2, 'Building Test USBD36 B', 999999, buildingCursor);
         DBMS_OUTPUT.PUT_LINE('TEST ERROR: should not insert (facility)');
         CLOSE buildingCursor;
     EXCEPTION
@@ -28,7 +27,7 @@ BEGIN
 
     -- building type nao existe
     BEGIN
-        buildingCursor := ADD_BUILDING(999003, 999999, 'Building Test USBD36 C', 5);
+        ADD_BUILDING(999003, 999999, 'Building Test USBD36 C', 5, buildingCursor);
         DBMS_OUTPUT.PUT_LINE('TEST ERROR: should not insert (type)');
         CLOSE buildingCursor;
     EXCEPTION
@@ -38,7 +37,7 @@ BEGIN
 
     -- empty name
     BEGIN
-        buildingCursor := ADD_BUILDING(999004, 2, '   ', 5);
+        ADD_BUILDING(999004, 2, '   ', 5, buildingCursor);
         DBMS_OUTPUT.PUT_LINE('TEST ERROR: should not insert (empty name)');
         CLOSE buildingCursor;
     EXCEPTION
@@ -48,8 +47,8 @@ BEGIN
 
     -- NULL name
     BEGIN
-        buildingCursor := ADD_BUILDING(999005, 2, NULL, 5);
-        DBMS_OUTPUT.PUT_LINE('TEST  ERROR: should not insert (null name)');
+        ADD_BUILDING(999005, 2, NULL, 5, buildingCursor);
+        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should not insert (null name)');
         CLOSE buildingCursor;
     EXCEPTION
         WHEN OTHERS THEN
