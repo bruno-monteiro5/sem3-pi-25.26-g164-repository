@@ -1,14 +1,16 @@
 SET SERVEROUTPUT ON;
 
 DECLARE
-v_result NUMBER;
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('=== Testing USBD44_ADD_SEGMENT ===');
+    DBMS_OUTPUT.PUT_LINE('=== Testing USBD44_ADD_SEGMENT (procedure) ===');
     DBMS_OUTPUT.PUT_LINE('');
 
+    -------------------------------------------------------------------
+    -- Test 1: SINGLE track without siding (should succeed)
+    -------------------------------------------------------------------
 BEGIN
         DBMS_OUTPUT.PUT_LINE('Test 1: SINGLE track without siding');
-        v_result := USBD44_ADD_SEGMENT(
+        USBD44_ADD_SEGMENT(
             p_segment_id     => 9001,
             p_is_electrified => 'Y',
             p_speed_limit    => 120,
@@ -17,19 +19,20 @@ BEGIN
             p_line_id        => 1,
             p_track_type     => 'SINGLE'
         );
-COMMIT;
-DBMS_OUTPUT.PUT_LINE('Success: segment id = ' || v_result);
+        DBMS_OUTPUT.PUT_LINE('TEST 1: OK');
         DBMS_OUTPUT.PUT_LINE('');
 EXCEPTION
         WHEN OTHERS THEN
-            ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST 1: FAILED -> ' || SQLERRM);
             DBMS_OUTPUT.PUT_LINE('');
 END;
 
+    -------------------------------------------------------------------
+    -- Test 2: SINGLE track with siding (should succeed)
+    -------------------------------------------------------------------
 BEGIN
         DBMS_OUTPUT.PUT_LINE('Test 2: SINGLE track with siding');
-        v_result := USBD44_ADD_SEGMENT(
+        USBD44_ADD_SEGMENT(
             p_segment_id      => 9002,
             p_is_electrified  => 'Y',
             p_speed_limit     => 100,
@@ -40,19 +43,20 @@ BEGIN
             p_siding_position => 4000,
             p_siding_length   => 500
         );
-COMMIT;
-DBMS_OUTPUT.PUT_LINE('Success: segment id = ' || v_result);
+        DBMS_OUTPUT.PUT_LINE('TEST 2: OK');
         DBMS_OUTPUT.PUT_LINE('');
 EXCEPTION
         WHEN OTHERS THEN
-            ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST 2: FAILED -> ' || SQLERRM);
             DBMS_OUTPUT.PUT_LINE('');
 END;
 
+    -------------------------------------------------------------------
+    -- Test 3: MULTIPLE tracks (should succeed)
+    -------------------------------------------------------------------
 BEGIN
         DBMS_OUTPUT.PUT_LINE('Test 3: MULTIPLE tracks');
-        v_result := USBD44_ADD_SEGMENT(
+        USBD44_ADD_SEGMENT(
             p_segment_id     => 9003,
             p_is_electrified => 'Y',
             p_speed_limit    => 140,
@@ -62,24 +66,105 @@ BEGIN
             p_track_type     => 'MULTIPLE',
             p_number_tracks  => 2
         );
-COMMIT;
-DBMS_OUTPUT.PUT_LINE('Success: segment id = ' || v_result);
+        DBMS_OUTPUT.PUT_LINE('TEST 3: OK');
         DBMS_OUTPUT.PUT_LINE('');
 EXCEPTION
         WHEN OTHERS THEN
-            ROLLBACK;
-            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('TEST 3: FAILED -> ' || SQLERRM);
             DBMS_OUTPUT.PUT_LINE('');
 END;
 
-DELETE FROM Siding WHERE segment IN (9001, 9002, 9003);
-DELETE FROM Single_Track WHERE segment IN (9001, 9002, 9003);
-DELETE FROM Multiple_Tracks WHERE segment IN (9001, 9002, 9003);
-DELETE FROM Line_Segment WHERE id IN (9001, 9002, 9003);
-COMMIT;
+    -------------------------------------------------------------------
+    -- Test 4: Duplicate segment id (should fail)
+    -------------------------------------------------------------------
+BEGIN
+        DBMS_OUTPUT.PUT_LINE('Test 4: Duplicate segment id');
+        USBD44_ADD_SEGMENT(
+            p_segment_id     => 9001,
+            p_is_electrified => 'N',
+            p_speed_limit    => 90,
+            p_max_weight     => 7000,
+            p_length         => 3000,
+            p_line_id        => 1,
+            p_track_type     => 'SINGLE'
+        );
+        DBMS_OUTPUT.PUT_LINE('TEST 4: FAILED (should have raised error)');
+        DBMS_OUTPUT.PUT_LINE('');
+EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('TEST 4: OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('');
+END;
 
-DBMS_OUTPUT.PUT_LINE('Tests completed and cleaned up.');
+    -------------------------------------------------------------------
+    -- Test 5: Invalid track_type (should fail)
+    -------------------------------------------------------------------
+BEGIN
+        DBMS_OUTPUT.PUT_LINE('Test 5: Invalid track_type');
+        USBD44_ADD_SEGMENT(
+            p_segment_id     => 9004,
+            p_is_electrified => 'Y',
+            p_speed_limit    => 120,
+            p_max_weight     => 8000,
+            p_length         => 5000,
+            p_line_id        => 1,
+            p_track_type     => 'DOUBLE'
+        );
+        DBMS_OUTPUT.PUT_LINE('TEST 5: FAILED (should have raised error)');
+        DBMS_OUTPUT.PUT_LINE('');
+EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('TEST 5: OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('');
+END;
+
+    -------------------------------------------------------------------
+    -- Test 6: MULTIPLE without number_tracks (should fail)
+    -------------------------------------------------------------------
+BEGIN
+        DBMS_OUTPUT.PUT_LINE('Test 6: MULTIPLE without number_tracks');
+        USBD44_ADD_SEGMENT(
+            p_segment_id     => 9005,
+            p_is_electrified => 'Y',
+            p_speed_limit    => 120,
+            p_max_weight     => 8000,
+            p_length         => 5000,
+            p_line_id        => 1,
+            p_track_type     => 'MULTIPLE'
+        );
+        DBMS_OUTPUT.PUT_LINE('TEST 6: FAILED (should have raised error)');
+        DBMS_OUTPUT.PUT_LINE('');
+EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('TEST 6: OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('');
+END;
+
+    -------------------------------------------------------------------
+    -- Test 7: SINGLE with only one siding param (should fail)
+    -------------------------------------------------------------------
+BEGIN
+        DBMS_OUTPUT.PUT_LINE('Test 7: SINGLE with incomplete siding params');
+        USBD44_ADD_SEGMENT(
+            p_segment_id      => 9006,
+            p_is_electrified  => 'Y',
+            p_speed_limit     => 120,
+            p_max_weight      => 8000,
+            p_length          => 5000,
+            p_line_id         => 1,
+            p_track_type      => 'SINGLE',
+            p_siding_position => 2500,
+            p_siding_length   => NULL
+        );
+        DBMS_OUTPUT.PUT_LINE('TEST 7: FAILED (should have raised error)');
+        DBMS_OUTPUT.PUT_LINE('');
+EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('TEST 7: OK -> ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('');
+END;
+
+    DBMS_OUTPUT.PUT_LINE('=== Tests finished (rolling back all changes) ===');
 END;
 /
-```
-
+ROLLBACK;
