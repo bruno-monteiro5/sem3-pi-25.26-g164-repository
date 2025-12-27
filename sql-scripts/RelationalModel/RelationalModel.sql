@@ -166,14 +166,6 @@ CREATE TABLE Locomotive_Model_Gauge (
   Gaugeid            number(10) NOT NULL, 
   PRIMARY KEY (Locomotive_Modelid, 
   Gaugeid));
-CREATE TABLE Wagon_Location (
-  id        number(10) GENERATED AS IDENTITY, 
-  wagon     number(10) NOT NULL, 
-  endpoint  number(10) NOT NULL, 
-  status    varchar2(1) DEFAULT 'F' NOT NULL CHECK(status IN ('F','O')), 
-  arrival   timestamp(0) NOT NULL, 
-  departure timestamp(0), 
-  PRIMARY KEY (id));
 CREATE TABLE Train_Movement (
   id       number(10) GENERATED AS IDENTITY, 
   train    number(10) NOT NULL, 
