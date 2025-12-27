@@ -6,7 +6,7 @@ BEGIN
     -- SETUP: valid line and its segments
     ----------------------------------------------------------------
     LINE_CREATION(25, 'Skibidi biden dop dop', 'PT503933813', 4, 'Y', 300, 3000, 500, 2, 20, 48, 4);
-    --                                                                           ^^^^^ comprimento adicionado
+    --
     DBMS_OUTPUT.PUT_LINE('SETUP 1: attempt procedure with sucessful line creation');
 
     LINE_CREATION(26, 'SkoinkleKoinkle', 'PT509498700', 4, 'N', 400, 5000, 450, 2, 8, 43, 39);
@@ -70,6 +70,16 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE('TEST 6: attempt procedure with invalid endpoint B (should fail)');
 EXCEPTION
         WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('TEST 6: failed as expected - ' || SQLERRM);
+END;
+
+    ----------------------------------------------------------------
+    -- TEST 7: invalid line number (should fail)
+    ----------------------------------------------------------------
+BEGIN
+        LINE_CREATION(33, 'VUKKUNUR', 'PT503933813', 0, 'Y', 300, 3000, 50000, 2, 43, 8, 84);
+        DBMS_OUTPUT.PUT_LINE('TEST 7: attempt procedure with invalid line segment number (should fail)');
+EXCEPTION
+        WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('TEST 7: failed as expected - ' || SQLERRM);
 END;
 
 END;
