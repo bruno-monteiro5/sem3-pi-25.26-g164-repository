@@ -1,15 +1,14 @@
-CREATE OR REPLACE FUNCTION ADD_BUILDING (
-    buildingId       IN Building.id%TYPE,
-    buildingTypeId   IN Building.type%TYPE,
-    buildingName     IN Building.name%TYPE,
-    facilityId       IN Building.facility%TYPE
+CREATE OR REPLACE PROCEDURE ADD_BUILDING (
+    buildingId       IN  Building.id%TYPE,
+    buildingTypeId   IN  Building.type%TYPE,
+    buildingName     IN  Building.name%TYPE,
+    facilityId       IN  Building.facility%TYPE,
+    resultCursor     OUT SYS_REFCURSOR
 )
-    RETURN SYS_REFCURSOR
 AS
-    matchingFacilities   NUMBER;
+    matchingFacilities    NUMBER;
     matchingBuildingTypes NUMBER;
     normalizedBuildingName Building.name%TYPE;
-    resultCursor         SYS_REFCURSOR;
 BEGIN
     SELECT COUNT(*)
     INTO matchingFacilities
@@ -35,8 +34,6 @@ BEGIN
         raise_application_error(-20036, 'Building name is required.');
     END IF;
 
-
-
     INSERT INTO Building (id, type, name, facility)
     VALUES (buildingId, buildingTypeId, normalizedBuildingName, facilityId);
 
@@ -44,7 +41,5 @@ BEGIN
         SELECT id, type, name, facility
         FROM Building
         WHERE id = buildingId;
-
-    RETURN resultCursor;
 END;
 /
