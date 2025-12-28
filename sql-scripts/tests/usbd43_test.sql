@@ -24,10 +24,7 @@ BEGIN
     -- id duplicado
     BEGIN
         ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99001,'Dup','Dup',2,'Bo-Bo',5000,19.200,3.000,4.300,
-                200,300,25,50,2,
-                modelCursor
-        );
+                99001,'Dup','Dup',2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50,2,modelCursor);
 
         DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (duplicate id)');
         CLOSE modelCursor;
@@ -39,10 +36,7 @@ BEGIN
     -- gauge invalido
     BEGIN
         ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99002,'Gauge Fail','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,
-                200,300,25,50,999999,
-                modelCursor
-        );
+                99002,'Gauge Fail','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50,999999,modelCursor);
 
         DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (invalid gauge)');
         CLOSE modelCursor;
@@ -54,10 +48,7 @@ BEGIN
     -- empty name
     BEGIN
         ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99003,'   ','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,
-                200,300,25,50,2,
-                modelCursor
-        );
+                99003,'   ','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,200,300,25,50,2,modelCursor);
 
         DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (empty name)');
         CLOSE modelCursor;
