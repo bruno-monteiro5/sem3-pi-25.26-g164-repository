@@ -1,71 +1,95 @@
-DECLARE
-    modelCursor SYS_REFCURSOR;
-
-    insertedModelId NUMBER;
-    insertedModelName VARCHAR2(255);
-    insertedModelMake VARCHAR2(255);
-    insertedVoltage NUMBER;
-    insertedFrequency NUMBER;
-    insertedGaugeId NUMBER;
 BEGIN
-    -- insert valido
+    -- insert válido
     ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-            99001,'Model Test USBD43','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,
-            200,300,25,50,2,
-            modelCursor
+            99001,
+            'Model Test USBD43',
+            'TestMaker',
+            2,
+            'Bo-Bo',
+            5000,
+            19.200,
+            3.000,
+            4.300,
+            200,
+            300,
+            25,
+            50,
+            2
     );
-
-    FETCH modelCursor
-        INTO insertedModelId, insertedModelName, insertedModelMake, insertedVoltage, insertedFrequency, insertedGaugeId;
-
-    DBMS_OUTPUT.PUT_LINE('TEST OK: model inserted');
-    CLOSE modelCursor;
+    DBMS_OUTPUT.PUT_LINE('TEST 1 OK: electric locomotive model inserted');
 
     -- id duplicado
-    BEGIN
-        ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99001,'Dup','Dup',2,'Bo-Bo',5000,19.200,3.000,4.300,
-                200,300,25,50,2,
-                modelCursor
-        );
-
-        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (duplicate id)');
-        CLOSE modelCursor;
-    EXCEPTION
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST OK: duplicate id check works');
-    END;
-
-    -- gauge invalido
-    BEGIN
-        ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99002,'Gauge Fail','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,
-                200,300,25,50,999999,
-                modelCursor
-        );
-
-        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (invalid gauge)');
-        CLOSE modelCursor;
-    EXCEPTION
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST OK: gauge check works');
-    END;
-
-    -- empty name
-    BEGIN
-        ADD_ELECTRIC_LOCOMOTIVE_MODEL(
-                99003,'   ','TestMaker',2,'Bo-Bo',5000,19.200,3.000,4.300,
-                200,300,25,50,2,
-                modelCursor
-        );
-
-        DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (empty name)');
-        CLOSE modelCursor;
-    EXCEPTION
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('TEST OK: name check works');
-    END;
-
+    ADD_ELECTRIC_LOCOMOTIVE_MODEL(
+            99001,
+            'Dup',
+            'Dup',
+            2,
+            'Bo-Bo',
+            5000,
+            19.200,
+            3.000,
+            4.300,
+            200,
+            300,
+            25,
+            50,
+            2
+    );
+    DBMS_OUTPUT.PUT_LINE('TEST 2 ERROR: should fail (duplicate id)');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('TEST 2 OK: duplicate id validation works');
 END;
 /
+
+BEGIN
+    -- gauge inválido
+    ADD_ELECTRIC_LOCOMOTIVE_MODEL(
+            99002,
+            'Gauge Fail',
+            'TestMaker',
+            2,
+            'Bo-Bo',
+            5000,
+            19.200,
+            3.000,
+            4.300,
+            200,
+            300,
+            25,
+            50,
+            999999
+    );
+    DBMS_OUTPUT.PUT_LINE('TEST 3 ERROR: should fail (invalid gauge)');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('TEST 3 OK: gauge validation works');
+END;
+/
+
+BEGIN
+    -- nome vazio
+    ADD_ELECTRIC_LOCOMOTIVE_MODEL(
+            99003,
+            '   ',
+            'TestMaker',
+            2,
+            'Bo-Bo',
+            5000,
+            19.200,
+            3.000,
+            4.300,
+            200,
+            300,
+            25,
+            50,
+            2
+    );
+    DBMS_OUTPUT.PUT_LINE('TEST 4 ERROR: should fail (empty name)');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('TEST 4 OK: name validation works');
+END;
+/
+
 ROLLBACK;

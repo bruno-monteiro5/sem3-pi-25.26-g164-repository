@@ -1,13 +1,12 @@
 CREATE OR REPLACE PROCEDURE ADD_BUILDING (
-    buildingId       IN  Building.id%TYPE,
-    buildingTypeId   IN  Building.type%TYPE,
-    buildingName     IN  Building.name%TYPE,
-    facilityId       IN  Building.facility%TYPE,
-    resultCursor     OUT SYS_REFCURSOR
+    buildingId       IN Building.id%TYPE,
+    buildingTypeId   IN Building.type%TYPE,
+    buildingName     IN Building.name%TYPE,
+    facilityId       IN Building.facility%TYPE
 )
 AS
-    matchingFacilities    NUMBER;
-    matchingBuildingTypes NUMBER;
+    matchingFacilities     NUMBER;
+    matchingBuildingTypes  NUMBER;
     normalizedBuildingName Building.name%TYPE;
 BEGIN
     SELECT COUNT(*)
@@ -36,10 +35,5 @@ BEGIN
 
     INSERT INTO Building (id, type, name, facility)
     VALUES (buildingId, buildingTypeId, normalizedBuildingName, facilityId);
-
-    OPEN resultCursor FOR
-        SELECT id, type, name, facility
-        FROM Building
-        WHERE id = buildingId;
 END;
 /
