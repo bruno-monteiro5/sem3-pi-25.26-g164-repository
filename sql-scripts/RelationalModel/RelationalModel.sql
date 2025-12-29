@@ -389,7 +389,7 @@ BEGIN
   INSERT INTO Wagon_Current_Location (wagon, endpoint, status, arrival)
   VALUES (
     :NEW.id,
-    :NEW.service_endpoint,
+    :NEW.entry_endpoint,
     'F',
     CAST(:NEW.service_start AS TIMESTAMP)
   );
@@ -402,7 +402,7 @@ BEGIN
   INSERT INTO Locomotive_Current_Location (locomotive, endpoint, status, arrival)
   VALUES (
     :NEW.id,
-    :NEW.service_endpoint,
+    :NEW.entry_endpoint,
     'F',
     CAST(:NEW.service_start AS TIMESTAMP)
   );
