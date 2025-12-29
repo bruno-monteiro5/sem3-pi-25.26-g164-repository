@@ -30,13 +30,14 @@ CREATE TABLE Endpoint (
   metafacility number(10) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Locomotive (
-  id            number(10) NOT NULL, 
-  name          varchar2(255) NOT NULL, 
-  service_start date NOT NULL, 
-  total_weight  number(10) NOT NULL, 
-  op_speed      number(10) NOT NULL, 
-  operator      varchar2(255) NOT NULL, 
-  model         number(10) NOT NULL, 
+  id             number(10) NOT NULL, 
+  name           varchar2(255) NOT NULL, 
+  service_start  date NOT NULL, 
+  total_weight   number(10) NOT NULL, 
+  op_speed       number(10) NOT NULL, 
+  operator       varchar2(255) NOT NULL, 
+  model          number(10) NOT NULL, 
+  entry_endpoint number(10) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Operator (
   vat        varchar2(255) NOT NULL, 
@@ -44,10 +45,11 @@ CREATE TABLE Operator (
   short_name varchar2(255) NOT NULL UNIQUE, 
   PRIMARY KEY (vat));
 CREATE TABLE Wagon (
-  id            number(10) NOT NULL, 
-  service_start date NOT NULL, 
-  wagon_model   number(10) NOT NULL, 
-  operator      varchar2(255) NOT NULL, 
+  id             number(10) NOT NULL, 
+  service_start  date NOT NULL, 
+  wagon_model    number(10) NOT NULL, 
+  operator       varchar2(255) NOT NULL, 
+  entry_endpoint number(10) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE Wagon_Model (
   id            number(10) NOT NULL, 
@@ -177,13 +179,25 @@ CREATE TABLE Stop (
   movement  number(10) NOT NULL, 
   PRIMARY KEY (movement));
 CREATE TABLE Passage (
-  passage  number(10) NOT NULL, 
+  passage  timestamp(0) NOT NULL, 
   movement number(10) NOT NULL, 
   PRIMARY KEY (movement));
 CREATE TABLE Freight_Train (
   freight number(10) NOT NULL, 
   train   number(10) NOT NULL, 
   PRIMARY KEY (freight));
+CREATE TABLE Wagon_Current_Location (
+  wagon    number(10) NOT NULL, 
+  endpoint number(10) NOT NULL, 
+  status   nvarchar2(255) NOT NULL CHECK(status IN ('F', 'T')), 
+  arrival  timestamp(0) NOT NULL, 
+  PRIMARY KEY (wagon));
+CREATE TABLE Locomotive_Current_Location (
+  locomotive number(10) NOT NULL, 
+  endpoint   number(10) NOT NULL, 
+  status     varchar2(255) NOT NULL CHECK(status IN ('F', 'T')), 
+  arrival    timestamp(0) NOT NULL, 
+  PRIMARY KEY (locomotive));
 ALTER TABLE Line ADD CONSTRAINT FKLine262396 FOREIGN KEY (owner) REFERENCES Owner (vat);
 ALTER TABLE Line_Segment ADD CONSTRAINT FKLine_Segme425123 FOREIGN KEY (line) REFERENCES Line (id);
 ALTER TABLE Line ADD CONSTRAINT FKLine635842 FOREIGN KEY (endpoint_a) REFERENCES Endpoint (id);
@@ -217,14 +231,18 @@ ALTER TABLE Locomotive_Model_Gauge ADD CONSTRAINT FKLocomotive35887 FOREIGN KEY 
 ALTER TABLE Locomotive_Model_Gauge ADD CONSTRAINT FKLocomotive663176 FOREIGN KEY (Gaugeid) REFERENCES Gauge (id);
 ALTER TABLE Diesel_Locomotive_Model ADD CONSTRAINT FKDiesel_Loc686371 FOREIGN KEY (model) REFERENCES Locomotive_Model (id);
 ALTER TABLE Electric_Locomotive_Model ADD CONSTRAINT FKElectric_L872183 FOREIGN KEY (model) REFERENCES Locomotive_Model (id);
-ALTER TABLE Wagon_Location ADD CONSTRAINT FKWagon_Loca706875 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
-ALTER TABLE Wagon_Location ADD CONSTRAINT FKWagon_Loca55866 FOREIGN KEY (wagon) REFERENCES Wagon (id);
 ALTER TABLE Train_Movement ADD CONSTRAINT FKTrain_Move863847 FOREIGN KEY (train) REFERENCES Train (id);
 ALTER TABLE Train_Movement ADD CONSTRAINT FKTrain_Move54998 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
 ALTER TABLE Stop ADD CONSTRAINT FKStop83748 FOREIGN KEY (movement) REFERENCES Train_Movement (id);
 ALTER TABLE Passage ADD CONSTRAINT FKPassage102422 FOREIGN KEY (movement) REFERENCES Train_Movement (id);
 ALTER TABLE Freight_Train ADD CONSTRAINT FKFreight_Tr432283 FOREIGN KEY (freight) REFERENCES Freight (id);
 ALTER TABLE Freight_Train ADD CONSTRAINT FKFreight_Tr820123 FOREIGN KEY (train) REFERENCES Train (id);
+ALTER TABLE Wagon_Current_Location ADD CONSTRAINT FKWagon_Curr785318 FOREIGN KEY (wagon) REFERENCES Wagon (id);
+ALTER TABLE Wagon_Current_Location ADD CONSTRAINT FKWagon_Curr436328 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
+ALTER TABLE Locomotive_Current_Location ADD CONSTRAINT FKLocomotive996456 FOREIGN KEY (locomotive) REFERENCES Locomotive (id);
+ALTER TABLE Locomotive_Current_Location ADD CONSTRAINT FKLocomotive842507 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
+ALTER TABLE Wagon ADD CONSTRAINT FKWagon261712 FOREIGN KEY (entry_endpoint) REFERENCES Endpoint (id);
+ALTER TABLE Locomotive ADD CONSTRAINT FKLocomotive136342 FOREIGN KEY (entry_endpoint) REFERENCES Endpoint (id);
 CREATE OR REPLACE TRIGGER trg_check_train_length_loco
 FOR INSERT OR UPDATE OR DELETE ON Locomotive_Train
 COMPOUND TRIGGER
@@ -363,4 +381,30 @@ COMPOUND TRIGGER
 END;
 /
 ;
+/
+CREATE OR REPLACE TRIGGER trg_init_wagon_current_location
+AFTER INSERT ON Wagon
+FOR EACH ROW
+BEGIN
+  INSERT INTO Wagon_Current_Location (wagon, endpoint, status, arrival)
+  VALUES (
+    :NEW.id,
+    :NEW.service_endpoint,
+    'F',
+    CAST(:NEW.service_start AS TIMESTAMP)
+  );
+END;
+/
+CREATE OR REPLACE TRIGGER trg_init_locomotive_current_location
+AFTER INSERT ON Locomotive
+FOR EACH ROW
+BEGIN
+  INSERT INTO Locomotive_Current_Location (locomotive, endpoint, status, arrival)
+  VALUES (
+    :NEW.id,
+    :NEW.service_endpoint,
+    'F',
+    CAST(:NEW.service_start AS TIMESTAMP)
+  );
+END;
 /
