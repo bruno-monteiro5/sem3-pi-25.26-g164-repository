@@ -29,32 +29,6 @@ public class MaxThroughputController {
     }
 
     /**
-     * Loads CSVs and updates the repository.
-     */
-    public void buildGraphFromCsv(String stationsCsv, String linesCsv) throws IOException {
-        //Loads the existant stations and lines which will be included in the graph
-
-        StationCsvLoaderS3 stationLoader = new StationCsvLoaderS3();
-        List<Station> stations = stationLoader.load(stationsCsv);
-
-        Map<Integer, Station> stationsById = new HashMap<>();
-        for (Station s : stations) {
-            stationsById.put(s.getId(), s);
-        }
-
-        LineCsvLoader lineLoader = new LineCsvLoader();
-        List<Line> lines = lineLoader.load(linesCsv, stationsById);
-
-        //Uses stations and lines loaded to created a weighted directed graph based on the capacity of the lines as the weight
-
-        repo.loadStations(stations);
-        repo.loadLines(lines);
-        RailwayGraphBuilder builder = new RailwayGraphBuilder(repo);
-        graph = builder.buildDirectedGraphWithCapacity();
-
-    }
-
-    /**
      * Computes maximum flow between source and target using Edmonds-Karp.
      * Uses capacity-based directed graph from the repository.
      */
