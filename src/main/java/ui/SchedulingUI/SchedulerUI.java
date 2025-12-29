@@ -1,11 +1,11 @@
 package ui.SchedulingUI;
 
-import com.sun.tools.javac.Main;
 import domain.railway.*;
 import domain.scheduling.Schedule;
 import domain.scheduling.TrainSchedule;
 import repository.RailwayRepository;
 import controller.SchedulingController.TrainScheduler;
+import controller.SchedulingController.MovementRecorder;
 import ui.MainMenu;
 
 import java.sql.SQLException;
@@ -17,36 +17,35 @@ import java.util.Scanner;
 
 /**
  * Text-based user interface for the Train Scheduler
- * USLP07 - As Freight Manager, I want to use a scheduler
+ * UPDATED FOR USLP10 - Now includes movement recording to database
+ *
  */
-public class SchedulerUI implements Runnable{
+public class SchedulerUI implements Runnable {
 
     private RailwayNetwork network;
     private TrainScheduler scheduler;
+    private MovementRecorder movementRecorder;
     private final Scanner scanner;
 
-    // ANSI colors (matching MainMenu style)
+    // ANSI colors
     private static final boolean COLOR_ON = true;
     private static final String RESET = COLOR_ON ? "\u001B[0m" : "";
     private static final String CYAN = COLOR_ON ? "\u001B[36m" : "";
     private static final String RED = COLOR_ON ? "\u001B[31m" : "";
     private static final String GREEN = COLOR_ON ? "\u001B[32m" : "";
+    private static final String YELLOW = COLOR_ON ? "\u001B[33m" : "";
     private static final String SEP = "─";
 
     public SchedulerUI() {
         this.scanner = new Scanner(System.in);
+        this.movementRecorder = new MovementRecorder();
     }
 
-    /**
-     * Main entry point when called from menu.
-     * Loads network if not already loaded.
-     */
     @Override
     public void run() {
-        // Lazy load: only load network when first entering scheduler
         if (network == null) {
             if (!loadNetwork()) {
-                return; // Failed to load, return to main menu
+                return;
             }
         }
 
@@ -64,22 +63,17 @@ public class SchedulerUI implements Runnable{
                 case 5 -> defineTrainRoute();
                 case 6 -> createNewPathInMemory();
                 case 7 -> editTrainDeparture();
-                case 8 -> reloadNetwork();
+                case 8 -> viewRecordedMovements(); // NEW - USLP10
+                case 9 -> reloadNetwork();
                 case 0 -> exit = true;
                 default -> System.out.println(RED + "❌ Invalid option!" + RESET);
             }
         }
 
-        // Return to main menu (don't exit application)
         System.out.println(GREEN + "\n✓ Returning to main menu..." + RESET);
         MainMenu.menu();
     }
 
-    /**
-     * Loads the railway network from database.
-     *
-     * @return true if successful, false otherwise
-     */
     private boolean loadNetwork() {
         System.out.println(CYAN + "\n⏳ Loading railway network from database..." + RESET);
         long startTime = System.currentTimeMillis();
@@ -106,9 +100,6 @@ public class SchedulerUI implements Runnable{
         }
     }
 
-    /**
-     * Reloads the network from database, discarding in-memory changes.
-     */
     private void reloadNetwork() {
         System.out.println(RED + "\n⚠️  This will discard any in-memory changes (new paths, etc)." + RESET);
         System.out.print("➤ Are you sure? (y/n): ");
@@ -124,7 +115,7 @@ public class SchedulerUI implements Runnable{
 
     private void printMainMenu() {
         System.out.println("\n" + CYAN + line(72));
-        System.out.println("                    TRAIN SCHEDULER - USLP07");
+        System.out.println("                    TRAIN SCHEDULER - USLP07/10");
         System.out.println(line(72) + RESET);
         System.out.println("║ 1. Schedule a single train                                    ║");
         System.out.println("║ 2. Schedule multiple trains (manual selection)                ║");
@@ -133,7 +124,8 @@ public class SchedulerUI implements Runnable{
         System.out.println("║ 5. Define/change train route (Path)                           ║");
         System.out.println("║ 6. Create new path                                            ║");
         System.out.println("║ 7. Edit train departure date & time                           ║");
-        System.out.println("║ 8. Reload network from database                               ║");
+        System.out.println("║ 8. " + GREEN + "View recorded movements (from database)" + RESET + "               ║");
+        System.out.println("║ 9. Reload network from database                               ║");
         System.out.println("║ 0. " + RED + "Return to main menu" + RESET + "                                       ║");
         System.out.println(CYAN + line(72) + RESET);
         System.out.print("➤ Select option: ");
@@ -155,7 +147,6 @@ public class SchedulerUI implements Runnable{
 
     private void scheduleSingleTrain() {
         try {
-            // 1. Get all trains from the network
             List<Train> trains = network.getTrains();
 
             if (trains.isEmpty()) {
@@ -163,7 +154,6 @@ public class SchedulerUI implements Runnable{
                 return;
             }
 
-            // 2. Show list of trains
             System.out.println("\n📋 Available trains:");
             for (int i = 0; i < trains.size(); i++) {
                 Train t = trains.get(i);
@@ -178,7 +168,6 @@ public class SchedulerUI implements Runnable{
                 );
             }
 
-            // 3. Choose one
             System.out.print("\n➤ Select train number: ");
             int choice = readOption() - 1;
 
@@ -191,17 +180,21 @@ public class SchedulerUI implements Runnable{
 
             System.out.println("\n⏳ Calculating schedule for train " + selected.getId() + "...\n");
 
-            // 4. Schedule (use TrainScheduler)
             TrainSchedule schedule = scheduler.scheduleTrainReschedule(selected);
 
-            // 5. Show result
             System.out.println(schedule.getDetailedReport());
+
+            // NEW - USLP10: Ask if user wants to record to database
+            System.out.print("\n➤ Record this schedule to database? (y/n): ");
+            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                movementRecorder.recordSchedule(schedule);
+                System.out.println(GREEN + "✅ Schedule saved to database!" + RESET);
+            }
 
         } catch (SQLException e) {
             System.err.println("❌ Scheduler error: " + e.getMessage());
         }
     }
-
 
     private void scheduleMultipleTrains() {
         try {
@@ -212,7 +205,6 @@ public class SchedulerUI implements Runnable{
                 return;
             }
 
-            // 1. Show all trains available
             System.out.println("\n📋 Available trains:");
             for (int i = 0; i < allTrains.size(); i++) {
                 Train t = allTrains.get(i);
@@ -227,7 +219,6 @@ public class SchedulerUI implements Runnable{
                 );
             }
 
-            // 2. Choose various (like "1", "2", "4")
             System.out.print("\n➤ Enter train numbers separated by comma (e.g., 1,2,3): ");
             String input = scanner.nextLine();
             String[] parts = input.split(",");
@@ -251,13 +242,10 @@ public class SchedulerUI implements Runnable{
 
             System.out.println("\n⏳ Calculating schedule for " + selectedTrains.size() + " trains...\n");
 
-            // 3. Schedule all
             Schedule schedule = scheduler.scheduleMultipleTrains(selectedTrains);
 
-            // 4. Show general vision
             System.out.println(schedule);
 
-            // 5. Optional: show details
             System.out.print("\n➤ Show detailed report for all trains? (y/n): ");
             if (scanner.nextLine().equalsIgnoreCase("y")) {
                 for (TrainSchedule ts : schedule.getTrainSchedules()) {
@@ -265,11 +253,19 @@ public class SchedulerUI implements Runnable{
                 }
             }
 
+            // NEW - USLP10: Ask if user wants to record ALL to database
+            System.out.print("\n➤ Record ALL schedules to database? (y/n): ");
+            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                for (TrainSchedule ts : schedule.getTrainSchedules()) {
+                    movementRecorder.recordSchedule(ts);
+                }
+                System.out.println(GREEN + "✅ All schedules saved to database!" + RESET);
+            }
+
         } catch (SQLException e) {
             System.err.println("❌ Scheduler error: " + e.getMessage());
         }
     }
-
 
     private void scheduleAllTrains() {
         try {
@@ -294,11 +290,61 @@ public class SchedulerUI implements Runnable{
                 }
             }
 
+            // NEW - USLP10
+            System.out.print("\n➤ Record ALL schedules to database? (y/n): ");
+            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                for (TrainSchedule ts : schedule.getTrainSchedules()) {
+                    movementRecorder.recordSchedule(ts);
+                }
+                System.out.println(GREEN + "✅ All schedules saved to database!" + RESET);
+            }
+
         } catch (SQLException e) {
             System.err.println("❌ Scheduler error: " + e.getMessage());
         }
     }
 
+    /**
+     * NEW - USLP10: View movements that were recorded in the database.
+     */
+    private void viewRecordedMovements() {
+        try {
+            List<Train> trains = network.getTrains();
+
+            if (trains.isEmpty()) {
+                System.out.println("❌ No trains in network!");
+                return;
+            }
+
+            System.out.println("\n📋 Available trains:");
+            for (int i = 0; i < trains.size(); i++) {
+                Train t = trains.get(i);
+
+                // Check if has recorded movements
+                boolean hasMovements = movementRecorder.hasRecordedMovements(t.getId());
+                String indicator = hasMovements ? GREEN + " [RECORDED]" + RESET : "";
+
+                System.out.printf("%d. Train %d%s\n", i + 1, t.getId(), indicator);
+            }
+
+            System.out.print("\n➤ Select train to view movements: ");
+            int choice = readOption() - 1;
+
+            if (choice < 0 || choice >= trains.size()) {
+                System.out.println("❌ Invalid selection!");
+                return;
+            }
+
+            Train selected = trains.get(choice);
+            movementRecorder.displayRecordedMovements(selected.getId());
+
+        } catch (SQLException e) {
+            System.err.println(RED + "❌ Error: " + e.getMessage() + RESET);
+        }
+
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
+    }
 
     private void viewTrainDetails() {
         try {
@@ -344,18 +390,11 @@ public class SchedulerUI implements Runnable{
                     .forEach(e -> System.out.println("  " + e));
 
         } catch (Exception e) {
-            // From the get go, there should not be a SQLException here. But i leave a generic format
             System.err.println("❌ Error while showing train details: " + e.getMessage());
         }
     }
 
-
-    /**
-     * Allows the Freight Manager to define/change the route (Path) of a Train,
-     * WITHOUT changing the database. Everything is done in memory in the RailwayNetwork.
-     */
     private void defineTrainRoute() {
-        // 1. Go get the trains from the network's memory
         List<Train> trains = network.getTrains();
 
         if (trains.isEmpty()) {
@@ -363,7 +402,6 @@ public class SchedulerUI implements Runnable{
             return;
         }
 
-        // 2. Show the list of trains
         System.out.println("\n📋 Available trains:");
         for (int i = 0; i < trains.size(); i++) {
             Train t = trains.get(i);
@@ -380,11 +418,10 @@ public class SchedulerUI implements Runnable{
             );
         }
 
-        // 3. Escolher o comboio
         System.out.print("\n➤ Select train number (0 to cancel): ");
         int trainChoice = readOption() - 1;
         if (trainChoice == -1) {
-            return; // user chose 0
+            return;
         }
         if (trainChoice < 0 || trainChoice >= trains.size()) {
             System.out.println("❌ Invalid train selection!");
@@ -393,7 +430,6 @@ public class SchedulerUI implements Runnable{
 
         Train train = trains.get(trainChoice);
 
-        // 4. Show available paths (including the new ones created in memory)
         List<Path> paths = network.getPaths();
         if (paths.isEmpty()) {
             System.out.println("❌ No paths in network! Create one first (option 6).");
@@ -407,7 +443,6 @@ public class SchedulerUI implements Runnable{
                     p.getId(), p.getName(), endpointCount);
         }
 
-        // 5. Pick a path
         System.out.print("\n➤ Enter path ID to assign (0 to cancel): ");
         int pathId = readOption();
         if (pathId == 0) {
@@ -425,7 +460,6 @@ public class SchedulerUI implements Runnable{
             return;
         }
 
-        // 6. Attribute path to the train in the memory
         try {
             network.assignPathToTrain(train, selectedPath);
             System.out.printf("✅ Train %d route updated IN MEMORY to path '%s'.\n",
@@ -437,15 +471,13 @@ public class SchedulerUI implements Runnable{
             System.out.println(RED + "❌ VALIDATION FAILED: " + e.getMessage() + RESET);
             System.out.println("   Train route NOT changed.");
 
-            // Suggestions of action
             if (e.getMessage().contains("GAUGE")) {
                 System.out.println("\n💡 Possible solutions:");
-                System.out.println("   • Add locomotives supporting gauge " );
+                System.out.println("   • Add locomotives supporting required gauge");
                 System.out.println("   • Choose a different path");
             }
         }
     }
-
 
     private void createNewPathInMemory() {
         System.out.print("\n➤ Enter path name: ");
@@ -487,13 +519,10 @@ public class SchedulerUI implements Runnable{
                 continue;
             }
 
-            // If there is endpoints on the path, validate the connection to the last one
             var ordered = path.getOrderedEndpoints();
             if (!ordered.isEmpty()) {
                 Endpoint lastEndpoint = ordered.get(ordered.size() - 1).getEndpoint();
 
-                // ⚠️ Here is where we stop impossible paths:
-                // we use the RailwayNetwork to check if there is a segment between lastEndpoint and endpoint
                 LineSegment segment = network.findSegmentBetween(lastEndpoint.getId(), endpoint.getId());
 
                 if (segment == null) {
@@ -501,8 +530,6 @@ public class SchedulerUI implements Runnable{
                             "❌ There is NO line connecting '%s' and '%s'. Path step rejected.\n",
                             lastEndpoint.getName(), endpoint.getName()
                     );
-                    System.out.println("   Please choose another endpoint that is directly connected.");
-                    // You can, optionally, suggest here connected endpoints (see section 2)
                     continue;
                 }
             }
@@ -525,80 +552,6 @@ public class SchedulerUI implements Runnable{
         }
     }
 
-
-    private void defineTrainRouteInMemory() {
-        List<Train> trains = network.getTrains();
-        if (trains.isEmpty()) {
-            System.out.println("❌ No trains in network!");
-            return;
-        }
-
-        System.out.println("\nAvailable trains:");
-        for (int i = 0; i < trains.size(); i++) {
-            Train t = trains.get(i);
-            System.out.printf("%d. Train %d: %s → %s (Departure: %s on %s) [Path: %s]\n",
-                    i + 1,
-                    t.getId(),
-                    t.getStartEndpoint().getName(),
-                    t.getEndEndpoint().getName(),
-                    t.getDepartureTime(),
-                    t.getDate(),
-                    t.getPath().getName());
-        }
-
-        System.out.print("\n➤ Select train number (0 to cancel): ");
-        int trainChoice = readOption() - 1;
-        if (trainChoice == -1) return;
-        if (trainChoice < 0 || trainChoice >= trains.size()) {
-            System.out.println("❌ Invalid selected train!");
-            return;
-        }
-
-        Train train = trains.get(trainChoice);
-
-        // Available paths (including new ones in memory)
-        var paths = network.getPaths();
-        if (paths.isEmpty()) {
-            System.out.println("❌ No paths in network! Create one first (option 6).");
-            return;
-        }
-
-        System.out.println("\nAvailable paths:");
-        for (Path p : paths) {
-            System.out.printf("  %d. %s (%d endpoints)\n",
-                    p.getId(),
-                    p.getName(),
-                    p.getOrderedEndpoints().size());
-        }
-
-        System.out.print("\n➤ Enter path ID to assign (0 to cancel): ");
-        int pathId = readOption();
-        if (pathId == 0) return;
-
-        Path selectedPath = network.getPathById(pathId);
-        if (selectedPath == null) {
-            System.out.println("❌ Invalid path ID!");
-            return;
-        }
-
-        if (selectedPath.getOrderedEndpoints().isEmpty()) {
-            System.out.println("❌ Selected path has no endpoints!");
-            return;
-        }
-
-        network.assignPathToTrain(train, selectedPath);
-
-        System.out.printf("✅ Train %d route updated IN MEMORY to path '%s'.\n",
-                train.getId(), selectedPath.getName());
-        System.out.println("   New start: " + train.getStartEndpoint().getName());
-        System.out.println("   New end:   " + train.getEndEndpoint().getName());
-    }
-
-    /**
-     * Allows to alter the date and time of departure of a train in memory.
-     * Useful for artificial scenarios (i.e. crossings on siding)
-     * without touching the database.
-     */
     private void editTrainDeparture() {
         List<Train> trains = network.getTrains();
 
@@ -624,7 +577,7 @@ public class SchedulerUI implements Runnable{
         System.out.print("\n➤ Select train number (0 to cancel): ");
         int choice = readOption() - 1;
         if (choice == -1) {
-            return; // cancel
+            return;
         }
         if (choice < 0 || choice >= trains.size()) {
             System.out.println("❌ Invalid train selection!");
@@ -637,7 +590,6 @@ public class SchedulerUI implements Runnable{
         System.out.println("  Date: " + train.getDate());
         System.out.println("  Time: " + train.getDepartureTime());
 
-        // Ler nova data
         LocalDate newDate = train.getDate();
         LocalTime newTime = train.getDepartureTime();
 
