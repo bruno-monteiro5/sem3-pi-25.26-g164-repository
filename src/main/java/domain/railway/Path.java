@@ -41,6 +41,14 @@ public class Path {
                 .toList();
     }
 
+
+    public Endpoint getFirstEndpoint() {
+        return endpoints.get(0).getEndpoint();
+    }
+    public Endpoint getLastEndpoint() {
+        return endpoints.get(endpoints.size()-1).getEndpoint();
+    }
+
     @Override
     public String toString() {
         return String.format("Path[id=%d, name=%s, endpoints=%d]",
