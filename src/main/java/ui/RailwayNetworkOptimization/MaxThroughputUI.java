@@ -131,11 +131,6 @@ public class MaxThroughputUI implements Runnable {
             System.out.printf("Source ID: %s\n", stationSrc);
             System.out.printf("Target ID: %s\n", stationDst);
             System.out.printf("Max Flow Value: %d trains/day\n", maxFlow);
-
-            // Per PDF: Edmonds-Karp complexity O(V * E^2)
-            System.out.println(YELLOW + "\nTemporal Complexity (Edmonds–Karp / BFS variant): O(V · E^2)" + RESET);
-            System.out.printf("Execution Time: %d ms\n", duration);
-
         } catch (NumberFormatException ex) {
             System.out.println(RED + " Invalid input. Please enter numeric station IDs." + RESET);
         }
