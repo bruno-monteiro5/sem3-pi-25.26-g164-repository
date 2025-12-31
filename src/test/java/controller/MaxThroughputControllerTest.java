@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -96,5 +97,12 @@ class MaxThroughputControllerTest {
 
         Station missing = controller.getStationById("WSIGTWBUIGNEWBB");
         assertNull(missing);
+    }
+
+    @Test
+    void getStations(){
+        assertDoesNotThrow(() -> controller.buildGraphFromCsv(stationsCsv, linesCsv));
+
+        assertFalse(controller.getStations().isEmpty());
     }
 }
