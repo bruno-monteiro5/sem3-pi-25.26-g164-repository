@@ -823,6 +823,41 @@ public class RailwayRepository {
         }
     }
 
+    public int createFreight(LocalDate date, int originEndpointId, int destinationEndpointId) throws SQLException {
+        String getMax = "SELECT NVL(MAX(id), 0) AS max_id FROM Freight";
+        String insert = "INSERT INTO Freight (id, \"date\", origin, destination) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConnectionPool.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                int newId;
+                try (PreparedStatement ps = conn.prepareStatement(getMax);
+                     ResultSet rs = ps.executeQuery()) {
+                    rs.next();
+                    newId = rs.getInt("max_id") + 1;
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(insert)) {
+                    ps.setInt(1, newId);
+                    ps.setDate(2, Date.valueOf(date));
+                    ps.setInt(3, originEndpointId);
+                    ps.setInt(4, destinationEndpointId);
+                    ps.executeUpdate();
+                }
+
+                conn.commit();
+                return newId;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
+    }
+
+
+
     // ==================== LOCOMOTIVE-TRAIN ASSIGNMENTS (NEW FOR USLP09) ====================
 
     public void assignLocomotiveToTrain(int locomotiveId, int trainId, int position) throws SQLException {
@@ -917,6 +952,84 @@ public class RailwayRepository {
         return newId;
     }
 
+
+    /**
+     * Ensures a placeholder Path with name 'UNASSIGNED' exists and returns its id.
+     *
+     * Train.path is NOT NULL and references Path(id). Since USLP09 may create a train
+     * before USLP08 generates the real path, we use Path('UNASSIGNED') as placeholder.
+     */
+    public int ensureUnassignedPath() throws SQLException {
+        String select = "SELECT id FROM Path WHERE name = 'UNASSIGNED'";
+        String getMax = "SELECT NVL(MAX(id), 0) AS max_id FROM Path";
+        String insert = "INSERT INTO Path (id, name) VALUES (?, 'UNASSIGNED')";
+
+        try (Connection conn = DatabaseConnectionPool.getConnection()) {
+
+            try (PreparedStatement ps = conn.prepareStatement(select);
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("id");
+            }
+
+            int newId;
+            try (PreparedStatement ps = conn.prepareStatement(getMax);
+                 ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                newId = rs.getInt("max_id") + 1;
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(insert)) {
+                ps.setInt(1, newId);
+                ps.executeUpdate();
+            }
+
+            return newId;
+        }
+    }
+
+    /** Returns true if a Train with the given id already exists. */
+    public boolean trainExists(int trainId) throws SQLException {
+        String sql = "SELECT 1 FROM Train WHERE id = ?";
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, trainId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /**
+     * Creates a Train with an explicit id (chosen by the user).
+     *
+     * Operator is a VAT (FK to Operator.vat).
+     * Time is stored as TIMESTAMP(0) using only time-of-day (matches your insert script).
+     */
+    public void createTrainWithId(int id,
+                                  String operatorVat,
+                                  LocalDate date,
+                                  LocalTime time,
+                                  int pathId,
+                                  int maxLength) throws SQLException {
+
+        String sql = """
+        INSERT INTO Train (id, operator, time, path, "date", max_length)
+        VALUES (?, ?, TO_TIMESTAMP(?, 'HH24:MI:SS'), ?, ?, ?)
+    """;
+
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.setString(2, operatorVat);
+            ps.setString(3, time.toString());
+            ps.setInt(4, pathId);
+            ps.setDate(5, Date.valueOf(date));
+            ps.setInt(6, maxLength);
+            ps.executeUpdate();
+        }
+    }
+
+
     public void updateTrainDeparture(int trainId, LocalDate newDate, LocalTime newTime)
             throws SQLException {
 
@@ -935,4 +1048,15 @@ public class RailwayRepository {
             stmt.executeUpdate();
         }
     }
+
+    public void assignWagonToFreight(int wagonId, int freightId) throws SQLException {
+        String sql = "INSERT INTO Wagon_Freight (wagon, freight) VALUES (?, ?)";
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, wagonId);
+            ps.setInt(2, freightId);
+            ps.executeUpdate();
+        }
+    }
+
 }
