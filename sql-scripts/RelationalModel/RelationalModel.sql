@@ -186,18 +186,24 @@ CREATE TABLE Freight_Train (
   freight number(10) NOT NULL, 
   train   number(10) NOT NULL, 
   PRIMARY KEY (freight));
-CREATE TABLE Wagon_Current_Location (
-  wagon    number(10) NOT NULL, 
-  endpoint number(10) NOT NULL, 
-  status   nvarchar2(255) NOT NULL CHECK(status IN ('F', 'T')), 
-  arrival  timestamp(0) NOT NULL, 
-  PRIMARY KEY (wagon));
-CREATE TABLE Locomotive_Current_Location (
+CREATE TABLE Wagon_Location (
+  id              number(10) NOT NULL, 
+  wagon           number(10) NOT NULL, 
+  endpoint        number(10) NOT NULL, 
+  status          nvarchar2(255) NOT NULL CHECK(status IN ('F', 'T')), 
+  event_timestamp timestamp(0) NOT NULL, 
+  event_type      varchar2(255) NOT NULL CHECK(event_type IN ('A', 'D', 'P')), 
+  PRIMARY KEY (id, 
+  wagon));
+CREATE TABLE Locomotive_Location (
+  id         number(10) NOT NULL, 
   locomotive number(10) NOT NULL, 
   endpoint   number(10) NOT NULL, 
   status     varchar2(255) NOT NULL CHECK(status IN ('F', 'T')), 
-  arrival    timestamp(0) NOT NULL, 
-  PRIMARY KEY (locomotive));
+  event_time timestamp(0) NOT NULL, 
+  event_type varchar2(255) NOT NULL CHECK(event_type IN ('A', 'D', 'P')), 
+  PRIMARY KEY (id, 
+  locomotive));
 ALTER TABLE Line ADD CONSTRAINT FKLine262396 FOREIGN KEY (owner) REFERENCES Owner (vat);
 ALTER TABLE Line_Segment ADD CONSTRAINT FKLine_Segme425123 FOREIGN KEY (line) REFERENCES Line (id);
 ALTER TABLE Line ADD CONSTRAINT FKLine635842 FOREIGN KEY (endpoint_a) REFERENCES Endpoint (id);
@@ -237,10 +243,10 @@ ALTER TABLE Stop ADD CONSTRAINT FKStop83748 FOREIGN KEY (movement) REFERENCES Tr
 ALTER TABLE Passage ADD CONSTRAINT FKPassage102422 FOREIGN KEY (movement) REFERENCES Train_Movement (id);
 ALTER TABLE Freight_Train ADD CONSTRAINT FKFreight_Tr432283 FOREIGN KEY (freight) REFERENCES Freight (id);
 ALTER TABLE Freight_Train ADD CONSTRAINT FKFreight_Tr820123 FOREIGN KEY (train) REFERENCES Train (id);
-ALTER TABLE Wagon_Current_Location ADD CONSTRAINT FKWagon_Curr785318 FOREIGN KEY (wagon) REFERENCES Wagon (id);
-ALTER TABLE Wagon_Current_Location ADD CONSTRAINT FKWagon_Curr436328 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
-ALTER TABLE Locomotive_Current_Location ADD CONSTRAINT FKLocomotive996456 FOREIGN KEY (locomotive) REFERENCES Locomotive (id);
-ALTER TABLE Locomotive_Current_Location ADD CONSTRAINT FKLocomotive842507 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
+ALTER TABLE Wagon_Location ADD CONSTRAINT FKWagon_Loca55866 FOREIGN KEY (wagon) REFERENCES Wagon (id);
+ALTER TABLE Wagon_Location ADD CONSTRAINT FKWagon_Loca706875 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
+ALTER TABLE Locomotive_Location ADD CONSTRAINT FKLocomotive838517 FOREIGN KEY (locomotive) REFERENCES Locomotive (id);
+ALTER TABLE Locomotive_Location ADD CONSTRAINT FKLocomotive684568 FOREIGN KEY (endpoint) REFERENCES Endpoint (id);
 ALTER TABLE Wagon ADD CONSTRAINT FKWagon261712 FOREIGN KEY (entry_endpoint) REFERENCES Endpoint (id);
 ALTER TABLE Locomotive ADD CONSTRAINT FKLocomotive136342 FOREIGN KEY (entry_endpoint) REFERENCES Endpoint (id);
 CREATE OR REPLACE TRIGGER trg_check_train_length_loco
@@ -386,25 +392,21 @@ CREATE OR REPLACE TRIGGER trg_init_wagon_current_location
 AFTER INSERT ON Wagon
 FOR EACH ROW
 BEGIN
-  INSERT INTO Wagon_Current_Location (wagon, endpoint, status, arrival)
-  VALUES (
-    :NEW.id,
-    :NEW.entry_endpoint,
-    'F',
-    CAST(:NEW.service_start AS TIMESTAMP)
-  );
+  INSERT INTO Wagon_Current_Location
+    (id, wagon, endpoint, status, event_timestamp, event_type)
+  VALUES
+    (1, :NEW.id, :NEW.entry_endpoint, 'F',
+     CAST(:NEW.service_start AS TIMESTAMP), 'A');
 END;
 /
 CREATE OR REPLACE TRIGGER trg_init_locomotive_current_location
 AFTER INSERT ON Locomotive
 FOR EACH ROW
 BEGIN
-  INSERT INTO Locomotive_Current_Location (locomotive, endpoint, status, arrival)
-  VALUES (
-    :NEW.id,
-    :NEW.entry_endpoint,
-    'F',
-    CAST(:NEW.service_start AS TIMESTAMP)
-  );
+  INSERT INTO Locomotive_Location
+    (id, locomotive, endpoint, status, event_time, event_type)
+  VALUES
+    (1, :NEW.id, :NEW.entry_endpoint, 'F',
+     CAST(:NEW.service_start AS TIMESTAMP), 'A');
 END;
 /
