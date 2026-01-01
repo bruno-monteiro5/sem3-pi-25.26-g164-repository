@@ -125,9 +125,9 @@ randomSeed(analogRead(0));
 Serial.begin(9600);
 dht.begin();
 timer.every(TOGGLE_LED_PERIOD, toggle_led);
-timer.every(ATMOSPHERIC_TEMPERATURE_PERIOD, read_atmospheric_temperature);
-timer.every(ATMOSPHERIC_HUMIDITY_PERIOD, read_atmospheric_humidity);
-timer.every(SOIL_HUMIDITY_PERIOD, read_soil_humidity);
+//timer.every(ATMOSPHERIC_TEMPERATURE_PERIOD, read_atmospheric_temperature);
+//timer.every(ATMOSPHERIC_HUMIDITY_PERIOD, read_atmospheric_humidity);
+//timer.every(SOIL_HUMIDITY_PERIOD, read_soil_humidity);
 }
 
 void loop() {
@@ -137,12 +137,13 @@ String cmd = Serial.readStringUntil('\n');
 
 
 if(cmd == "GTH"){
-  Serial.println("Command recieved");
-  read_soil_humidity;
-  read_atmospheric_humidity;
-  read_atmospheric_temperature;
-}else if(cmd[3] == 'R' && cmd[4] == 'E'){
-  if(cmd[7] == '1' && cmd[6] == '0'){
+  read_atmospheric_temperature(nullptr);
+  read_atmospheric_humidity(nullptr);
+  read_soil_humidity(nullptr);
+
+  
+}else if(cmd[0] == 'R' && cmd[1] == 'E'){
+  if(cmd[4] == '1' && cmd[3] == '0'){
   if(digitalRead(RED1PIN) == LOW){
     Serial.println("Turn on the red light");
     digitalWrite(RED1PIN, HIGH);
@@ -150,7 +151,7 @@ if(cmd == "GTH"){
     Serial.println("Turn off the red light");
     digitalWrite(RED1PIN, LOW);
   }
-  }else if(cmd[7]=='2' && cmd[6]=='0'){
+  }else if(cmd[4]=='2' && cmd[3]=='0'){
     if(digitalRead(RED2PIN) == LOW){
     Serial.println("Turn on the red light");
     digitalWrite(RED2PIN, HIGH);
@@ -161,8 +162,8 @@ if(cmd == "GTH"){
   }else{
     Serial.println("Invalid track number");
   }
-}else if(cmd[3] == 'Y' && cmd[4] == 'E'){
-  if(cmd[7] == '1' && cmd[6] == '0'){
+}else if(cmd[0] == 'Y' && cmd[1] == 'E'){
+  if(cmd[4] == '1' && cmd[3] == '0'){
     if(digitalRead(YLL1PIN) == LOW){
     Serial.println("Turn on the yellow light");
     digitalWrite(YLL1PIN, HIGH);
@@ -170,7 +171,7 @@ if(cmd == "GTH"){
     Serial.println("Turn off the yellow light");
     digitalWrite(YLL1PIN, LOW);
     }
-  }else if(cmd[7]=='2' && cmd[6]=='0'){
+  }else if(cmd[4]=='2' && cmd[3]=='0'){
     if(digitalRead(YLL2PIN) == LOW){
     Serial.println("Turn on the yellow light");
     digitalWrite(YLL2PIN, HIGH);
@@ -181,8 +182,8 @@ if(cmd == "GTH"){
   }else{
     Serial.println("Invalid track number");
   }
-}else if(cmd[3] == 'G' && cmd[4] == 'E'){
-  if(cmd[7] == '1' && cmd[6] == '0'){
+}else if(cmd[0] == 'G' && cmd[1] == 'E'){
+  if(cmd[4] == '1' && cmd[3] == '0'){
     if(digitalRead(GRN1PIN) == LOW){
       Serial.println("Turn on the green light");
       digitalWrite(GRN1PIN, HIGH);
@@ -190,7 +191,7 @@ if(cmd == "GTH"){
       Serial.println("Turn off the green light");
       digitalWrite(GRN1PIN, LOW);
     }
-  }else if(cmd[7]=='2' && cmd[6]=='0'){
+  }else if(cmd[4]=='2' && cmd[3]=='0'){
     if(digitalRead(GRN2PIN) == LOW){
       Serial.println("Turn on the green light");
       digitalWrite(GRN2PIN, HIGH);
@@ -202,13 +203,13 @@ if(cmd == "GTH"){
     Serial.println("Invalid track number");
   }
 
-}else if(cmd[3] == 'R' && cmd[4] == 'B'){
-  if(cmd[7] == '1' && cmd[6] == '0'){
+}else if(cmd[0] == 'R' && cmd[1] == 'B'){
+  if(cmd[4] == '1' && cmd[3] == '0'){
     Serial.println("Blink the red light");
     digitalWrite(RED1PIN, HIGH);
     delay(500);
     digitalWrite(RED1PIN, LOW);
-  }else if(cmd[7]=='2' && cmd[6]=='0'){
+  }else if(cmd[4]=='2' && cmd[3]=='0'){
     Serial.println("Blink the red light");
     digitalWrite(RED2PIN, HIGH);
     delay(500);
