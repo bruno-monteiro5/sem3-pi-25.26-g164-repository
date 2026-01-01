@@ -5,105 +5,106 @@
 #include <unistd.h>
 #include <termios.h>
 #include <errno.h>
+#include <stdlib.h>
 #include "format_command.h"
-
-int main(){ 
-	char pass_corr[] = "VGYYCUXJKX"; 
-	char uss_corr[] = "admin";
-	int key = 6; 
-	printf("Insert username\n"); 
-	printf("Username:"); 
-	char uss[16]; 
-	char pass[32]; 
-	scanf("%s",uss);
-	while(strcmp(uss, uss_corr)!= 0){
-		printf("The username entered does not exist\n");
-		printf("Please enter your username again: ");
-		scanf("%s", uss);
-	} 
-	printf("Insert password\n"); 
-	printf("Password:"); 
-	scanf("%s", pass); 
-	char passe[] = ""; 
-	int m = encrypt_data((unsigned char *)&pass, key,(unsigned char *)&passe); 
-	while(m!=1 && strcmp(passe, pass_corr) != 0){ 
-		printf("Your password is written in a invalid manner and/or is incorrect, please try again, and remember:\n"); 
-		printf("####1: Only use members of the english alphabet when writing your password attempt. No special characters and/or numbers####\n"); 
-		printf("####2: All letters of the password attempt should be capital\n"); 
-		printf("Enter your password again please: "); 
-		scanf("%s", pass);
-		m = encrypt_data((unsigned char *)&pass, key,(unsigned char *)&passe); 
-	}
-	printf("####MANAGER MENU####\n");
-	printf("                   ||\n");
-	printf("                   ||\n");
-	printf("            (  )   ||   (   )  )\n");
-	printf("             ) (   ||   )  (  (\n");
-	printf("             ( )  (||) (    ) )\n");
-	printf("              ________________________________\n");
-	printf("             |        ________                |_____\n");
-	printf("             |       |        |               |_____|]\n");
-	printf("             |_______|________|_______________|_____|]\n");
-	printf("             |________________________________________\\\n");
-	printf("              \\________________________________________\\\n");
-	printf("                 (OOOOOO)   (OOOOOO)   (OOOOOO)\n");
-	printf("                (OOOOOOOO) (OOOOOOOO) (OOOOOOOO)\n");
-	printf("                 (OOOOOO)   (OOOOOO)   (OOOOOO)\n");
+int main() {
+    char uss_corr[] = "admin";
+    char pass_corr[] = "VGYYCUXJKX";
+    int key = 6;
+    char uss[16], pass[32], passe[32];
+    char opt, opt2;
+    printf("Please insert your username: ");
+    scanf("%s", uss);
+    while (strcmp(uss, uss_corr) != 0) {
+        printf("Invalid username, please insert it again!: ");
+        scanf("%s", uss);
+    }
+    printf("Please insert your password: ");
+    scanf("%s", pass);
+    int m = encrypt_data(pass, key, passe);
+    while (m != 1 || strcmp(passe, pass_corr) != 0) {
+        printf("Invalid password, please insert it again!: ");
+        scanf("%s", pass);
+        m = encrypt_data(pass, key, passe);
+    }
+	printf("####MANAGER MENU####\n"); 
+	printf(" ||\n"); 
+	printf(" ||\n"); 
+	printf(" ( ) || ( ) )\n"); 
+	printf(" ) ( || ) ( (\n"); 
+	printf(" ( ) (||) ( ) )\n"); 
+	printf(" ________________________________\n"); 
+	printf(" | ________ |_____\n"); 
+	printf(" | | | |_____|]\n"); 
+	printf(" |_______|________|_______________|_____|]\n"); 
+	printf(" |________________________________________\\\n"); 
+	printf(" \\________________________________________\\\n"); 
+	printf(" (OOOOOO) (OOOOOO) (OOOOOO)\n"); 
+	printf(" (OOOOOOOO) (OOOOOOOO) (OOOOOOOO)\n"); 
+	printf(" (OOOOOO) (OOOOOO) (OOOOOO)\n"); 
 	printf("####OPTIONS####\n");
-	printf("1): Comunicate with the arduino\n");
-	char opt;
-	printf("Please enter your option: ");
-	scanf("%s", opt);
-	while(opt<1 && opt>1){
-		printf("Invalid option, please enter another: ");
-		scanf("%c", opt);
-	}
-	
+	do{	
+    	printf("1) Communicate with Arduino\n2) Exit\n");
+    	printf("Choice: ");
+    	scanf(" %c", &opt);
+    	if (opt == '1') {
+        	int sp = open("/dev/ttyS0", O_RDWR);
+        	if (sp < 0) return 1;
+		struct termios tty;
+		memset(&tty, 0, sizeof tty);
+		if (tcgetattr(sp, &tty) != 0) return 1;
+		cfsetispeed(&tty, B9600);
+		cfsetospeed(&tty, B9600);
+		
+        	do {
+            		printf("1) LED\n2) Sensor\n3) Exit\n");
+            		scanf(" %c", &opt2);
+            		if (opt2 == '1') {
+                		char cmd[8], out[16];
+                		int track;
+                		printf("Command (RE YE GE RB or cancel): ");
+                		scanf("%s", cmd);
+                		if (!strcmp(cmd, "cancel")) break;
+                		printf("Track: ");
+                		scanf("%d", &track);
+				int r = format_command(cmd, track, out);
+				
+                		while(r!=1){
+                			printf("Invalid command, type it again!\n");
+                			printf("Command (RE YE GE RB or cancel): ");
+                                        scanf("%s", cmd);
+                                        if (!strcmp(cmd, "cancel")) break;
+                                        printf("Track: ");
+                			scanf("%d", &track);
+                			r = format_command(cmd, track, out);
+                		}
+                		write(sp, out, sizeof(out));
+                		char resp[256];
+                		int re = read(sp, &resp, sizeof(resp));
+                		if(re>0) printf("Recieved message: %.*s\n", re, resp);
+            		}else if(opt2 == '2'){
+            		        char cmd[8] = "", out[16];
+            		        
+            		        
+							while(strcmp(cmd, "cancel")!=0){
+								printf("Insert the sensor command(or cancel to return to the former area): ");
+								scanf("%s", cmd);
+					                                
+								int r = format_command(cmd, 0, out);
+								while(r!=1 && strcmp(out, "GTH") != 0){
+									printf("Invalid command, please insert it again: ");
+									scanf("%s", cmd);
+									r = format_command(cmd, 0, out);
+								}
+								write(sp, out, sizeof(out));
+								char resp[256];
+								int re = read(sp, &resp, sizeof(resp));
+								if(re>0) printf("Recieved message: %.*s\n", re, resp);
+							}
+            		}
+        	} while (opt2 != '3');
+			close(sp);
+		}
+    } while (opt != '2');
+    return 0;
 }
-
-int open_serial(char *device) {
-    int fd = open(device, O_RDWR | O_NOCTTY | O_SYNC);
-    if (fd < 0) {
-        perror("open");
-        return -1;
-    }
-
-    struct termios tty;
-    if (tcgetattr(fd, &tty) != 0) {
-        perror("tcgetattr");
-        close(fd);
-        return -1;
-    }
-
-    cfsetospeed(&tty, B9600);
-    cfsetispeed(&tty, B9600);
-
-    tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;
-    tty.c_iflag = 0;
-    tty.c_oflag = 0;
-    tty.c_lflag = 0;
-
-    tty.c_cc[VMIN]  = 1;
-    tty.c_cc[VTIME] = 5;
-
-    tcsetattr(fd, TCSANOW, &tty);
-    return fd;
-}
-
-void send_cmd(int fd, const char *cmd) {
-    write(fd, cmd, strlen(cmd));
-}
-
-void read_response(int fd) {
-    char buf[256];
-    int n = read(fd, buf, sizeof(buf) - 1);
-    if (n > 0) {
-        buf[n] = '\0';
-        printf("Arduino: %s\n", buf);
-    }
-}
-
-
-
-
-

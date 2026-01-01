@@ -3,15 +3,17 @@ CFLAGS=-Wall -Wextra -fanalyzer -g
 ARCHFLAGS=-march=rv32imd -mabi=ilp32d
 LIBRV32=${HOME}/bin/bootlin/riscv32-buildroot-linux-gnu/sysroot
 
-program.elf: main.o encrypt_data.o 
-	$(CC) $(CFLAGS) $(ARCHFLAGS) main.o encrypt_data.o -o program.elf
+program.elf: main.o encrypt_data.o format_command.o
+	$(CC) $(CFLAGS) $(ARCHFLAGS) main.o encrypt_data.o format_command.o -o program.elf
 
-main.o: main.c encrypt_data.h 
+main.o: main.c encrypt_data.h format_command.h
 	$(CC) $(CFLAGS) $(ARCHFLAGS) -c main.c 
 
 encrypt_data.o: encrypt_data.s encrypt_data.h
 	$(CC) $(CFLAGS) $(ARCHFLAGS) -c encrypt_data.s 
 
+format_command.o: format_command.s format_command.h
+	$(CC) $(CFLAGS) $(ARCHFLAGS) -c format_command.s
 clean:
 	rm -f *.o *.elf .gdbinit 
 
