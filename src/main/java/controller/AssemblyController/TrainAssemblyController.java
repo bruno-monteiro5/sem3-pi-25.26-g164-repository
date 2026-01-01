@@ -3,7 +3,7 @@ package controller.AssemblyController;
 import domain.railway.*;
 import repository.*;
 
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -49,6 +49,17 @@ public class TrainAssemblyController {
 
         return result;
     }
+
+    /** Returns the current endpoint where a locomotive is located (from Locomotive_Current_Location). */
+    public Endpoint getLocomotiveCurrentEndpoint(int locomotiveId) throws SQLException {
+        for (LocomotiveLocation loc : locationRepo.getAllLocomotiveLocations()) {
+            if (loc.getLocomotiveId() == locomotiveId) {
+                return loc.getCurrentEndpoint();
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Gets locomotives sorted by distance from route start, showing status.
