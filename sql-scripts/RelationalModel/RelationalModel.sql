@@ -392,7 +392,7 @@ CREATE OR REPLACE TRIGGER trg_init_wagon_current_location
 AFTER INSERT ON Wagon
 FOR EACH ROW
 BEGIN
-  INSERT INTO Wagon_Current_Location
+  INSERT INTO Wagon_Location
     (id, wagon, endpoint, status, event_timestamp, event_type)
   VALUES
     (1, :NEW.id, :NEW.entry_endpoint, 'F',
