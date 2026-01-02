@@ -1,28 +1,21 @@
 package ui.FreightUI;
 
 import controller.FreightController.RoutePlannerController;
+import controller.FreightController.RoutePlannerController.FreightChain;
 import domain.railway.Freight;
-import domain.railway.RoutePlan;
+import domain.railway.Path;
 import domain.railway.RouteOperation;
-import domain.railway.Endpoint;
+import domain.railway.RoutePlan;
+import domain.railway.Train;
 import ui.MainMenu;
 import ui.UIHelper;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Text-based user interface for the Route Planner (USLP08).
- * <p>
- * USLP08 – As Freight Manager, I want to use a route planner to define/assign routes
- * in order to accomplish a list of pending freights. A route can be simple or complex.
- * <p>
- * Acceptance Criteria:
- * - A list with the sequence of stations and the cargos to be loaded/unloaded should be presented
- */
 public class RoutePlannerUI implements Runnable {
+
     private final RoutePlannerController controller;
     private final Scanner scanner;
 
@@ -31,6 +24,7 @@ public class RoutePlannerUI implements Runnable {
     private static final String RED    = UIHelper.getRed();
     private static final String GREEN  = UIHelper.getGreen();
     private static final String YELLOW = UIHelper.getYellow();
+    private static final String SEP = "─";
 
     public RoutePlannerUI() {
         this.controller = new RoutePlannerController();
@@ -39,236 +33,199 @@ public class RoutePlannerUI implements Runnable {
 
     @Override
     public void run() {
+        boolean exit = false;
+
+        while (!exit) {
+            printMainMenu();
+            int option = readOption();
+
+            switch (option) {
+                case 1 -> planPathForPendingTrain();
+                case 2 -> listPendingTrains();
+                case 0 -> exit = true;
+                default -> System.out.println(RED + "❌ Invalid option!" + RESET);
+            }
+        }
+
+        System.out.println(GREEN + "\n✓ Returning to main menu..." + RESET);
+        MainMenu.menu();
+    }
+
+    private void printMainMenu() {
+        System.out.println("\n" + CYAN + line(72));
+        System.out.println("                    ROUTE PLANNER - USLP08");
+        System.out.println(line(72) + RESET);
+        System.out.println("1. Plan/assign Path for a Train (UNASSIGNED)");
+        System.out.println("2. View pending trains (UNASSIGNED)");
+        System.out.println("0. " + RED + "Return to main menu" + RESET + " ");
+        System.out.println(CYAN + line(72) + RESET);
+        System.out.print("➤ Select option: ");
+    }
+
+    private void listPendingTrains() {
         try {
-            UIHelper.clear();
-            UIHelper.printHeader("ROUTE PLANNER (USLP08)");
-            System.out.println();
+            List<Train> trains = controller.getTrainsWithUnassignedPath();
 
-            // 1. Read number of freights to plan
-            int numFreights = readNumberOfFreights();
-            if (numFreights <= 0) {
-                returnToMainMenu();
-                return;
-            }
+            System.out.println("\n" + CYAN + "PENDING TRAINS (path = UNASSIGNED)" + RESET);
+            System.out.println(line(72));
 
-            // 2. Collect details for each freight
-            List<Freight> freightList = collectFreights(numFreights);
-            if (freightList == null) {
-                returnToMainMenu();
-                return;
-            }
-
-            // 3. Generate the route plan using the controller
-            System.out.println("\n" + CYAN + "⏳ Calculating route plan..." + RESET);
-            RoutePlan routePlan = controller.planRoute(freightList);
-
-            // 4. Display the route plan result
-            displayRoutePlan(routePlan);
-
-        } catch (IllegalArgumentException e) {
-            System.out.println(RED + "❌ " + e.getMessage() + RESET);
-        } catch (Exception e) {
-            System.out.println(RED + "❌ Unexpected error: " + e.getMessage() + RESET);
-            e.printStackTrace();
-        } finally {
-            UIHelper.pause();
-            returnToMainMenu();
-        }
-    }
-
-    /**
-     * Prompts the user to enter the number of pending freights to include in the route.
-     * Allows cancellation by entering 0.
-     *
-     * @return the number of freights (or 0 if the operation was canceled)
-     */
-    private int readNumberOfFreights() {
-        int num = -1;
-        while (true) {
-            System.out.print(CYAN + "➤ " + RESET + "Enter the number of pending freights to plan (0 to cancel): ");
-            String input = scanner.nextLine().trim();
-
-            if (input.isEmpty()) {
-                continue;
-            }
-
-            try {
-                num = Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.println(RED + "❌ Invalid number!" + RESET);
-                continue;
-            }
-
-            if (num < 0) {
-                System.out.println(RED + "❌ Number of freights cannot be negative!" + RESET);
-                continue;
-            }
-
-            break;
-        }
-        return num;
-    }
-
-    /**
-     * Collects freight information from the user.
-     * For the first freight, asks for both origin and destination.
-     * For subsequent freights, the origin is the previous freight's destination (chaining).
-     *
-     * @param numFreights number of freights to collect
-     * @return list of Freight objects, or null if user cancels
-     */
-    private List<Freight> collectFreights(int numFreights) {
-        List<Freight> freightList = new ArrayList<Freight>();
-
-        for (int i = 1; i <= numFreights; i++) {
-            System.out.println();
-            System.out.println(CYAN + UIHelper.line(72));
-            System.out.println("Freight " + i + " of " + numFreights);
-            System.out.println(UIHelper.line(72) + RESET);
-
-            if (i == 1) {
-                // First freight: ask origin and destination
-                System.out.print(CYAN + "➤ " + RESET + "Enter origin station name: ");
-                String originName = scanner.nextLine().trim();
-
-                if (originName.isEmpty()) {
-                    System.out.println(RED + "❌ Origin station cannot be empty!" + RESET);
-                    return null;
-                }
-
-                System.out.print(CYAN + "➤ " + RESET + "Enter destination station name: ");
-                String destName = scanner.nextLine().trim();
-
-                if (destName.isEmpty()) {
-                    System.out.println(RED + "❌ Destination station cannot be empty!" + RESET);
-                    return null;
-                }
-
-                // Create endpoints (using simple IDs for in-memory demo)
-                Endpoint origin = new Endpoint(i * 2 - 1, originName, 0);
-                Endpoint destination = new Endpoint(i * 2, destName, 0);
-                Freight freight = new Freight(i, LocalDate.now(), origin, destination);
-                freightList.add(freight);
-
-                System.out.println(GREEN + "✓ Freight " + i + " added: " + originName + " → " + destName + RESET);
-
+            if (trains.isEmpty()) {
+                System.out.println(YELLOW + "⚠️  No trains with UNASSIGNED path." + RESET);
             } else {
-                // Subsequent freight: origin is the previous freight's destination
-                Freight prevFreight = freightList.get(freightList.size() - 1);
-                Endpoint chainOrigin = prevFreight.getDestination();
-
-                System.out.println("Origin: " + YELLOW + chainOrigin.getName() + RESET + " (from previous freight)");
-                System.out.print(CYAN + "➤ " + RESET + "Enter destination station name: ");
-                String destName = scanner.nextLine().trim();
-
-                if (destName.isEmpty()) {
-                    System.out.println(RED + "❌ Destination station cannot be empty!" + RESET);
-                    return null;
+                for (Train t : trains) {
+                    System.out.println("• Train " + t.getId() + " | date=" + t.getDate() + " | time=" + t.getDepartureTime());
                 }
-
-                // Create new endpoint for this freight's destination
-                Endpoint destination = new Endpoint(i * 2, destName, 0);
-                Freight freight = new Freight(i, LocalDate.now(), chainOrigin, destination);
-                freightList.add(freight);
-
-                System.out.println(GREEN + "✓ Freight " + i + " added: " + chainOrigin.getName() + " → " + destName + RESET);
             }
-        }
 
-        return freightList;
+            System.out.println(line(72));
+        } catch (SQLException e) {
+            System.err.println(RED + "❌ DB error: " + e.getMessage() + RESET);
+        }
+        pause();
     }
 
-    /**
-     * Displays the route plan results: the sequence of stations and the freights to load/unload at each.
-     *
-     * @param routePlan the RoutePlan to display
-     */
-    private void displayRoutePlan(RoutePlan routePlan) {
-        UIHelper.clear();
-        UIHelper.printHeader("ROUTE PLANNING RESULTS");
-        System.out.println();
+    private void planPathForPendingTrain() {
+        try {
+            List<Train> trains = controller.getTrainsWithUnassignedPath();
+            if (trains.isEmpty()) {
+                System.out.println(YELLOW + "⚠️  No trains with UNASSIGNED path." + RESET);
+                pause();
+                return;
+            }
 
-        List<RouteOperation> ops = routePlan.getOperations();
+            System.out.println("\n" + CYAN + "SELECT A TRAIN" + RESET);
+            for (int i = 0; i < trains.size(); i++) {
+                Train t = trains.get(i);
+                System.out.printf("%d) Train %d | %s %s%n", i + 1, t.getId(), t.getDate(), t.getDepartureTime());
+            }
+            System.out.println("0) Cancel");
+            System.out.print("➤ Choice: ");
+            int idx = readOption() - 1;
+            if (idx == -1) return;
+            if (idx < 0 || idx >= trains.size()) {
+                System.out.println(RED + "❌ Invalid train selection." + RESET);
+                pause();
+                return;
+            }
 
-        if (ops.isEmpty()) {
-            System.out.println(YELLOW + "No operations in route plan." + RESET);
-            return;
+            Train chosen = trains.get(idx);
+
+            List<Freight> freights = controller.getFreightsByTrain(chosen.getId());
+            if (freights.isEmpty()) {
+                System.out.println(RED + "❌ Train has no freights associated." + RESET);
+                pause();
+                return;
+            }
+
+            System.out.println("\n" + CYAN + "TRAIN " + chosen.getId() + " FREIGHTS" + RESET);
+            System.out.println(line(72));
+            for (Freight f : freights) {
+                System.out.println("• Freight " + f.getId() + " | " + f.getOrigin().getName() + " → " + f.getDestination().getName());
+            }
+            System.out.println(line(72));
+
+            List<FreightChain> chains = controller.buildChains(freights);
+            if (chains.isEmpty()) {
+                System.out.println(RED + "❌ Could not build any route chain." + RESET);
+                pause();
+                return;
+            }
+
+            System.out.println("\n" + CYAN + "CANDIDATE ROUTES (CHAINS)" + RESET);
+            for (int i = 0; i < chains.size(); i++) {
+                FreightChain c = chains.get(i);
+                System.out.printf("%d) %s%n", i + 1, c.toString());
+            }
+            System.out.println("0) Cancel");
+            System.out.print("➤ Choose chain: ");
+            int cidx = readOption() - 1;
+            if (cidx == -1) return;
+            if (cidx < 0 || cidx >= chains.size()) {
+                System.out.println(RED + "❌ Invalid chain selection." + RESET);
+                pause();
+                return;
+            }
+
+            FreightChain selected = chains.get(cidx);
+            RoutePlan plan = controller.planRouteForChain(selected);
+            displayRoutePlan(plan);
+
+            System.out.print("\n➤ Save this chain as Path and assign to Train " + chosen.getId() + "? (y/n): ");
+            if (!scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                System.out.println(YELLOW + "⚠️  Not saved." + RESET);
+                pause();
+                return;
+            }
+
+            String pathName = askNonEmpty("➤ Path name (0 to cancel): ");
+            if (pathName == null) {
+                System.out.println(YELLOW + "⚠️  Cancelled." + RESET);
+                pause();
+                return;
+            }
+
+            Path path = controller.savePlanAsPathAndAssignToTrain(chosen.getId(), pathName, plan);
+
+            System.out.println(GREEN + "\n✓ Path created and assigned!" + RESET);
+            System.out.println("   • Train: " + chosen.getId());
+            System.out.println("   • Path id: " + path.getId());
+            System.out.println("   • Path name: " + path.getName());
+
+        } catch (SQLException e) {
+            System.err.println(RED + "❌ DB error: " + e.getMessage() + RESET);
+        } catch (IllegalArgumentException e) {
+            System.err.println(RED + "❌ Error: " + e.getMessage() + RESET);
         }
-
-        System.out.println(GREEN + "✓ Route plan generated successfully" + RESET);
-        System.out.println();
-        System.out.println("Sequence of stations and cargo operations:");
-        System.out.println(UIHelper.line(72));
-
-        // Group operations by station for better readability
-        int stopNumber = 1;
-        int i = 0;
-
-        while (i < ops.size()) {
-            RouteOperation currentOp = ops.get(i);
-            String stationName = currentOp.getStation().getName();
-
-            // Collect all operations at this station
-            List<String> stationOps = new ArrayList<String>();
-
-            while (i < ops.size() && ops.get(i).getStation().equals(currentOp.getStation())) {
-                RouteOperation op = ops.get(i);
-                String opStr = formatOperation(op);
-                stationOps.add(opStr);
-                i++;
-            }
-
-            // Print station stop with all operations
-            System.out.printf("%s%d. %s%s\n", CYAN, stopNumber, stationName, RESET);
-
-            for (int j = 0; j < stationOps.size(); j++) {
-                String op = stationOps.get(j);
-                System.out.println("   " + op);
-            }
-
-            if (i < ops.size()) {
-                System.out.println("   " + YELLOW + "↓" + RESET);
-            }
-
-            stopNumber++;
-        }
-
-        System.out.println(UIHelper.line(72));
-        System.out.printf("\nTotal stops: %d\n", stopNumber - 1);
+        pause();
     }
 
-    /**
-     * Formats a RouteOperation for display.
-     *
-     * @param op the operation to format
-     * @return formatted string representation
-     */
-    private String formatOperation(RouteOperation op) {
-        String symbol;
-        String color;
+    private void displayRoutePlan(RoutePlan plan) {
+        System.out.println("\n" + CYAN + "ROUTE PLAN (Stations + LOAD/UNLOAD)" + RESET);
+        System.out.println(line(72));
 
-        if (op.getType() == RouteOperation.Type.LOAD) {
-            symbol = "↑";
-            color = GREEN;
-        } else {
-            symbol = "↓";
-            color = RED;
+        for (RouteOperation op : plan.getOperations()) {
+            String t = (op.getType() == RouteOperation.Type.LOAD) ? "LOAD" : "UNLOAD";
+            String arrow = (op.getType() == RouteOperation.Type.LOAD) ? "⬆" : "⬇";
+
+            System.out.printf("%s %-6s | %-20s | Freight %-6d | %s → %s%n",
+                    arrow,
+                    t,
+                    op.getStation().getName(),
+                    op.getFreight().getId(),
+                    op.getFreight().getOrigin().getName(),
+                    op.getFreight().getDestination().getName()
+            );
         }
 
-        return String.format("%s%s %s Freight %d%s (%s → %s)",
-                color,
-                symbol,
-                op.getType() == RouteOperation.Type.LOAD ? "Load" : "Unload",
-                op.getFreight().getId(),
-                RESET,
-                op.getFreight().getOrigin().getName(),
-                op.getFreight().getDestination().getName());
+        System.out.println(line(72));
     }
 
-    /**
-     * Returns to the main menu by running the MainMenu.
-     */
-    private void returnToMainMenu() {
-        new MainMenu().run();
+    private String askNonEmpty(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String s = scanner.nextLine().trim();
+            if (s.equals("0")) return null;
+            if (!s.isEmpty()) return s;
+            System.out.println(RED + "❌ Value cannot be empty." + RESET);
+        }
+    }
+
+    private int readOption() {
+        try {
+            return Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private void pause() {
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
+    }
+
+    private static String line(int n) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; i++) sb.append(SEP);
+        return sb.toString();
     }
 }
