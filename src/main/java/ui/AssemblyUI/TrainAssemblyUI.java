@@ -3,15 +3,14 @@ package ui.AssemblyUI;
 import controller.AssemblyController.TrainAssemblyController;
 import controller.AssemblyController.TrainAssemblyController.LocomotiveWithDetails;
 import controller.AssemblyController.TrainAssemblyController.WagonWithDetails;
+import controller.FreightController.RoutePlannerController;
 import domain.railway.*;
 import repository.RailwayRepository;
 import ui.MainMenu;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * User Interface for USLP09 - Train Assembly.
@@ -110,7 +109,7 @@ public class TrainAssemblyUI implements Runnable {
             }
 
             // Step 4: Suggest wagons (FREE + not in Wagon_Freight), ordered by distance to leader locomotive
-            List<WagonWithDetails> availableWagons = controller.getWagonsByProximity(leaderEndpoint);
+            List<WagonWithDetails> availableWagons = controller.getFreeWagonsByProximity(leaderEndpoint);
             if (availableWagons.isEmpty()) {
                 System.out.println(RED + "❌ No FREE wagons available for reservation." + RESET);
                 return;
@@ -136,7 +135,69 @@ public class TrainAssemblyUI implements Runnable {
             }
 
             assignLocomotivesToTrain(trainId, selectedLocoIds);
-            persistFreightsAndWagons(trainId, trainDate, freightRequests, selectedWagons);
+            List<Freight> createdFreights = persistFreightsAndWagons(trainId, trainDate, freightRequests, selectedWagons);
+
+            // >>> USLP08 AUTO (plan + show + confirm/alter) <<<
+            try {
+                Endpoint pickup = selectedWagons.get(0).location.getCurrentEndpoint();
+
+                RoutePlannerController planner = new RoutePlannerController();
+                List<Endpoint> proposed = planner.autoPlanPreview(
+                        leaderLocoId,
+                        pickup,
+                        createdFreights
+                );
+
+                System.out.println("\n" + CYAN + "═".repeat(72) + RESET);
+                System.out.println(CYAN + "              USLP08 - PROPOSED ROUTE (PREVIEW)" + RESET);
+                System.out.println(CYAN + "═".repeat(72) + RESET);
+
+                // SHOW ROUTE + ACTIONS (pickup/load/unload)
+                printRouteWithActions(proposed, pickup, createdFreights);
+
+                System.out.print("\n➤ Accept this route? (y = accept / e = edit / n = skip): ");
+                String opt = scanner.nextLine();
+                opt = (opt == null) ? "" : opt.trim().toLowerCase();
+
+                if (opt.equals("y")) {
+                    String autoPathName = "AUTO_TRAIN_" + trainId;
+                    planner.saveConnectedPathAndAssign(trainId, autoPathName, proposed, pickup, createdFreights);
+                    System.out.println(GREEN + "✅ USLP08: Route saved and assigned to Train." + RESET);
+
+                } else if (opt.equals("e")) {
+                    System.out.println("\nWrite the route as endpoint IDs separated by spaces (example: 7 6 5 4 3 2 1 2 3 4 5 6 7)");
+                    System.out.print("➤ Route IDs: ");
+                    String line = scanner.nextLine().trim();
+
+                    List<Endpoint> manual = planner.parseEndpointsFromIds(line);
+                    List<Endpoint> fixed = planner.ensureConnected(manual);
+
+                    System.out.println("\nFinal connected route to save:");
+                    printRouteWithActions(fixed, pickup, createdFreights);
+
+                    System.out.print("\n➤ Save this route? (y/n): ");
+                    if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                        String pathName = "MANUAL_TRAIN_" + trainId;
+                        planner.saveConnectedPathAndAssign(trainId, pathName, fixed, pickup, createdFreights);
+                        System.out.println(GREEN + "✅ USLP08: Manual route saved and assigned to Train." + RESET);
+                    } else {
+                        System.out.println(YELLOW + "⚠️ Route not saved. Train remains with UNASSIGNED path." + RESET);
+                    }
+
+                } else {
+                    System.out.println(YELLOW + "⚠️ Skipped route planning. Train remains with UNASSIGNED path." + RESET);
+                }
+
+            } catch (SQLException ex) {
+                System.out.println(RED + "❌ USLP08 DB error: " + ex.getMessage() + RESET);
+                System.out.println("   Train may remain with UNASSIGNED path.");
+            } catch (RuntimeException ex) {
+                // This is likely UI/input/framework related (often happens after DB already committed).
+                System.out.println(YELLOW + "⚠️ USLP08 planning/UI error: " + ex.getMessage() + RESET);
+                System.out.println("   Note: DB may still have been updated correctly.");
+                ex.printStackTrace(); // remove after you identify the source
+            }
+            // <<< END USLP08 AUTO
 
             System.out.println(GREEN + "\n✅ Train " + trainId + " successfully assembled!" + RESET);
             System.out.println("   • " + selectedLocoIds.size() + " locomotive(s) assigned");
@@ -150,6 +211,50 @@ public class TrainAssemblyUI implements Runnable {
         System.out.println("\nPress Enter to continue...");
         scanner.nextLine();
     }
+
+    // ==================== ROUTE PRINTING WITH ACTIONS  ====================
+
+    private void printRouteWithActions(List<Endpoint> route, Endpoint pickup, List<Freight> freights) {
+        Set<Integer> pickupShownAtEndpoint = new HashSet<>();
+        Set<Integer> loadShownFreightIds = new HashSet<>();
+        Set<Integer> unloadShownFreightIds = new HashSet<>();
+
+        for (int i = 0; i < route.size(); i++) {
+            Endpoint e = route.get(i);
+
+            List<String> acts = new ArrayList<>();
+
+            if (pickup != null && e.getId() == pickup.getId() && !pickupShownAtEndpoint.contains(e.getId())) {
+                acts.add("PICKUP WAGONS");
+                pickupShownAtEndpoint.add(e.getId());
+            }
+
+            if (freights != null) {
+                for (Freight f : freights) {
+
+                    if (e.getId() == f.getOrigin().getId() && !loadShownFreightIds.contains(f.getId())) {
+                        acts.add("LOAD Freight " + f.getId() + " (" +
+                                f.getOrigin().getName() + "→" + f.getDestination().getName() + ")");
+                        loadShownFreightIds.add(f.getId());
+                    }
+
+                    if (e.getId() == f.getDestination().getId() && !unloadShownFreightIds.contains(f.getId())) {
+                        acts.add("UNLOAD Freight " + f.getId() + " (" +
+                                f.getOrigin().getName() + "→" + f.getDestination().getName() + ")");
+                        unloadShownFreightIds.add(f.getId());
+                    }
+                }
+            }
+
+            if (acts.isEmpty()) {
+                System.out.printf("  %2d) %s (id=%d)%n", (i + 1), e.getName(), e.getId());
+            } else {
+                System.out.printf("  %2d) %s (id=%d)  <-- %s%n",
+                        (i + 1), e.getName(), e.getId(), String.join(" | ", acts));
+            }
+        }
+    }
+
 
     // ==================== TRAIN + FREIGHTS & WAGONS (USLP09) ====================
 
@@ -170,8 +275,6 @@ public class TrainAssemblyUI implements Runnable {
 
     private TrainCreation createTrain() throws SQLException {
         System.out.println("\n" + CYAN + "🧩 CREATE TRAIN" + RESET);
-        System.out.println("Operator (fixed): Medway (VAT = " + DEFAULT_OPERATOR_VAT + ")");
-        System.out.println("Max length (fixed): " + DEFAULT_MAX_LENGTH);
 
         int trainId;
         while (true) {
@@ -373,7 +476,6 @@ public class TrainAssemblyUI implements Runnable {
             }
         }
 
-        // Final validation: allow returning even if below (user choice), BUT we will block in persist step
         return selected;
     }
 
@@ -390,15 +492,19 @@ public class TrainAssemblyUI implements Runnable {
         }
     }
 
-    private void persistFreightsAndWagons(int trainId,
-                                          LocalDate trainDate,
-                                          List<FreightRequest> requests,
-                                          List<WagonWithDetails> selectedWagons) throws SQLException {
+    private List<Freight> persistFreightsAndWagons(int trainId,
+                                                   LocalDate trainDate,
+                                                   List<FreightRequest> requests,
+                                                   List<WagonWithDetails> selectedWagons) throws SQLException {
+
+        List<Freight> created = new ArrayList<>();
 
         int wagonCursor = 0;
         for (FreightRequest req : requests) {
             int freightId = railwayRepo.createFreight(trainDate, req.origin.getId(), req.destination.getId());
             railwayRepo.assignFreightToTrain(freightId, trainId);
+
+            created.add(new Freight(freightId, trainDate, req.origin, req.destination));
 
             double cap = 0.0;
             while (cap < req.tons && wagonCursor < selectedWagons.size()) {
@@ -408,10 +514,14 @@ public class TrainAssemblyUI implements Runnable {
             }
 
             if (cap < req.tons) {
-                throw new SQLException("Not enough wagons to allocate freight " + req.origin.getName() + "→" + req.destination.getName());
+                throw new SQLException("Not enough wagons to allocate freight " +
+                        req.origin.getName() + "→" + req.destination.getName());
             }
         }
+
+        return created;
     }
+
 
     private List<Integer> selectLocomotives() throws SQLException {
         List<Integer> selectedIds = new ArrayList<>();

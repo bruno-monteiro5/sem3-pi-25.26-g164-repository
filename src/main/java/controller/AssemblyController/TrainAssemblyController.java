@@ -102,12 +102,13 @@ public class TrainAssemblyController {
      */
     public List<WagonWithDetails> getAvailableWagons() throws SQLException {
         List<WagonLocation> locations = locationRepo.getAllWagonLocations();
-
         List<WagonWithDetails> result = new ArrayList<>();
 
         for (WagonLocation loc : locations) {
-            // Load full wagon details from railway repository
-            // (You'll need to add this method to RailwayRepository)
+            if (!loc.isFree()) continue;
+
+            if (railwayRepo.isWagonAssignedToAnyFreight(loc.getWagonId())) continue;
+
             Wagon wagon = railwayRepo.getWagonById(loc.getWagonId());
             if (wagon != null) {
                 result.add(new WagonWithDetails(wagon, loc));
@@ -117,32 +118,23 @@ public class TrainAssemblyController {
         return result;
     }
 
+
     /**
      * Gets wagons sorted by distance from route start.
      */
-    public List<WagonWithDetails> getWagonsByProximity(Endpoint routeStart)
+    public List<WagonWithDetails> getFreeWagonsByProximity(Endpoint routeStart)
             throws SQLException {
 
-        List<WagonWithDetails> all = getAvailableWagons();
+        List<WagonWithDetails> free = getAvailableWagons();
 
-        List<WagonWithDetails> free = all.stream()
-                .filter(wd -> wd.location.isFree())
-                .collect(Collectors.toList());
-
-        List<WagonWithDetails> inTransit = all.stream()
-                .filter(wd -> wd.location.isInTransit())
-                .collect(Collectors.toList());
-
+        // Ordenar por proximidade à locomotiva líder
         free.sort(Comparator.comparingDouble(
                 wd -> wd.location.distanceFrom(routeStart)
         ));
 
-        List<WagonWithDetails> result = new ArrayList<>();
-        result.addAll(free);
-        result.addAll(inTransit);
-
-        return result;
+        return free;
     }
+
 
     // ==================== HELPER CLASSES ====================
 

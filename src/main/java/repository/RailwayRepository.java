@@ -1,5 +1,6 @@
 package repository;
 
+import domain.Location;
 import domain.railway.*;
 import java.sql.*;
 import java.time.LocalDate;
@@ -1058,5 +1059,127 @@ public class RailwayRepository {
             ps.executeUpdate();
         }
     }
+
+    public boolean isWagonAssignedToAnyFreight(int wagonId) throws SQLException {
+        String sql = """
+        SELECT 1
+        FROM Wagon_Freight
+        WHERE wagon = ?
+        FETCH FIRST 1 ROW ONLY
+    """;
+
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, wagonId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+
+    public List<Train> getTrainsWithUnassignedPath() throws SQLException {
+        String sql = """
+        SELECT t.id, t.operator, t.time, t."date",
+               p.id AS path_id, p.name AS path_name
+        FROM Train t
+        JOIN Path p ON p.id = t.path
+        WHERE p.name = 'UNASSIGNED'
+        ORDER BY t."date", t.time
+    """;
+
+        List<Train> res = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String operatorVat = rs.getString("operator");
+
+                LocalTime departureTime = rs.getTimestamp("time").toLocalDateTime().toLocalTime();
+                LocalDate date = rs.getDate("date").toLocalDate();
+
+                // Criar Path mínimo (ajusta se o teu Path tiver outro construtor)
+                Path path = new Path(rs.getInt("path_id"), rs.getString("path_name"));
+
+                Train tr = new Train(
+                        id,
+                        operatorVat,
+                        departureTime,
+                        date,
+                        path,
+                        null,
+                        null
+                );
+
+                res.add(tr);
+            }
+        }
+
+        return res;
+    }
+
+
+    public List<Freight> getFreightsByTrain(int trainId) throws SQLException {
+        String sql = """
+        SELECT f.id, f."date", f.origin, f.destination
+        FROM Freight f
+        JOIN Freight_Train ft ON ft.freight = f.id
+        WHERE ft.train = ?
+        ORDER BY f.id
+    """;
+
+        List<Freight> res = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, trainId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int freightId = rs.getInt("id");
+                    LocalDate date = rs.getDate("date").toLocalDate();
+
+                    int originId = rs.getInt("origin");
+                    int destId = rs.getInt("destination");
+
+                    Endpoint origin = getEndpointById(originId);
+                    Endpoint dest = getEndpointById(destId);
+
+                    Freight f = new Freight(freightId, date, origin, dest);
+                    res.add(f);
+                }
+            }
+        }
+
+        return res;
+    }
+
+
+    public void updateTrainPath(int trainId, int pathId) throws SQLException {
+        String sql = "UPDATE Train SET path = ? WHERE id = ?";
+
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, pathId);
+            ps.setInt(2, trainId);
+
+            int n = ps.executeUpdate();
+            if (n != 1) {
+                throw new SQLException("Train not found or not updated: id=" + trainId);
+            }
+
+            conn.commit();
+        }
+    }
+
+
+
+
 
 }
