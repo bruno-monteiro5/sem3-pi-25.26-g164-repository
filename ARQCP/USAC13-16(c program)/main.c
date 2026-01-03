@@ -6,41 +6,44 @@
 #include "board.h"
 
 int main() {
-    // Welcome ASCII art
+    // Welcome screen with ASCII art train station
     clear_screen();
     printf("\n");
-    printf("####STATION MANAGEMENT SYSTEM####\n");
-    printf(" ||\n");
-    printf(" ||\n");
-    printf(" ( ) || ( ) )\n");
-    printf(" ) ( || ) ( (\n");
-    printf(" ( ) (||) ( ) )\n");
-    printf(" ________________________________\n");
-    printf(" | ________ |_____\n");
-    printf(" | |_|_|_____|]\n");
-    printf(" |_|_|_|_____|_______________|___________|]\n");
-    printf(" |________________________________________\\\n");
-    printf(" \\________________________________________\\\n");
-    printf(" (OOOOOO) (OOOOOO) (OOOOOO)\n");
-    printf(" (OOOOOOOO) (OOOOOOOO) (OOOOOOOO)\n");
-    printf(" (OOOOOO) (OOOOOO) (OOOOOO)\n\n");
+    printf("   ####  WELCOME TO THE  ####\n");
+    printf("   ####   C-TATION!!!    ####\n");
+    printf("        (Get it? C + Station)\n\n");
+    printf("            ||\n");
+    printf("            ||\n");
+    printf("         ( ) || ( ) )\n");
+    printf("         ) ( || ) ( (\n");
+    printf("         ( ) (||) ( ) )\n");
+    printf("  ________________________________\n");
+    printf("  | ________ |_____\n");
+    printf("  | |_|_|_____|]\n");
+    printf("  |_|_|_|_____|_______________|___________|]\n");
+    printf("  |________________________________________\\\n");
+    printf("  \\________________________________________\\\n");
+    printf("   (OOOOOO)   (OOOOOO)   (OOOOOO)\n");
+    printf("  (OOOOOOOO) (OOOOOOOO) (OOOOOOOO)\n");
+    printf("   (OOOOOO)   (OOOOOO)   (OOOOOO)\n\n");
     
-    printf("Loading system...\n");
+    printf("Loading system components...\n");
+    sleep(1);
     
-    // Initialize Manager
+    // Initialize the manager with configuration file
     Manager* mgr = init_manager("config.txt");
     if (!mgr) {
-        printf("Failed to initialize manager!\n");
+        printf("FATAL ERROR: Could not initialize system!\n");
         return 1;
     }
     
-    // Login
+    // User authentication process
     char username[32], password[32];
     User* user = NULL;
     
-    printf("\n╔═══════════════════════════════════════╗\n");
-    printf("║            USER LOGIN                 ║\n");
-    printf("╚═══════════════════════════════════════╝\n");
+    printf("\n+========================================+\n");
+    printf("|          USER AUTHENTICATION           |\n");
+    printf("+========================================+\n");
     
     do {
         printf("Username: ");
@@ -52,31 +55,36 @@ int main() {
         user = login_user(mgr, username, password);
         
         if (!user) {
-            printf("\n❌ Invalid credentials! Please try again.\n\n");
+            printf("\n[ACCESS DENIED] Invalid credentials. Try again.\n\n");
         }
     } while (!user);
     
-    printf("\n✅ Login successful! Welcome, %s\n", user->name);
+    printf("\n[ACCESS GRANTED] Welcome, %s!\n", user->name);
     printf("\nPress Enter to continue...");
     getchar();
     getchar();
     
-    // Login log
+    // Log the successful login
     char log_msg[256];
     sprintf(log_msg, "User logged in: %s", user->username);
     log_action(mgr, log_msg);
     
-    // Main UI loop
+    // Start the main user interface loop
     ui_main_loop(mgr);
     
-    // Cleanup
-    printf("\n\nLogging out...\n");
+    // Cleanup and exit
+    printf("\n\nLogging out user %s...\n", user->name);
     log_action(mgr, "User logged out");
     
     free_manager(mgr);
     
-    printf("Thank you for using Station Management System!\n");
-    printf("Goodbye! 👋\n\n");
+    printf("\n");
+    printf("   Thanks for using C-TATION!\n");
+    printf("   ===========================\n");
+    printf("      Have a safe journey!\n");
+    printf("              ||  \n");
+    printf("           ___||___\n");
+    printf("          |_______|  \n\n");
     
     return 0;
 }
