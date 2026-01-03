@@ -433,7 +433,6 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330007, 2006);
 INSERT INTO Freight_Train (freight, train) VALUES (2006, 5435);
 
 
-
 INSERT INTO Freight (id, "date", origin, destination) VALUES (2050,TO_DATE('2025-10-06','YYYY-MM-DD'), 12, 50);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330001, 2050);
 INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330002, 2050);
@@ -452,5 +451,21 @@ INSERT INTO Wagon_Freight (wagon, freight) VALUES (3563080, 2051);
 
 INSERT INTO Freight_Train (freight, train) VALUES (2050, 5437);
 INSERT INTO Freight_Train (freight, train) VALUES (2051, 5437);
+
+
+
+INSERT INTO Freight (id, "date", origin, destination)
+VALUES (3001, DATE '2025-01-15', 50, 11);
+
+INSERT INTO Freight (id, "date", origin, destination)
+VALUES (3002, DATE '2025-01-15', 11, 21);
+
+INSERT INTO Freight (id, "date", origin, destination)
+VALUES (3003, DATE '2025-01-16', 8, 17);
+
+INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330007, 3001);
+INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330008, 3001);
+INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330009, 3002);
+INSERT INTO Wagon_Freight (wagon, freight) VALUES (3330010, 3003);
 
 COMMIT
