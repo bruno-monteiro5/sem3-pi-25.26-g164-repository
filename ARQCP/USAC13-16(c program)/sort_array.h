@@ -1,5 +1,5 @@
-#ifndef SORTING_H
-#define SORTING_H
+#ifndef SORT_ARRAY_H
+#define SORT_ARRAY_H
 
 // Sort integer array
 // order: 1 for ascending, 0 for descending
