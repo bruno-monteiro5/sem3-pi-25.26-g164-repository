@@ -6,66 +6,102 @@
 #include "queue_functions.h"
 #include "sort_array.h"
 
-// Parse Arduino sensor line format: sensor_id:X#type:Y#value:Z#unit:W#time:T
-// Now handles single-line format with multiple sensors separated by #
+// Parse a single sensor reading from Arduino format
+// Format: sensor_id:X#type:Y#value:Z#unit:W#time:T
 int parse_arduino_sensor_line(char* line, int* sensor_id, char* type, float* value, char* unit) {
-    // Check if line contains sensor data
+    // Make sure this line contains sensor data
     if (strstr(line, "sensor_id:") == NULL) {
-        return 0; // Not a sensor data line
+        return 0;
     }
     
-    // Parse sensor_id
+    // Extract sensor ID number
     char* p = strstr(line, "sensor_id:");
-    if (p) {
-        sscanf(p, "sensor_id:%d", sensor_id);
-    } else return 0;
+    if (p && sscanf(p, "sensor_id:%d", sensor_id) == 1) {
+        // Success
+    } else {
+        return 0;
+    }
     
-    // Parse type
+    // Extract sensor type (temperature, humidity, etc)
     p = strstr(line, "type:");
-    if (p) {
-        sscanf(p, "type:%[^#]", type);
-    } else return 0;
+    if (p && sscanf(p, "type:%[^#]", type) == 1) {
+        // Success
+    } else {
+        return 0;
+    }
     
-    // Parse value
+    // Extract the measured value
     p = strstr(line, "value:");
-    if (p) {
-        sscanf(p, "value:%f", value);
-    } else return 0;
+    if (p && sscanf(p, "value:%f", value) == 1) {
+        // Success
+    } else {
+        return 0;
+    }
     
-    // Parse unit
+    // Extract the unit of measurement
     p = strstr(line, "unit:");
-    if (p) {
-        sscanf(p, "unit:%[^#]", unit);
-    } else return 0;
+    if (p && sscanf(p, "unit:%[^#]", unit) == 1) {
+        // Success
+    } else {
+        return 0;
+    }
     
     return 1;
 }
 
-// Process multiple sensor readings from Arduino (single line with # separators)
+// Process all sensor readings from Arduino response
+// Arduino sends multiple sensors in one line separated by sensor_id: markers
 int process_arduino_sensor_response(Manager* mgr, char* full_response) {
     int readings_processed = 0;
     float temp_sum = 0, hum_sum = 0;
     int temp_count = 0, hum_count = 0;
     
-    // Split by # to get individual sensor readings
-    char* token = strtok(full_response, "#");
+    printf("DEBUG: Processing sensor response (length: %lu bytes)\n", strlen(full_response));
     
-    while (token != NULL) {
+    // Manually parse by finding each "sensor_id:" pattern
+    // This works better than strtok because fields contain # characters
+    char* current = full_response;
+    
+    while (*current != '\0') {
+        // Find the start of next sensor data block
+        char* sensor_start = strstr(current, "sensor_id:");
+        if (!sensor_start) break;
+        
+        // Find where this sensor block ends (next sensor or end of string)
+        char* next_sensor = strstr(sensor_start + 10, "sensor_id:");
+        
+        // Extract just this sensor's complete data block
+        char sensor_block[256];
+        int block_len;
+        
+        if (next_sensor) {
+            block_len = next_sensor - sensor_start;
+        } else {
+            block_len = strlen(sensor_start);
+        }
+        
+        if (block_len > 255) block_len = 255;
+        strncpy(sensor_block, sensor_start, block_len);
+        sensor_block[block_len] = '\0';
+        
+        printf("DEBUG: Sensor block: [%s]\n", sensor_block);
+        
+        // Parse this complete sensor block
         int sensor_id;
         char type[50];
         float value;
         char unit[50];
         
-        if (parse_arduino_sensor_line(token, &sensor_id, type, &value, unit)) {
-            printf("Parsed: ID=%d, Type=%s, Value=%.2f, Unit=%s\n", 
+        if (parse_arduino_sensor_line(sensor_block, &sensor_id, type, &value, unit)) {
+            printf("Parsed sensor: ID=%d, Type=%s, Value=%.2f, Unit=%s\n", 
                    sensor_id, type, value, unit);
             
-            // Categorize by type
+            // Add to appropriate buffer based on sensor type
             if (strstr(type, "temperature") != NULL) {
                 temp_sum += value;
                 temp_count++;
                 
-                // Add to temperature buffer
+                // Store in temperature circular buffer
                 int temp_int = (int)(value * 10);
                 enqueue_value(mgr->sensor_data.temp_buffer,
                              mgr->sensor_data.temp_buffer_length,
@@ -80,7 +116,7 @@ int process_arduino_sensor_response(Manager* mgr, char* full_response) {
                 hum_sum += value;
                 hum_count++;
                 
-                // Add to humidity buffer
+                // Store in humidity circular buffer
                 int hum_int = (int)(value * 10);
                 enqueue_value(mgr->sensor_data.hum_buffer,
                              mgr->sensor_data.hum_buffer_length,
@@ -93,7 +129,23 @@ int process_arduino_sensor_response(Manager* mgr, char* full_response) {
             }
         }
         
-        token = strtok(NULL, "#");
+        // Move to the next sensor block
+        if (next_sensor) {
+            current = next_sensor;
+        } else {
+            break;
+        }
+    }
+    
+    // Update current values based on what we got
+    if (temp_count > 0) {
+        mgr->sensor_data.current_temp = (int)(temp_sum / temp_count);
+        printf("Temperature average: %.2f -> %d°C\n", temp_sum / temp_count, mgr->sensor_data.current_temp);
+    }
+    
+    if (hum_count > 0) {
+        mgr->sensor_data.current_hum = (int)(hum_sum / hum_count);
+        printf("Humidity average: %.2f -> %d%%\n", hum_sum / hum_count, mgr->sensor_data.current_hum);
     }
     
     // Calculate median for temperature if we have enough data
@@ -120,11 +172,10 @@ int process_arduino_sensor_response(Manager* mgr, char* full_response) {
         int temp_median;
         if (median(temp_array, mgr->sensor_data.temp_window_length, &temp_median) == 1) {
             mgr->sensor_data.current_temp = temp_median / 10;
+            printf("Temperature median applied: %d°C\n", mgr->sensor_data.current_temp);
         }
         
         free(temp_array);
-    } else if (temp_count > 0) {
-        mgr->sensor_data.current_temp = (int)(temp_sum / temp_count);
     }
     
     // Calculate median for humidity if we have enough data
@@ -151,15 +202,14 @@ int process_arduino_sensor_response(Manager* mgr, char* full_response) {
         int hum_median;
         if (median(hum_array, mgr->sensor_data.hum_window_length, &hum_median) == 1) {
             mgr->sensor_data.current_hum = hum_median / 10;
+            printf("Humidity median applied: %d%%\n", mgr->sensor_data.current_hum);
         }
         
         free(hum_array);
-    } else if (hum_count > 0) {
-        mgr->sensor_data.current_hum = (int)(hum_sum / hum_count);
     }
     
     if (readings_processed > 0) {
-        printf("\nSensor update: Temp=%d°C, Humidity=%d%%\n", 
+        printf("\n✅ Sensor update complete: Temp=%d°C, Humidity=%d%%\n", 
                mgr->sensor_data.current_temp, mgr->sensor_data.current_hum);
     }
     
