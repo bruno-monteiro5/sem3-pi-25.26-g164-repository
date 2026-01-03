@@ -1,7 +1,5 @@
-.section .text
-
-.global encrypt_data
-
+    .section .text
+    .global encrypt_data
 encrypt_data:
     li t0, 0
     ble a1, t0, fail
@@ -9,10 +7,10 @@ encrypt_data:
     bgt a1, t0, fail
 
 loop:
-
+    loop:
     lbu t0, 0(a0)
     beqz t0, done
-
+    
     # Validate if the letter is uppercase
     li t2, 'A'
     blt t0, t2, fail    # If < 'A', skip to failure procedure
