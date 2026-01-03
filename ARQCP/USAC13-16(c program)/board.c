@@ -10,7 +10,7 @@ void clear_screen() {
 // Show system header
 void show_header() {
     printf("╔═══════════════════════════════════════════════════════════════╗\n");
-    printf("║             🚂 STATION MANAGEMENT SYSTEM 🚂                   ║\n");
+    printf("║            🚂 STATION MANAGEMENT SYSTEM 🚂                    ║\n");
     printf("╚═══════════════════════════════════════════════════════════════╝\n");
 }
 
@@ -22,14 +22,14 @@ void display_tracks(Manager* mgr) {
     
     for (int i = 0; i < mgr->num_tracks; i++) {
         Track* t = &mgr->tracks[i];
-        printf("│ Track %d: ", t->id);
+        printf("│ Track %d:  ", t->id);
         
         switch (t->state) {
             case TRACK_FREE:
-                printf("🟢 FREE                                          │\n");
+                printf("🟢 FREE                                         │\n");
                 break;
             case TRACK_OCCUPIED:
-                printf("🔴 OCCUPIED (Train #%d)                         │\n", 
+                printf("🔴 OCCUPIED (Train #%d)                        │\n", 
                        t->train ? t->train->id : 0);
                 break;
             case TRACK_NON_OPERATIONAL:
@@ -49,8 +49,8 @@ void display_sensor_data(Manager* mgr) {
     printf("\n┌─────────────────────────────────────────────────────────────┐\n");
     printf("│                    SENSOR READINGS                          │\n");
     printf("├─────────────────────────────────────────────────────────────┤\n");
-    printf("│ 🌡️  Temperature: %d°C                                        │\n", temp);
-    printf("│ 💧 Humidity: %d%%                                           │\n", hum);
+    printf("│ 🌡️  Temperature: %d°C                                         │\n", temp);
+    printf("│ 💧 Humidity: %d%%                                             │\n", hum);
     printf("└─────────────────────────────────────────────────────────────┘\n");
 }
 
@@ -104,11 +104,11 @@ void display_emergency_stop() {
 }
 
 // Display success message
-void display_success(const char* message) {
+void display_success(char* message) {
     printf("\n✅ %s\n", message);
 }
 
 // Display error message
-void display_error(const char* message) {
+void display_error(char* message) {
     printf("\n❌ Error: %s\n", message);
 }
