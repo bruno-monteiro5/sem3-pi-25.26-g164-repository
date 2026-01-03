@@ -6,22 +6,22 @@
 #include <unistd.h>
 
 // Initialize Manager from configuration file
-Manager* init_manager(const char* config_file);
+Manager* init_manager(char* config_file);
 
 // Free Manager memory
 void free_manager(Manager* mgr);
 
 // User login
-User* login_user(Manager* mgr, const char* username, const char* password);
+User* login_user(Manager* mgr, char* username, char* password);
 
 // Log action
-void log_action(Manager* mgr, const char* action);
+void log_action(Manager* mgr, char* action);
 
 // Export user logs to file
-int export_user_logs(Manager* mgr, const char* username, const char* filename);
+int export_user_logs(Manager* mgr, char* username, char* filename);
 
-// Send LED command to Arduino
-int send_led_command(Manager* mgr, int track_id, const char* led_cmd);
+// Send LED command to Arduino via serial
+int send_led_command(Manager* mgr, int track_id, char* led_cmd);
 
 // Assign train to track (returns 1 on success, 0 if no tracks available)
 int assign_train_to_track(Manager* mgr, int train_id, int* assigned_track_id);

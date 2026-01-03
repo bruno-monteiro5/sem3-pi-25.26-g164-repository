@@ -5,6 +5,9 @@
 #include "manager.h"
 #include "sensors.h"
 
+// Open serial port (shared function)
+int open_serial_port(Manager* mgr);
+
 // Show main menu
 void show_main_menu();
 

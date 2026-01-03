@@ -26,9 +26,9 @@ void display_board(Manager* mgr);
 void display_emergency_stop();
 
 // Display success message
-void display_success(const char* message);
+void display_success(char* message);
 
 // Display error message
-void display_error(const char* message);
+void display_error(char* message);
 
 #endif

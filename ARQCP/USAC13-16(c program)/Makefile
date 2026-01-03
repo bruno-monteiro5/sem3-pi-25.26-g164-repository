@@ -12,7 +12,7 @@ main.o: main.c structures.h manager.h ui.h board.h
 manager.o: manager.c manager.h structures.h encrypt_data.h decrypt_data.h
 	$(CC) $(CFLAGS) $(ARCHFLAGS) -c manager.c
 
-sensors.o: sensors.c sensors.h structures.h extract_data.h queue_functions.h sorting.h
+sensors.o: sensors.c sensors.h structures.h extract_data.h queue_functions.h sort_array.h
 	$(CC) $(CFLAGS) $(ARCHFLAGS) -c sensors.c
 
 board.o: board.c board.h structures.h sensors.h
@@ -39,10 +39,10 @@ dequeue_value.o: dequeue_value.s queue_functions.h
 move_n_to_array.o: move_n_to_array.s queue_functions.h
 	$(CC) $(CFLAGS) $(ARCHFLAGS) -c move_n_to_array.s
 
-sort_array.o: sort_array.s sorting.h
+sort_array.o: sort_array.s sort_array.h
 	$(CC) $(CFLAGS) $(ARCHFLAGS) -c sort_array.s
 
-median.o: median.s sorting.h
+median.o: median.s sort_array.h
 	$(CC) $(CFLAGS) $(ARCHFLAGS) -c median.s
 
 extract_data.o: extract_data.s extract_data.h
