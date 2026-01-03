@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include "manager.h"
 #include "encrypt_data.h"
 #include "decrypt_data.h"
+#include "format_command.h"
 
 // Initialize Manager from configuration file
-Manager* init_manager(const char* config_file) {
+Manager* init_manager(char* config_file) {
     Manager* mgr = (Manager*)malloc(sizeof(Manager));
     if (!mgr) return NULL;
     
@@ -24,9 +26,9 @@ Manager* init_manager(const char* config_file) {
         strcpy(mgr->users[0].password, "VGYYCUXJKX");
         mgr->users[0].cipher_key = 6;
         
-        mgr->num_tracks = 3;
-        mgr->tracks = (Track*)malloc(sizeof(Track) * 3);
-        for (int i = 0; i < 3; i++) {
+        mgr->num_tracks = 2;
+        mgr->tracks = (Track*)malloc(sizeof(Track) * 2);
+        for (int i = 0; i < 2; i++) {
             mgr->tracks[i].id = i + 1;
             mgr->tracks[i].state = TRACK_FREE;
             mgr->tracks[i].train = NULL;
@@ -43,7 +45,7 @@ Manager* init_manager(const char* config_file) {
         mgr->log_capacity = 100;
         mgr->logs = (LogEntry*)malloc(sizeof(LogEntry) * 100);
         
-        mgr->serial_port = -1; // Not connected
+        mgr->serial_port = -1;
         
         return mgr;
     }
@@ -85,7 +87,7 @@ Manager* init_manager(const char* config_file) {
     
     mgr->log_capacity = 100;
     mgr->logs = (LogEntry*)malloc(sizeof(LogEntry) * 100);
-    mgr->serial_port = -1; // Not connected
+    mgr->serial_port = -1;
     
     return mgr;
 }
@@ -105,13 +107,12 @@ void free_manager(Manager* mgr) {
 }
 
 // User login
-User* login_user(Manager* mgr, const char* username, const char* password) {
+User* login_user(Manager* mgr, char* username, char* password) {
     char encrypted[64];
     
     for (int i = 0; i < mgr->num_users; i++) {
         if (strcmp(mgr->users[i].username, username) == 0) {
-            // Encrypt provided password
-            if (encrypt_data((char*)password, mgr->users[i].cipher_key, encrypted) == 1) {
+            if (encrypt_data(password, mgr->users[i].cipher_key, encrypted) == 1) {
                 if (strcmp(encrypted, mgr->users[i].password) == 0) {
                     mgr->current_user = &mgr->users[i];
                     return &mgr->users[i];
@@ -124,7 +125,7 @@ User* login_user(Manager* mgr, const char* username, const char* password) {
 }
 
 // Log action
-void log_action(Manager* mgr, const char* action) {
+void log_action(Manager* mgr, char* action) {
     if (!mgr->current_user) return;
     
     if (mgr->num_logs >= mgr->log_capacity) {
@@ -143,7 +144,7 @@ void log_action(Manager* mgr, const char* action) {
 }
 
 // Export user logs to file
-int export_user_logs(Manager* mgr, const char* username, const char* filename) {
+int export_user_logs(Manager* mgr, char* username, char* filename) {
     FILE* fp = fopen(filename, "w");
     if (!fp) return 0;
     
@@ -164,41 +165,42 @@ int export_user_logs(Manager* mgr, const char* username, const char* filename) {
     return 1;
 }
 
-// Send LED command to Arduino
-int send_led_command(Manager* mgr, int track_id, const char* led_cmd) {
+// Send LED command to Arduino via serial port
+int send_led_command(Manager* mgr, int track_id, char* led_cmd) {
     if (mgr->serial_port < 0) {
-        return 0; // Serial port not open
+        printf("Warning: Serial port not open, cannot send LED command\n");
+        return 0;
     }
     
-    char cmd_buffer[16];
-    int result = format_command((char*)led_cmd, track_id, cmd_buffer);
+    char out[16];
+    int r = format_command(led_cmd, track_id, out);
     
-    if (result == 1) {
-        write(mgr->serial_port, cmd_buffer, sizeof(cmd_buffer));
-        
-        // Read response
-        char resp[256];
-        int bytes = read(mgr->serial_port, resp, sizeof(resp));
-        if (bytes > 0) {
-            printf("Arduino LED response: %.*s\n", bytes, resp);
-        }
-        return 1;
+    if (r != 1) {
+        printf("Error: Failed to format LED command\n");
+        return 0;
     }
     
-    return 0;
+    // Send the LED command - Arduino handles turning off old LED
+    write(mgr->serial_port, out, sizeof(out));
+    usleep(100000); // 100ms delay for Arduino to process
+    
+    char resp[256];
+    int re = read(mgr->serial_port, resp, sizeof(resp));
+    if (re > 0) {
+        printf("Received message: %.*s\n", re, resp);
+    }
+    
+    return 1;
 }
 
 // Assign train to track
 int assign_train_to_track(Manager* mgr, int train_id, int* assigned_track_id) {
-    // Find free track
     for (int i = 0; i < mgr->num_tracks; i++) {
         if (mgr->tracks[i].state == TRACK_FREE) {
-            // Create train
             mgr->num_trains++;
             mgr->trains = (Train*)realloc(mgr->trains, sizeof(Train) * mgr->num_trains);
             mgr->trains[mgr->num_trains - 1].id = train_id;
             
-            // Assign to track
             mgr->tracks[i].train = &mgr->trains[mgr->num_trains - 1];
             mgr->tracks[i].state = TRACK_OCCUPIED;
             *assigned_track_id = mgr->tracks[i].id;
@@ -207,14 +209,12 @@ int assign_train_to_track(Manager* mgr, int train_id, int* assigned_track_id) {
             sprintf(log_msg, "Assigned train %d to track %d", train_id, mgr->tracks[i].id);
             log_action(mgr, log_msg);
             
-            // Send RED LED command (RE,XX)
             send_led_command(mgr, mgr->tracks[i].id, "RE");
             
             return 1;
         }
     }
     
-    // No available tracks - emergency stop order
     log_action(mgr, "EMERGENCY STOP - No available tracks");
     return 0;
 }
@@ -230,7 +230,6 @@ int free_track(Manager* mgr, int track_id) {
             sprintf(log_msg, "Freed track %d", track_id);
             log_action(mgr, log_msg);
             
-            // Send GREEN LED command (GE,XX)
             send_led_command(mgr, track_id, "GE");
             
             return 1;
@@ -249,7 +248,6 @@ int set_track_non_operational(Manager* mgr, int track_id) {
             sprintf(log_msg, "Set track %d as non-operational", track_id);
             log_action(mgr, log_msg);
             
-            // Send YELLOW LED command (YE,XX)
             send_led_command(mgr, track_id, "YE");
             
             return 1;
@@ -266,10 +264,10 @@ int departure_order(Manager* mgr, int track_id) {
             sprintf(log_msg, "Departure order for train on track %d", track_id);
             log_action(mgr, log_msg);
             
-            // Send RED BLINK command (RB,XX) before departure
             send_led_command(mgr, track_id, "RB");
             
-            // Free track after departure
+            sleep(2);
+            
             return free_track(mgr, track_id);
         }
     }
