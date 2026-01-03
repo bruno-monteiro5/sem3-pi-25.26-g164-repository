@@ -1,0 +1,18 @@
+# Station Management System - Configuration File
+#Format: KEYWORD:value1,value2,...
+
+# Users (name,username,encrypted_password,cipher_key)
+USER:Manager,manager,VGYYCUXJKX,6
+
+# Tracks (id)
+TRACK:1
+TRACK:2
+
+# Temperature sensor configuation
+TEMP_BUFFER:10
+TEMP_WINDOW:5
+
+# Humidity sensor configuration
+HUM_BUFFER:10
+HUM_WINDOW:5
+
