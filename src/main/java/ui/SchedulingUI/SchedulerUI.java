@@ -117,16 +117,16 @@ public class SchedulerUI implements Runnable {
         System.out.println("\n" + CYAN + line(72));
         System.out.println("                    TRAIN SCHEDULER - USLP07/10");
         System.out.println(line(72) + RESET);
-        System.out.println("║ 1. Schedule a single train                                    ║");
-        System.out.println("║ 2. Schedule multiple trains (manual selection)                ║");
-        System.out.println("║ 3. Schedule ALL trains                                        ║");
-        System.out.println("║ 4. View train details                                         ║");
-        System.out.println("║ 5. Define/change train route (Path)                           ║");
-        System.out.println("║ 6. Create new path                                            ║");
-        System.out.println("║ 7. Edit train departure date & time                           ║");
-        System.out.println("║ 8. " + GREEN + "View recorded movements (from database)" + RESET + "               ║");
-        System.out.println("║ 9. Reload network from database                               ║");
-        System.out.println("║ 0. " + RED + "Return to main menu" + RESET + "                                       ║");
+        System.out.println("1. Schedule a single train                                    ");
+        System.out.println("2. Schedule multiple trains (manual selection)                ");
+        System.out.println("3. Schedule ALL trains                                        ");
+        System.out.println("4. View train details                                         ");
+        System.out.println("5. Define/change train route (Path)                           ");
+        System.out.println("6. Create new path                                            ");
+        System.out.println("7. Edit train departure date & time                           ");
+        System.out.println("8. " + GREEN + "View recorded movements (from database)" + RESET + "               ");
+        System.out.println("9. Reload network from database                               ");
+        System.out.println("0. " + RED + "Return to main menu" + RESET + "                                       ");
         System.out.println(CYAN + line(72) + RESET);
         System.out.print("➤ Select option: ");
     }
