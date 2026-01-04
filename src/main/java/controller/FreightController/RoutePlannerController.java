@@ -178,12 +178,26 @@ public class RoutePlannerController {
         // Extract unique endpoints from plan (preserving order)
         List<Endpoint> stops = extractStopsInOrder(plan);
 
+        // DEBUG
+        System.out.println("DEBUG: Extracted " + stops.size() + " stops from plan");
+        for (Endpoint e : stops) {
+            System.out.println("  - " + e.getName() + " (id=" + e.getId() + ")");
+        }
+
         int seq = 1;
         for (Endpoint stop : stops) {
+            System.out.println("DEBUG: Inserting stop " + seq + ": " + stop.getName());
             railwayRepo.addEndpointToPath(path.getId(), seq++, stop.getId(), true); // must_stop='Y'
         }
 
-        return path;
+        // CRITICAL FIX: Reload path from database to get endpoints
+        Path reloadedPath = railwayRepo.getPathById(path.getId());
+
+        System.out.println("DEBUG: Path reloaded with " +
+                (reloadedPath != null ? reloadedPath.getEndpoints().size() : 0) +
+                " endpoints");
+
+        return reloadedPath != null ? reloadedPath : path;
     }
 
     /**
