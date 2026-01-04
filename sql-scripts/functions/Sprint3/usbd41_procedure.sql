@@ -1,7 +1,7 @@
-CREATE OR REPLACE FUNCTION USBD41_REMOVE_FREIGHT_FROM_TRAIN (
+CREATE OR REPLACE PROCEDURE USBD41_REMOVE_FREIGHT_FROM_TRAIN (
   p_freight_id IN Freight.id%TYPE,
   p_train_id   IN Train.id%TYPE
-) RETURN VARCHAR2
+)
 IS
   v_count       NUMBER;
   v_train_in_ft Train.id%TYPE;
@@ -69,8 +69,6 @@ WHERE freight = p_freight_id
 IF SQL%ROWCOUNT = 0 THEN
     raise_application_error(-20041, 'Nothing to remove (association not found).');
 END IF;
-
-RETURN 'OK';
 
 END;
 /
