@@ -9,13 +9,14 @@ cmd_RB: .asciz "RB"
     .type trk_led_update, @function
 
 trk_led_update:
+    mv t4, ra
+
     beqz a0, error
     beqz a1, error
 
-    mv t3, a1        # guardar out
-
-    lw t0, 0(a0)     # t0 = id
-    lw t1, 4(a0)     # t1 = state
+    mv t3, a1
+    lw t0, 0(a0)
+    lw t1, 4(a0)
 
     li t2, 0
     beq t1, t2, state_free
@@ -41,11 +42,13 @@ state_occupied:
     la a0, cmd_RE
 
 call_format:
-    mv a1, t0        # id
-    mv a2, t3        # out
+    mv a1, t0
+    mv a2, t3
     jal format_command
+    mv ra, t4        # restaura ra do caller
     ret
 
 error:
     li a0, 0
+    mv ra, t4
     ret
