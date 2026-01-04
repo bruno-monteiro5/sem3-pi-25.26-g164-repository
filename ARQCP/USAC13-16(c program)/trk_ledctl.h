@@ -3,6 +3,7 @@
 
 #include "structures.h"
 
+// Updates a specific LED bulb's status
 int trk_led_update(Track* t, char* out);
 
 #endif

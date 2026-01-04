@@ -7,7 +7,6 @@
 #include "board.h"
 #include "format_command.h"
 
-
 static int serial_send_cmd(int serial_port, const char *cmd) {
     char buf[64];
     int n = snprintf(buf, sizeof(buf), "%s\n", cmd);
@@ -16,7 +15,6 @@ static int serial_send_cmd(int serial_port, const char *cmd) {
     return (w == n);
 }
 
-// Display the main menu options
 void show_main_menu() {
     printf("\n+========================================+\n");
     printf("|             MAIN MENU                  |\n");
@@ -29,7 +27,6 @@ void show_main_menu() {
     printf("Choice: ");
 }
 
-// Display Arduino control menu
 void show_arduino_menu() {
     printf("\n+========================================+\n");
     printf("|          ARDUINO CONTROL               |\n");
@@ -41,7 +38,6 @@ void show_arduino_menu() {
     printf("Choice: ");
 }
 
-// Display track management menu
 void show_track_menu() {
     printf("\n+========================================+\n");
     printf("|         TRACK MANAGEMENT               |\n");
@@ -50,17 +46,16 @@ void show_track_menu() {
     printf("| 2) Confirm Train Arrival (RE)          |\n");
     printf("| 3) Departure Order (GE)                |\n");
     printf("| 4) Set Track Non-Operational (RB)      |\n");
-    printf("| 5) Free Track (force GE)               |\n");
-    printf("| 6) Back                                |\n");
+    printf("| 5) Repair Track (GE)                   |\n");
+    printf("| 6) Free Track (force GE)               |\n");
+    printf("| 7) Back                                |\n");
     printf("+========================================+\n");
     printf("Choice: ");
 }
 
-// Open the serial port for Arduino communication
-// Returns file descriptor or -1 on error
 int open_serial_port(Manager* mgr) {
     if (mgr->serial_port >= 0) {
-        return mgr->serial_port; // Already open, reuse it
+        return mgr->serial_port;
     }
 
     int sp = open("/dev/ttyS0", O_RDWR);
@@ -77,7 +72,6 @@ int open_serial_port(Manager* mgr) {
         return -1;
     }
 
-    // Set baud rate to 9600
     cfsetispeed(&tty, B9600);
     cfsetospeed(&tty, B9600);
     tcsetattr(sp, TCSANOW, &tty);
@@ -86,7 +80,6 @@ int open_serial_port(Manager* mgr) {
     return sp;
 }
 
-// Handle manual LED control from user input
 int handle_led_control(int serial_port, Manager* mgr) {
     char cmd[32], out[16];
     int track;
@@ -107,7 +100,6 @@ int handle_led_control(int serial_port, Manager* mgr) {
         return 0;
     }
 
-    // Validate and format the command
     int result = format_command(cmd, track, out);
     while (result != 1) {
         display_error("Invalid command! Try again.");
@@ -125,17 +117,14 @@ int handle_led_control(int serial_port, Manager* mgr) {
         result = format_command(cmd, track, out);
     }
 
-    // Send the formatted command to Arduino
     serial_send_cmd(serial_port, out);
 
-    // Wait for and display Arduino's response
     char resp[256];
     int bytes_read = read(serial_port, resp, sizeof(resp));
     if (bytes_read > 0) {
         printf("Arduino response: %.*s\n", bytes_read, resp);
     }
 
-    // Log this action
     char log_msg[256];
     sprintf(log_msg, "Manual LED control: %s on track %d", cmd, track);
     log_action(mgr, log_msg);
@@ -144,41 +133,34 @@ int handle_led_control(int serial_port, Manager* mgr) {
     return 1;
 }
 
-// Request and process sensor data from Arduino
 int handle_sensor_read(int serial_port, Manager* mgr) {
     char cmd[] = "GTH";
     char out[16];
 
-    // Format the sensor read command
     int result = format_command(cmd, 0, out);
     if (result != 1) {
         display_error("Failed to format sensor command");
         return 0;
     }
 
-    // Send command to Arduino
     serial_send_cmd(serial_port, out);
 
-    // Arduino sends all sensor data in one line, wait for it
     char response[1024] = {0};
 
-    usleep(300000); // Wait 300ms for Arduino to read sensors
+    usleep(300000);
 
-    // Read the response
     int bytes_read = read(serial_port, response, sizeof(response) - 1);
 
     if (bytes_read > 0) {
         response[bytes_read] = '\0';
         printf("\n=== RAW SENSOR DATA ===\n%s\n======================\n", response);
 
-        // Process and update sensor data in manager
         int readings = process_arduino_sensor_response(mgr, response);
 
         if (readings > 0) {
             log_action(mgr, "Sensor data read and processed");
             display_success("Sensor data updated");
 
-            // Display the current sensor readings
             int temp, hum;
             get_sensor_data(mgr, &temp, &hum);
             printf("Current readings: Temperature=%d C, Humidity=%d%%\n", temp, hum);
@@ -194,7 +176,6 @@ int handle_sensor_read(int serial_port, Manager* mgr) {
     return 1;
 }
 
-// Main Arduino communication menu
 void arduino_menu(Manager* mgr) {
     int serial_port = open_serial_port(mgr);
     if (serial_port < 0) {
@@ -220,13 +201,9 @@ void arduino_menu(Manager* mgr) {
         }
 
     } while (choice != '3');
-
-    // Keep serial port open for track management to use
 }
 
-// Track management operations menu
 void track_management_menu(Manager* mgr) {
-    // Make sure serial port is open for LED commands
     if (mgr->serial_port < 0) {
         printf("Opening serial port for LED control...\n");
         if (open_serial_port(mgr) < 0) {
@@ -244,7 +221,6 @@ void track_management_menu(Manager* mgr) {
         scanf(" %c", &choice);
 
         if (choice == '1') {
-            // Reserve a track for an arriving train (YE)
             int train_id, track_id;
             printf("Enter train ID: ");
             if (scanf("%d", &train_id) == 1) {
@@ -257,7 +233,6 @@ void track_management_menu(Manager* mgr) {
                 }
             }
         } else if (choice == '2') {
-            // Confirm train arrival on a reserved track (RE)
             int track_id;
             printf("Enter track ID: ");
             if (scanf("%d", &track_id) == 1) {
@@ -269,7 +244,6 @@ void track_management_menu(Manager* mgr) {
                 }
             }
         } else if (choice == '3') {
-            // Departure order: OCCUPIED -> FREE (GE)
             int track_id;
             printf("Enter track ID: ");
             if (scanf("%d", &track_id) == 1) {
@@ -282,7 +256,6 @@ void track_management_menu(Manager* mgr) {
                 }
             }
         } else if (choice == '4') {
-            // Mark track as non-operational (RB)
             int track_id;
             printf("Enter track ID: ");
             if (scanf("%d", &track_id) == 1) {
@@ -294,7 +267,17 @@ void track_management_menu(Manager* mgr) {
                 }
             }
         } else if (choice == '5') {
-            // Force free: set FREE and GE (use carefully)
+            int track_id;
+            printf("Enter track ID: ");
+            if (scanf("%d", &track_id) == 1) {
+                if (repair_track(mgr, track_id)) {
+                    display_success("Track repaired successfully");
+                    printf("Track %d LED is now GREEN (available)\n", track_id);
+                } else {
+                    display_error("Track is not non-operational or repair failed");
+                }
+            }
+        } else if (choice == '6') {
             int track_id;
             printf("Enter track ID: ");
             if (scanf("%d", &track_id) == 1) {
@@ -307,16 +290,15 @@ void track_management_menu(Manager* mgr) {
             }
         }
 
-        if (choice != '6') {
+        if (choice != '7') {
             printf("\nPress Enter to continue...");
             getchar();
             getchar();
         }
 
-    } while (choice != '6');
+    } while (choice != '7');
 }
 
-// Main UI loop - runs until user exits
 void ui_main_loop(Manager* mgr) {
     char choice;
 
@@ -330,7 +312,6 @@ void ui_main_loop(Manager* mgr) {
         } else if (choice == '2') {
             track_management_menu(mgr);
         } else if (choice == '3') {
-            // Export logs for current user
             char filename[256];
             printf("Enter filename for log export: ");
             scanf("%s", filename);
