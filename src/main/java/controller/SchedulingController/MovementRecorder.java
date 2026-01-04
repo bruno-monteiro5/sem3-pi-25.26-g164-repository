@@ -37,14 +37,7 @@ public class MovementRecorder {
 
     /**
      * Records a complete train schedule into the database.
-     *
-     * <p>Steps:
-     * <ol>
-     *   <li>Delete any previous movements for this train (reschedule)</li>
-     *   <li>Insert all new movement records (stops and passages)</li>
-     *   <li>Update locomotive locations to "In Transit" status</li>
-     *   <li>Update wagon locations to "In Transit" status</li>
-     * </ol>
+     * NOW INCLUDES: continuous tracking of rolling stock locations.
      *
      * @param schedule The train schedule to record
      * @throws SQLException if database operation fails
@@ -56,19 +49,62 @@ public class MovementRecorder {
         // Step 1: Clean previous movements (for rescheduling)
         movementRepo.deleteMovementsByTrain(trainId);
 
-        // Step 2: Record all movements
+        // Step 2: Record all train movements (stops and passages)
         movementRepo.recordScheduleMovements(schedule);
 
-        // Step 3: Update locomotive locations to "In Transit"
-        updateLocomotiveLocations(train, schedule);
+        // Step 3: Update locomotive locations to "In Transit" at departure
+        updateLocomotiveLocationsAtDeparture(train, schedule);
 
-        // Step 4: Update wagon locations to "In Transit"
-        updateWagonLocations(train, schedule);
+        // Step 4: Update wagon locations to "In Transit" at freight origin
+        updateWagonLocationsAtDeparture(train, schedule);
+
+        // Step 5: NEW - Record continuous location updates during journey
+        recordRollingStockMovements(schedule);
 
         System.out.println("✅ Schedule recorded for Train " + trainId);
         System.out.println("   • Movements recorded: " + schedule.getPassages().size());
-        System.out.println("   • Locomotives updated: " + train.getLocomotives().size());
-        System.out.println("   • Wagons updated: " + countWagons(train));
+        System.out.println("   • Locomotives tracked: " + train.getLocomotives().size());
+        System.out.println("   • Wagons tracked: " + countWagons(train));
+        System.out.println("   • Final status: All rolling stock updated to FREE at destination");
+    }
+
+    /**
+     * Helper method: Updates locomotives at departure (renamed for clarity)
+     */
+    private void updateLocomotiveLocationsAtDeparture(Train train, TrainSchedule schedule)
+            throws SQLException {
+        LocalDateTime departureTime = schedule.getScheduledDeparture();
+        Endpoint startPoint = train.getStartEndpoint();
+
+        for (Locomotive loco : train.getLocomotives()) {
+            locationRepo.updateLocomotiveLocation(
+                    loco.getId(),
+                    startPoint.getId(),
+                    LocomotiveLocation.Status.T, // In Transit
+                    departureTime
+            );
+        }
+    }
+
+    /**
+     * Helper method: Updates wagons at departure (renamed for clarity)
+     */
+    private void updateWagonLocationsAtDeparture(Train train, TrainSchedule schedule)
+            throws SQLException {
+        LocalDateTime departureTime = schedule.getScheduledDeparture();
+
+        for (Freight freight : train.getFreights()) {
+            Endpoint freightOrigin = freight.getOrigin();
+
+            for (Wagon wagon : freight.getWagons()) {
+                locationRepo.updateWagonLocation(
+                        wagon.getId(),
+                        freightOrigin.getId(),
+                        WagonLocation.Status.T, // In Transit
+                        departureTime
+                );
+            }
+        }
     }
 
     /**
@@ -209,5 +245,102 @@ public class MovementRecorder {
         }
 
         System.out.println("─".repeat(70));
+    }
+
+    /**
+     * Records intermediate movements of locomotives and wagons as train progresses.
+     * Updates location when train passes through or stops at each endpoint.
+     *
+     * @param schedule The train schedule with all passages
+     * @throws SQLException if database operation fails
+     */
+    public void recordRollingStockMovements(TrainSchedule schedule) throws SQLException {
+        Train train = schedule.getTrain();
+        List<SegmentPassage> passages = schedule.getPassages();
+
+        // For each passage, update locomotive locations
+        for (SegmentPassage passage : passages) {
+            LocalDateTime arrivalTime = passage.getArrivalTime();
+            Endpoint arrivalEndpoint = passage.getArrivalEndpoint();
+
+            // Update all locomotives to new location (still in transit)
+            for (Locomotive loco : train.getLocomotives()) {
+                locationRepo.updateLocomotiveLocation(
+                        loco.getId(),
+                        arrivalEndpoint.getId(),
+                        LocomotiveLocation.Status.T,
+                        arrivalTime
+                );
+            }
+
+            // Update wagons that have reached their freight destination
+            updateWagonsAtDestination(train, arrivalEndpoint, arrivalTime);
+        }
+
+        // Mark as completed when reaching final destination
+        SegmentPassage lastPassage = passages.get(passages.size() - 1);
+        markTrainCompletedAutomatic(train.getId(), lastPassage.getArrivalTime());
+    }
+
+    /**
+     * Checks if any wagon's freight destination is this endpoint.
+     * If yes, marks wagon as FREE at this location.
+     */
+    private void updateWagonsAtDestination(Train train, Endpoint currentEndpoint,
+                                           LocalDateTime time) throws SQLException {
+        for (Freight freight : train.getFreights()) {
+            // Check if this freight's destination is the current endpoint
+            if (freight.getDestination().getId() == currentEndpoint.getId()) {
+                // Unload all wagons of this freight
+                for (Wagon wagon : freight.getWagons()) {
+                    locationRepo.updateWagonLocation(
+                            wagon.getId(),
+                            currentEndpoint.getId(),
+                            WagonLocation.Status.F,  // FREE - unloaded
+                            time
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Automatically marks train as completed when it reaches final destination.
+     * Updates locomotives to FREE at final endpoint.
+     * Remaining wagons (not yet unloaded) also become FREE.
+     */
+    private void markTrainCompletedAutomatic(int trainId, LocalDateTime arrivalTime)
+            throws SQLException {
+        Train train = railwayRepo.getTrainById(trainId);
+        if (train == null) return;
+
+        Endpoint finalDestination = train.getEndEndpoint();
+
+        // Update locomotives to FREE at final destination
+        for (Locomotive loco : train.getLocomotives()) {
+            locationRepo.updateLocomotiveLocation(
+                    loco.getId(),
+                    finalDestination.getId(),
+                    LocomotiveLocation.Status.F,
+                    arrivalTime
+            );
+        }
+
+        // Update any remaining wagons (those whose freight destination = final destination)
+        for (Freight freight : train.getFreights()) {
+            if (freight.getDestination().getId() == finalDestination.getId()) {
+                for (Wagon wagon : freight.getWagons()) {
+                    locationRepo.updateWagonLocation(
+                            wagon.getId(),
+                            finalDestination.getId(),
+                            WagonLocation.Status.F,
+                            arrivalTime
+                    );
+                }
+            }
+        }
+
+        System.out.println("✅ Train " + trainId + " completed journey at " +
+                finalDestination.getName());
     }
 }

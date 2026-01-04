@@ -17,8 +17,6 @@ static int serial_send_cmd(int serial_port, const char *cmd) {
     return (w == n);
 }
 
-
-
 static UserRole parse_role(const char *s) {
     if (!s) return ROLE_OPERATOR;
     if (strcmp(s, "ADMIN") == 0 || strcmp(s, "admin") == 0) return ROLE_ADMIN;
@@ -44,7 +42,6 @@ Manager* init_manager(char* config_file) {
         strcpy(mgr->users[0].password, "VGYYCUXJKX");
         mgr->users[0].cipher_key = 6;
         mgr->users[0].role = ROLE_ADMIN;
-        mgr->users[0].role = ROLE_ADMIN;
 
         mgr->num_tracks = 2;
         mgr->tracks = (Track*)malloc(sizeof(Track) * 2);
@@ -54,7 +51,6 @@ Manager* init_manager(char* config_file) {
             mgr->tracks[i].train = NULL;
         }
 
-        // Sensor data defaults
         mgr->sensor_data.temp_buffer_length = 10;
         mgr->sensor_data.temp_window_length = 5;
         mgr->sensor_data.temp_buffer = (int*)calloc(10, sizeof(int));
@@ -64,7 +60,6 @@ Manager* init_manager(char* config_file) {
 
         mgr->log_capacity = 100;
         mgr->logs = (LogEntry*)malloc(sizeof(LogEntry) * 100);
-
         mgr->serial_port = -1;
 
         return mgr;
@@ -77,15 +72,13 @@ Manager* init_manager(char* config_file) {
             mgr->num_users++;
             mgr->users = (User*)realloc(mgr->users, sizeof(User) * mgr->num_users);
             User* u = &mgr->users[mgr->num_users - 1];
-            // Backwards compatible:
-            // USER:name,username,password,cipher_key[,ROLE]
             char role_str[32] = {0};
             int n = sscanf(line, "USER:%[^,],%[^,],%[^,],%d,%31s", u->name, u->username, u->password, &u->cipher_key, role_str);
             u->role = (n == 5) ? parse_role(role_str) : ROLE_OPERATOR;
         }
         else if (strncmp(line, "TRACK:", 6) == 0) {
             if (mgr->num_tracks >= 99) {
-                continue; // ignore extra tracks
+                continue;
             }
             mgr->num_tracks++;
             mgr->tracks = (Track*)realloc(mgr->tracks, sizeof(Track) * mgr->num_tracks);
@@ -112,7 +105,6 @@ Manager* init_manager(char* config_file) {
 
     fclose(fp);
 
-    // Ensure there is at least one user and one track
     if (mgr->num_users == 0) {
         mgr->num_users = 1;
         mgr->users = (User*)malloc(sizeof(User));
@@ -139,7 +131,6 @@ Manager* init_manager(char* config_file) {
     return mgr;
 }
 
-// Free Manager memory
 void free_manager(Manager* mgr) {
     if (!mgr) return;
 
@@ -153,7 +144,6 @@ void free_manager(Manager* mgr) {
     free(mgr);
 }
 
-// User login
 User* login_user(Manager* mgr, char* username, char* password) {
     char encrypted[64];
 
@@ -171,7 +161,6 @@ User* login_user(Manager* mgr, char* username, char* password) {
     return NULL;
 }
 
-// Log action
 void log_action(Manager* mgr, char* action) {
     if (!mgr->current_user) return;
 
@@ -190,7 +179,6 @@ void log_action(Manager* mgr, char* action) {
     mgr->num_logs++;
 }
 
-// Export user logs to file
 int export_user_logs(Manager* mgr, char* username, char* filename) {
     FILE* fp = fopen(filename, "w");
     if (!fp) return 0;
@@ -212,7 +200,6 @@ int export_user_logs(Manager* mgr, char* username, char* filename) {
     return 1;
 }
 
-// Send LED command to Arduino via serial port
 int send_led_command(Manager* mgr, int track_id, char* led_cmd) {
     if (mgr->serial_port < 0) {
         printf("Warning: Serial port not open, cannot send LED command\n");
@@ -227,14 +214,12 @@ int send_led_command(Manager* mgr, int track_id, char* led_cmd) {
         return 0;
     }
 
-    // Send the LED command - Arduino handles turning off old LED
     serial_send_cmd(mgr->serial_port, out);
-    usleep(100000); // 100ms delay for Pico to process
+    usleep(100000);
 
     return 1;
 }
 
-// USAC16 helper: update the LED based on the track state using assembly (struct parameter)
 static int sync_track_led(Manager* mgr, Track* t) {
     if (!mgr || !t) return 0;
     if (mgr->serial_port < 0) return 0;
@@ -243,7 +228,6 @@ static int sync_track_led(Manager* mgr, Track* t) {
     return serial_send_cmd(mgr->serial_port, cmd);
 }
 
-// Assign train to track
 int assign_train_to_track(Manager* mgr, int train_id, int* assigned_track_id) {
     for (int i = 0; i < mgr->num_tracks; i++) {
         if (mgr->tracks[i].state == TRACK_FREE) {
@@ -252,7 +236,6 @@ int assign_train_to_track(Manager* mgr, int train_id, int* assigned_track_id) {
             mgr->trains[mgr->num_trains - 1].id = train_id;
 
             mgr->tracks[i].train = &mgr->trains[mgr->num_trains - 1];
-            // Reserve first (yellow) as per Sprint 3
             mgr->tracks[i].state = TRACK_RESERVED;
             *assigned_track_id = mgr->tracks[i].id;
 
@@ -260,7 +243,6 @@ int assign_train_to_track(Manager* mgr, int train_id, int* assigned_track_id) {
             sprintf(log_msg, "Assigned train %d to track %d", train_id, mgr->tracks[i].id);
             log_action(mgr, log_msg);
 
-            // LED based on state via USAC16 assembly helper
             sync_track_led(mgr, &mgr->tracks[i]);
 
             return 1;
@@ -271,7 +253,6 @@ int assign_train_to_track(Manager* mgr, int train_id, int* assigned_track_id) {
     return 0;
 }
 
-// Confirm train arrival: RESERVED -> OCCUPIED
 int confirm_train_arrival(Manager* mgr, int track_id) {
     for (int i = 0; i < mgr->num_tracks; i++) {
         if (mgr->tracks[i].id == track_id && mgr->tracks[i].state == TRACK_RESERVED) {
@@ -285,12 +266,11 @@ int confirm_train_arrival(Manager* mgr, int track_id) {
     return 0;
 }
 
-// Free track
 int free_track(Manager* mgr, int track_id) {
     for (int i = 0; i < mgr->num_tracks; i++) {
         if (mgr->tracks[i].id == track_id) {
             if (mgr->tracks[i].state == TRACK_NON_OPERATIONAL) {
-                return 0; // cannot free a non-operational track
+                return 0;
             }
             mgr->tracks[i].train = NULL;
             mgr->tracks[i].state = TRACK_FREE;
@@ -307,7 +287,6 @@ int free_track(Manager* mgr, int track_id) {
     return 0;
 }
 
-// Set track as non-operational
 int set_track_non_operational(Manager* mgr, int track_id) {
     for (int i = 0; i < mgr->num_tracks; i++) {
         if (mgr->tracks[i].id == track_id) {
@@ -317,6 +296,27 @@ int set_track_non_operational(Manager* mgr, int track_id) {
             sprintf(log_msg, "Set track %d as non-operational", track_id);
             log_action(mgr, log_msg);
 
+            sync_track_led(mgr, &mgr->tracks[i]);
+            
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int repair_track(Manager* mgr, int track_id) {
+    for (int i = 0; i < mgr->num_tracks; i++) {
+        if (mgr->tracks[i].id == track_id) {
+            if (mgr->tracks[i].state != TRACK_NON_OPERATIONAL) {
+                return 0;
+            }
+            
+            mgr->tracks[i].train = NULL;
+            mgr->tracks[i].state = TRACK_FREE;
+
+            char log_msg[256];
+            sprintf(log_msg, "Repaired track %d", track_id);
+            log_action(mgr, log_msg);
 
             sync_track_led(mgr, &mgr->tracks[i]);
             
@@ -326,7 +326,6 @@ int set_track_non_operational(Manager* mgr, int track_id) {
     return 0;
 }
 
-// Give departure order
 int departure_order(Manager* mgr, int track_id) {
     for (int i = 0; i < mgr->num_tracks; i++) {
         if (mgr->tracks[i].id == track_id && mgr->tracks[i].state == TRACK_OCCUPIED) {

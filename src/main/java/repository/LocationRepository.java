@@ -21,54 +21,39 @@ public class LocationRepository {
     // ==================== LOCOMOTIVE LOCATIONS ====================
 
     /**
-     * Gets all locomotive locations.
+     * Gets the latest location for each locomotive.
      */
     public List<LocomotiveLocation> getAllLocomotiveLocations() throws SQLException {
         List<LocomotiveLocation> locations = new ArrayList<>();
 
-        String query = """
-        SELECT locomotive, endpoint, status, arrival, endpoint_name, metafacility
-        FROM (
-            SELECT ll.locomotive,
-                   ll.endpoint,
-                   ll.status,
-                   ll.event_time AS arrival,
-                   e.name AS endpoint_name,
-                   e.metafacility,
-                   ROW_NUMBER() OVER (
-                       PARTITION BY ll.locomotive
-                       ORDER BY ll.event_time DESC, ll.id DESC
-                   ) rn
-            FROM Locomotive_Location ll
-            JOIN Endpoint e ON ll.endpoint = e.id
-        )
-        WHERE rn = 1
-        ORDER BY locomotive
-    """;
+        String call = "{ ? = call LOCATION_API.f_getAllLocomotiveLocations() }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            while (rs.next()) {
-                int locoId = rs.getInt("locomotive");
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.execute();
 
-                Endpoint endpoint = new Endpoint(
-                        rs.getInt("endpoint"),
-                        rs.getString("endpoint_name"),
-                        rs.getInt("metafacility")
-                );
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
+                while (rs.next()) {
+                    int locoId = rs.getInt("locomotive");
 
-                LocomotiveLocation.Status status = LocomotiveLocation.Status.valueOf(rs.getString("status"));
-                LocalDateTime arrival = rs.getTimestamp("arrival").toLocalDateTime();
+                    Endpoint endpoint = new Endpoint(
+                            rs.getInt("endpoint"),
+                            rs.getString("endpoint_name"),
+                            rs.getInt("metafacility")
+                    );
 
-                locations.add(new LocomotiveLocation(locoId, endpoint, status, arrival));
+                    LocomotiveLocation.Status status = LocomotiveLocation.Status.valueOf(rs.getString("status"));
+                    LocalDateTime arrival = rs.getTimestamp("arrival").toLocalDateTime();
+
+                    locations.add(new LocomotiveLocation(locoId, endpoint, status, arrival));
+                }
             }
         }
 
         return locations;
     }
-
 
     /**
      * Gets free locomotives at a specific endpoint, sorted by arrival time.
@@ -76,22 +61,19 @@ public class LocationRepository {
     public List<LocomotiveLocation> getFreeLocomotivesAt(int endpointId) throws SQLException {
         List<LocomotiveLocation> locations = new ArrayList<>();
 
-        String query = """
-            SELECT lcl.locomotive, lcl.endpoint, lcl.status, lcl.arrival,
-                   e.name as endpoint_name, e.metafacility
-            FROM Locomotive_Current_Location lcl
-            JOIN Endpoint e ON lcl.endpoint = e.id
-            WHERE lcl.endpoint = ? AND lcl.status = 'F'
-            ORDER BY lcl.arrival
-        """;
+        String call = "{ ? = call LOCATION_API.f_getFreeLocomotivesAt(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, endpointId);
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, endpointId);
+            stmt.execute();
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 while (rs.next()) {
+                    int locoId = rs.getInt("locomotive");
+
                     Endpoint endpoint = new Endpoint(
                             rs.getInt("endpoint"),
                             rs.getString("endpoint_name"),
@@ -99,7 +81,7 @@ public class LocationRepository {
                     );
 
                     LocomotiveLocation loc = new LocomotiveLocation(
-                            rs.getInt("locomotive"),
+                            locoId,
                             endpoint,
                             LocomotiveLocation.Status.F,
                             rs.getTimestamp("arrival").toLocalDateTime()
@@ -117,32 +99,19 @@ public class LocationRepository {
                                          LocomotiveLocation.Status status,
                                          LocalDateTime time) throws SQLException {
 
-        String nextIdSql = "SELECT NVL(MAX(id), 0) + 1 AS next_id FROM Locomotive_Location";
-        String insertSql = """
-        INSERT INTO Locomotive_Location (id, locomotive, endpoint, status, event_time, event_type)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """;
+        String call = "{ call LOCATION_API.p_insertLocomotiveLocation(?, ?, ?, ?, ?) }";
 
         String eventType = (status == LocomotiveLocation.Status.T) ? "D" : "A"; // D=Departure, A=Arrival
 
-        try (Connection conn = DatabaseConnectionPool.getConnection()) {
-            int nextId;
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            try (PreparedStatement ps = conn.prepareStatement(nextIdSql);
-                 ResultSet rs = ps.executeQuery()) {
-                rs.next();
-                nextId = rs.getInt("next_id");
-            }
-
-            try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
-                stmt.setInt(1, nextId);
-                stmt.setInt(2, locomotiveId);
-                stmt.setInt(3, endpointId);
-                stmt.setString(4, status.name());
-                stmt.setTimestamp(5, Timestamp.valueOf(time));
-                stmt.setString(6, eventType);
-                stmt.executeUpdate();
-            }
+            stmt.setInt(1, locomotiveId);
+            stmt.setInt(2, endpointId);
+            stmt.setString(3, status.name());
+            stmt.setTimestamp(4, Timestamp.valueOf(time));
+            stmt.setString(5, eventType);
+            stmt.execute();
         }
     }
 
@@ -150,77 +119,59 @@ public class LocationRepository {
     // ==================== WAGON LOCATIONS ====================
 
     /**
-     * Gets all wagon locations.
+     * Gets the latest location for each wagon.
      */
     public List<WagonLocation> getAllWagonLocations() throws SQLException {
         List<WagonLocation> locations = new ArrayList<>();
 
-        String query = """
-        SELECT wagon, endpoint, status, arrival, endpoint_name, metafacility
-        FROM (
-            SELECT wcl.wagon,
-                   wcl.endpoint,
-                   wcl.status,
-                   wcl.event_timestamp AS arrival,
-                   e.name AS endpoint_name,
-                   e.metafacility,
-                   ROW_NUMBER() OVER (
-                       PARTITION BY wcl.wagon
-                       ORDER BY wcl.event_timestamp DESC, wcl.id DESC
-                   ) rn
-            FROM Wagon_Location wcl
-            JOIN Endpoint e ON wcl.endpoint = e.id
-        )
-        WHERE rn = 1
-        ORDER BY wagon
-    """;
+        String call = "{ ? = call LOCATION_API.f_getAllWagonLocations() }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            while (rs.next()) {
-                int wagonId = rs.getInt("wagon");
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.execute();
 
-                Endpoint endpoint = new Endpoint(
-                        rs.getInt("endpoint"),
-                        rs.getString("endpoint_name"),
-                        rs.getInt("metafacility")
-                );
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
+                while (rs.next()) {
+                    int wagonId = rs.getInt("wagon");
 
-                WagonLocation.Status status = WagonLocation.Status.valueOf(rs.getString("status"));
-                LocalDateTime arrival = rs.getTimestamp("arrival").toLocalDateTime();
+                    Endpoint endpoint = new Endpoint(
+                            rs.getInt("endpoint"),
+                            rs.getString("endpoint_name"),
+                            rs.getInt("metafacility")
+                    );
 
-                locations.add(new WagonLocation(wagonId, endpoint, status, arrival));
+                    WagonLocation.Status status = WagonLocation.Status.valueOf(rs.getString("status"));
+                    LocalDateTime arrival = rs.getTimestamp("arrival").toLocalDateTime();
+
+                    locations.add(new WagonLocation(wagonId, endpoint, status, arrival));
+                }
             }
         }
 
         return locations;
     }
 
-
     /**
-     * Gets free wagons at a specific endpoint.
+     * Gets free wagons at a specific endpoint, sorted by arrival time.
      */
     public List<WagonLocation> getFreeWagonsAt(int endpointId) throws SQLException {
         List<WagonLocation> locations = new ArrayList<>();
 
-        String query = """
-            SELECT wcl.wagon, wcl.endpoint, wcl.status, wcl.arrival,
-                   e.name as endpoint_name, e.metafacility
-            FROM Wagon_Location wcl
-            JOIN Endpoint e ON wcl.endpoint = e.id
-            WHERE wcl.endpoint = ? AND wcl.status = 'F'
-            ORDER BY wcl.arrival
-        """;
+        String call = "{ ? = call LOCATION_API.f_getFreeWagonsAt(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, endpointId);
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, endpointId);
+            stmt.execute();
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 while (rs.next()) {
+                    int wagonId = rs.getInt("wagon");
+
                     Endpoint endpoint = new Endpoint(
                             rs.getInt("endpoint"),
                             rs.getString("endpoint_name"),
@@ -228,7 +179,7 @@ public class LocationRepository {
                     );
 
                     WagonLocation loc = new WagonLocation(
-                            rs.getInt("wagon"),
+                            wagonId,
                             endpoint,
                             WagonLocation.Status.F,
                             rs.getTimestamp("arrival").toLocalDateTime()
@@ -249,32 +200,19 @@ public class LocationRepository {
                                     WagonLocation.Status status,
                                     LocalDateTime time) throws SQLException {
 
-        String nextIdSql = "SELECT NVL(MAX(id), 0) + 1 AS next_id FROM Wagon_Location";
-        String insertSql = """
-        INSERT INTO Wagon_Location (id, wagon, endpoint, status, event_timestamp, event_type)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """;
+        String call = "{ call LOCATION_API.p_insertWagonLocation(?, ?, ?, ?, ?) }";
 
         String eventType = (status == WagonLocation.Status.T) ? "D" : "A";
 
-        try (Connection conn = DatabaseConnectionPool.getConnection()) {
-            int nextId;
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            try (PreparedStatement ps = conn.prepareStatement(nextIdSql);
-                 ResultSet rs = ps.executeQuery()) {
-                rs.next();
-                nextId = rs.getInt("next_id");
-            }
-
-            try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
-                stmt.setInt(1, nextId);
-                stmt.setInt(2, wagonId);
-                stmt.setInt(3, endpointId);
-                stmt.setString(4, status.name());
-                stmt.setTimestamp(5, Timestamp.valueOf(time));
-                stmt.setString(6, eventType);
-                stmt.executeUpdate();
-            }
+            stmt.setInt(1, wagonId);
+            stmt.setInt(2, endpointId);
+            stmt.setString(3, status.name());
+            stmt.setTimestamp(4, Timestamp.valueOf(time));
+            stmt.setString(5, eventType);
+            stmt.execute();
         }
     }
 

@@ -21,35 +21,38 @@ public class RailwayRepository {
 
     public List<Endpoint> getAllEndpoints() throws SQLException {
         List<Endpoint> endpoints = new ArrayList<>();
-        String query = """
-            SELECT id, name, metafacility
-            FROM Endpoint
-            ORDER BY name
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getAllEndpoints() }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            while (rs.next()) {
-                endpoints.add(new Endpoint(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getInt("metafacility")
-                ));
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
+                while (rs.next()) {
+                    endpoints.add(new Endpoint(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getInt("metafacility")
+                    ));
+                }
             }
         }
         return endpoints;
     }
 
     public Endpoint getEndpointById(int id) throws SQLException {
-        String query = "SELECT id, name, metafacility FROM Endpoint WHERE id = ?";
+        String call = "{ ? = call RAILWAY_API.f_getEndpointById(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, id);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     return new Endpoint(
                             rs.getInt("id"),
@@ -66,30 +69,28 @@ public class RailwayRepository {
 
     public List<Line> getAllLines() throws SQLException {
         List<Line> lines = new ArrayList<>();
-        String query = """
-            SELECT l.id, l.name, l.owner, l.endpoint_a, l.endpoint_b, l.gauge,
-                   ea.name as endpoint_a_name, eb.name as endpoint_b_name
-            FROM Line l
-            JOIN Endpoint ea ON l.endpoint_a = ea.id
-            JOIN Endpoint eb ON l.endpoint_b = eb.id
-            ORDER BY l.name
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getAllLines() }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
 
-            while (rs.next()) {
-                lines.add(new Line(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("owner"),
-                        rs.getInt("endpoint_a"),
-                        rs.getInt("endpoint_b"),
-                        rs.getInt("gauge"),
-                        rs.getString("endpoint_a_name"),
-                        rs.getString("endpoint_b_name")
-                ));
+             CallableStatement stmt = conn.prepareCall(call)) {
+
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
+                while (rs.next()) {
+                    lines.add(new Line(
+                                rs.getInt("ID"),
+                                rs.getString("NAME"),
+                                rs.getString("OWNER"),
+                                rs.getInt("ENDPOINT_A"),
+                                rs.getInt("ENDPOINT_B"),
+                                rs.getInt("GAUGE"),
+                                rs.getString("ENDPOINT_A_NAME"),
+                                rs.getString("ENDPOINT_B_NAME")
+                        ));
+                }
             }
         }
         return lines;
@@ -99,19 +100,16 @@ public class RailwayRepository {
 
     public List<LineSegment> getLineSegments(int lineId) throws SQLException {
         List<LineSegment> segments = new ArrayList<>();
-        String query = """
-            SELECT ls.id, ls.is_electrified, ls.speed_limit, ls.max_weight, 
-                   ls.length, ls.line
-            FROM Line_Segment ls
-            WHERE ls.line = ?
-            ORDER BY ls.id
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getLineSegments(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, lineId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, lineId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 while (rs.next()) {
                     segments.add(new LineSegment(
                             rs.getInt("id"),
@@ -128,29 +126,31 @@ public class RailwayRepository {
     }
 
     public TrackType getTrackType(int segmentId) throws SQLException {
-        String queryMultiple = """
-            SELECT number_tracks 
-            FROM Multiple_Tracks 
-            WHERE segment = ?
-        """;
+        String callMultiple = "{ ? = call RAILWAY_API.f_getMultipleTracks(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(queryMultiple)) {
+             CallableStatement stmt = conn.prepareCall(callMultiple)) {
 
-            stmt.setInt(1, segmentId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, segmentId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     return new MultipleTrack(segmentId, rs.getInt("number_tracks"));
                 }
             }
         }
 
-        String querySingle = "SELECT segment FROM Single_Track WHERE segment = ?";
+        String callSingle = "{ ? = call RAILWAY_API.f_getSingleTrack(?) }";
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(querySingle)) {
+             CallableStatement stmt = conn.prepareCall(callSingle)) {
 
-            stmt.setInt(1, segmentId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, segmentId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     return getSidingInfo(segmentId);
                 }
@@ -161,17 +161,16 @@ public class RailwayRepository {
     }
 
     private SingleTrack getSidingInfo(int segmentId) throws SQLException {
-        String query = """
-            SELECT position, length 
-            FROM Siding 
-            WHERE segment = ?
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getSidingInfo(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, segmentId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, segmentId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     return new SingleTrack(
                             segmentId,
@@ -194,40 +193,30 @@ public class RailwayRepository {
     public List<Locomotive> getAllLocomotives() throws SQLException {
         List<Locomotive> locomotives = new ArrayList<>();
 
-        String query = """
-            SELECT l.id, l.name, l.service_start, l.total_weight, l.op_speed,
-                   lm.id as model_id, lm.name as model_name, lm.make, 
-                   lm.power, lm.length, lm.max_speed,
-                   lmg.gaugeid,
-                   CASE WHEN elm.model IS NOT NULL THEN 'ELECTRIC'
-                        WHEN dlm.model IS NOT NULL THEN 'DIESEL'
-                        ELSE 'UNKNOWN' END as traction_type
-            FROM Locomotive l
-            JOIN Locomotive_Model lm ON l.model = lm.id
-            LEFT JOIN Electric_Locomotive_Model elm ON lm.id = elm.model
-            LEFT JOIN Diesel_Locomotive_Model dlm ON lm.id = dlm.model
-            JOIN Locomotive_Model_Gauge lmg ON lm.id = lmg.locomotive_modelid
-            ORDER BY l.name
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getAllLocomotives() }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            while (rs.next()) {
-                locomotives.add(new Locomotive(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("make"),
-                        rs.getString("model_name"),
-                        rs.getInt("power"),
-                        rs.getInt("max_speed"),
-                        rs.getInt("op_speed"),
-                        rs.getString("traction_type"),
-                        rs.getInt("total_weight"),
-                        rs.getInt("gaugeid"),
-                        rs.getInt("length")
-                ));
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
+                while (rs.next()) {
+                    locomotives.add(new Locomotive(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("make"),
+                            rs.getString("model_name"),
+                            rs.getInt("power"),
+                            rs.getInt("max_speed"),
+                            rs.getInt("op_speed"),
+                            rs.getString("traction_type"),
+                            rs.getInt("total_weight"),
+                            rs.getInt("gaugeid"),
+                            rs.getInt("length")
+                    ));
+                }
             }
         }
         return locomotives;
@@ -237,28 +226,16 @@ public class RailwayRepository {
      * Gets a single locomotive by ID.
      */
     public Locomotive getLocomotiveById(int locomotiveId) throws SQLException {
-        String query = """
-            SELECT l.id, l.name, l.service_start, l.total_weight, l.op_speed,
-                   lm.id as model_id, lm.name as model_name, lm.make, 
-                   lm.power, lm.length, lm.max_speed,
-                   lmg.gaugeid,
-                   CASE WHEN elm.model IS NOT NULL THEN 'ELECTRIC'
-                        WHEN dlm.model IS NOT NULL THEN 'DIESEL'
-                        ELSE 'UNKNOWN' END as traction_type
-            FROM Locomotive l
-            JOIN Locomotive_Model lm ON l.model = lm.id
-            LEFT JOIN Electric_Locomotive_Model elm ON lm.id = elm.model
-            LEFT JOIN Diesel_Locomotive_Model dlm ON lm.id = dlm.model
-            JOIN Locomotive_Model_Gauge lmg ON lm.id = lmg.locomotive_modelid
-            WHERE l.id = ?
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getLocomotiveById(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, locomotiveId);
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, locomotiveId);
+            stmt.execute();
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     return new Locomotive(
                             rs.getInt("id"),
@@ -283,18 +260,22 @@ public class RailwayRepository {
 
     public List<Path> getAllPaths() throws SQLException {
         List<Path> paths = new ArrayList<>();
-        String queryPaths = "SELECT id, name FROM Path ORDER BY name";
+        String call = "{ ? = call RAILWAY_API.f_getAllPaths() }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(queryPaths);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            while (rs.next()) {
-                Path path = new Path(
-                        rs.getInt("id"),
-                        rs.getString("name")
-                );
-                paths.add(path);
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
+                while (rs.next()) {
+                    Path path = new Path(
+                            rs.getInt("id"),
+                            rs.getString("name")
+                    );
+                    paths.add(path);
+                }
             }
         }
 
@@ -306,13 +287,16 @@ public class RailwayRepository {
     }
 
     public Path getPathById(int pathId) throws SQLException {
-        String query = "SELECT id, name FROM Path WHERE id = ?";
+        String call = "{ ? = call RAILWAY_API.f_getPathById(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, pathId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, pathId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     Path path = new Path(
                             rs.getInt("id"),
@@ -327,19 +311,16 @@ public class RailwayRepository {
     }
 
     private void loadPathEndpoints(Path path) throws SQLException {
-        String query = """
-            SELECT ep.seq, ep.endpoint, ep.must_stop, e.name, e.metafacility
-            FROM Endpoint_Path ep
-            JOIN Endpoint e ON ep.endpoint = e.id
-            WHERE ep.path = ?
-            ORDER BY ep.seq
-        """;
+        String call = "{ ? = call RAILWAY_API.f_loadPathEndpoints(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, path.getId());
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, path.getId());
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 while (rs.next()) {
                     Endpoint endpoint = new Endpoint(
                             rs.getInt("endpoint"),
@@ -366,45 +347,43 @@ public class RailwayRepository {
 
     public List<Train> getAllTrains() throws SQLException {
         List<TrainDto> dtos = new ArrayList<>();
-        String query = """
-            SELECT t.id, t.operator, t.time, t."date", t.path, t.max_length
-            FROM Train t
-            ORDER BY t."date", t.time
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getAllTrains() }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            while (rs.next()) {
-                dtos.add(mapToTrainDto(rs));
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
+                while (rs.next()) {
+                    dtos.add(mapToTrainDto(rs));
+                }
             }
         }
 
         List<Train> trains = new ArrayList<>();
         for (TrainDto dto : dtos) {
             Train train = hydrateTrain(dto);
-            loadTrainLocomotives(train);
-            loadTrainFreights(train);
             trains.add(train);
         }
+
         return trains;
     }
 
     public Train getTrainById(int trainId) throws SQLException {
-        String query = """
-            SELECT t.id, t.operator, t.time, t."date", t.path, t.max_length
-            FROM Train t
-            WHERE t.id = ?
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getTrainById(?) }";
 
         TrainDto dto = null;
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, trainId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, trainId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     dto = mapToTrainDto(rs);
                 }
@@ -448,29 +427,16 @@ public class RailwayRepository {
     }
 
     private void loadTrainLocomotives(Train train) throws SQLException {
-        String query = """
-            SELECT l.id, l.name, l.service_start, l.total_weight, l.op_speed,
-                   lm.id as model_id, lm.name as model_name, lm.make, 
-                   lm.power, lm.length, lm.max_speed,
-                   lmg.gaugeid,
-                   CASE WHEN elm.model IS NOT NULL THEN 'ELECTRIC'
-                        WHEN dlm.model IS NOT NULL THEN 'DIESEL'
-                        ELSE 'UNKNOWN' END as traction_type
-            FROM Locomotive_Train lt
-            JOIN Locomotive l ON lt.locomotive = l.id
-            JOIN Locomotive_Model lm ON l.model = lm.id
-            LEFT JOIN Electric_Locomotive_Model elm ON lm.id = elm.model
-            LEFT JOIN Diesel_Locomotive_Model dlm ON lm.id = dlm.model
-            JOIN Locomotive_Model_Gauge lmg ON lm.id = lmg.locomotive_modelid
-            WHERE lt.train = ?
-            ORDER BY lt.position
-        """;
+        String call = "{ ? = call RAILWAY_API.f_loadTrainLocomotives(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, train.getId());
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, train.getId());
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 while (rs.next()) {
                     Locomotive loco = new Locomotive(
                             rs.getInt("id"),
@@ -495,18 +461,16 @@ public class RailwayRepository {
         record FreightDto(int id, LocalDate date, int originId, int destinationId) {}
         List<FreightDto> dtos = new ArrayList<>();
 
-        String query = """
-            SELECT f.id, f."date", f.origin, f.destination
-            FROM Freight_Train ft
-            JOIN Freight f ON ft.freight = f.id
-            WHERE ft.train = ?
-        """;
+        String call = "{ ? = call RAILWAY_API.f_loadTrainFreights(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, train.getId());
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, train.getId());
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 while (rs.next()) {
                     dtos.add(new FreightDto(
                             rs.getInt("id"),
@@ -538,22 +502,16 @@ public class RailwayRepository {
 
         List<WagonRawData> rawDataList = new ArrayList<>();
 
-        String query = """
-            SELECT w.id, w.service_start, w.operator, 
-                   wm.id as model_id, wm.model, wm.maker, wm.number_bogies, 
-                   wm.length, wm.width, wm.height, wm.weight, wm.max_speed,
-                   wm.payload, wm.volume, wm.type
-            FROM Wagon_Freight wf
-            JOIN Wagon w ON wf.wagon = w.id
-            JOIN Wagon_Model wm ON w.wagon_model = wm.id
-            WHERE wf.freight = ?
-        """;
+        String call = "{ ? = call RAILWAY_API.f_loadFreightWagons(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, freight.getId());
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, freight.getId());
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 while (rs.next()) {
                     rawDataList.add(new WagonRawData(
                             rs.getInt("id"),
@@ -606,18 +564,16 @@ public class RailwayRepository {
     }
 
     private int getWagonGauge(int wagonModelId) throws SQLException {
-        String query = """
-            SELECT Gaugeid 
-            FROM Wagon_Model_Gauge 
-            WHERE Wagon_Modelid = ?
-            FETCH FIRST 1 ROW ONLY
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getWagonGauge(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, wagonModelId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, wagonModelId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     return rs.getInt("Gaugeid");
                 }
@@ -632,22 +588,16 @@ public class RailwayRepository {
      * Gets a wagon by ID with full details.
      */
     public Wagon getWagonById(int wagonId) throws SQLException {
-        String query = """
-            SELECT w.id, w.service_start, w.wagon_model, w.operator,
-                   wm.model, wm.maker, wm.number_bogies, wm.length, wm.width,
-                   wm.height, wm.weight, wm.max_speed, wm.payload, 
-                   wm.volume, wm.type
-            FROM Wagon w
-            JOIN Wagon_Model wm ON w.wagon_model = wm.id
-            WHERE w.id = ?
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getWagonById(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, wagonId);
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, wagonId);
+            stmt.execute();
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     int gauge = getWagonGauge(rs.getInt("wagon_model"));
 
@@ -684,55 +634,44 @@ public class RailwayRepository {
     public Path createPath(String name) throws SQLException {
         int newId;
 
-        String getMaxId = "SELECT NVL(MAX(id), 0) AS max_id FROM Path";
-        String insertPath = "INSERT INTO Path (id, name) VALUES (?, ?)";
+        String call = "{ ? = call RAILWAY_API.f_createPath(?) }";
 
-        try (Connection conn = DatabaseConnectionPool.getConnection()) {
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            try (PreparedStatement ps = conn.prepareStatement(getMaxId);
-                 ResultSet rs = ps.executeQuery()) {
-                rs.next();
-                newId = rs.getInt("max_id") + 1;
-            }
+            stmt.registerOutParameter(1, Types.INTEGER);
+            stmt.setString(2, name);
+            stmt.execute();
 
-            try (PreparedStatement ps = conn.prepareStatement(insertPath)) {
-                ps.setInt(1, newId);
-                ps.setString(2, name);
-                ps.executeUpdate();
-            }
+            newId = stmt.getInt(1);
         }
 
         return new Path(newId, name);
     }
 
     public void addEndpointToPath(int pathId, int seq, int endpointId, boolean mustStop) throws SQLException {
-        String sql = "INSERT INTO Endpoint_Path (path, seq, endpoint, must_stop) VALUES (?, ?, ?, ?)";
+        String call = "{ call RAILWAY_API.p_addEndpointToPath(?, ?, ?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            ps.setInt(1, pathId);
-            ps.setInt(2, seq);
-            ps.setInt(3, endpointId);
-            ps.setString(4, mustStop ? "Y" : "N");
-            ps.executeUpdate();
+            stmt.setInt(1, pathId);
+            stmt.setInt(2, seq);
+            stmt.setInt(3, endpointId);
+            stmt.setString(4, mustStop ? "Y" : "N");
+            stmt.execute();
         }
     }
 
     public void updateTrainRoute(int trainId, int pathId) throws SQLException {
-        String sql = """
-            UPDATE Train
-            SET path = ?
-            WHERE id = ?
-        """;
+        String call = "{ call RAILWAY_API.p_updateTrainRoute(?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            ps.setInt(1, pathId);
-            ps.setInt(2, trainId);
-
-            ps.executeUpdate();
+            stmt.setInt(1, pathId);
+            stmt.setInt(2, trainId);
+            stmt.execute();
         }
     }
 
@@ -741,29 +680,26 @@ public class RailwayRepository {
     public List<Freight> getPendingFreights() throws SQLException {
         List<Freight> freights = new ArrayList<>();
 
-        String query = """
-            SELECT f.id, f."date", f.origin, f.destination
-            FROM Freight f
-            WHERE NOT EXISTS (
-                SELECT 1 FROM Freight_Train ft WHERE ft.freight = f.id
-            )
-            ORDER BY f."date", f.id
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getPendingFreights() }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            while (rs.next()) {
-                Freight freight = new Freight(
-                        rs.getInt("id"),
-                        rs.getDate("date").toLocalDate(),
-                        getEndpointById(rs.getInt("origin")),
-                        getEndpointById(rs.getInt("destination"))
-                );
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.execute();
 
-                loadFreightWagons(freight);
-                freights.add(freight);
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
+                while (rs.next()) {
+                    Freight freight = new Freight(
+                            rs.getInt("id"),
+                            rs.getDate("date").toLocalDate(),
+                            getEndpointById(rs.getInt("origin")),
+                            getEndpointById(rs.getInt("destination"))
+                    );
+
+                    loadFreightWagons(freight);
+                    freights.add(freight);
+                }
             }
         }
 
@@ -771,18 +707,16 @@ public class RailwayRepository {
     }
 
     public Freight getFreightById(int freightId) throws SQLException {
-        String query = """
-            SELECT f.id, f."date", f.origin, f.destination
-            FROM Freight f
-            WHERE f.id = ?
-        """;
+        String call = "{ ? = call RAILWAY_API.f_getFreightById(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, freightId);
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, freightId);
+            stmt.execute();
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     Freight freight = new Freight(
                             rs.getInt("id"),
@@ -801,53 +735,47 @@ public class RailwayRepository {
     }
 
     public void assignFreightToTrain(int freightId, int trainId) throws SQLException {
-        String sql = "INSERT INTO Freight_Train (freight, train) VALUES (?, ?)";
+        String call = "{ call RAILWAY_API.p_assignFreightToTrain(?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
             stmt.setInt(1, freightId);
             stmt.setInt(2, trainId);
-            stmt.executeUpdate();
+            stmt.execute();
         }
     }
 
     public void removeFreightFromTrain(int freightId, int trainId) throws SQLException {
-        String sql = "DELETE FROM Freight_Train WHERE freight = ? AND train = ?";
+        String call = "{ call RAILWAY_API.p_removeFreightFromTrain(?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
             stmt.setInt(1, freightId);
             stmt.setInt(2, trainId);
-            stmt.executeUpdate();
+            stmt.execute();
         }
     }
 
     public int createFreight(LocalDate date, int originEndpointId, int destinationEndpointId) throws SQLException {
-        String getMax = "SELECT NVL(MAX(id), 0) AS max_id FROM Freight";
-        String insert = "INSERT INTO Freight (id, \"date\", origin, destination) VALUES (?, ?, ?, ?)";
+        String call = "{ ? = call RAILWAY_API.f_createFreight(?, ?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection()) {
             conn.setAutoCommit(false);
-            try {
-                int newId;
-                try (PreparedStatement ps = conn.prepareStatement(getMax);
-                     ResultSet rs = ps.executeQuery()) {
-                    rs.next();
-                    newId = rs.getInt("max_id") + 1;
-                }
+            try (CallableStatement stmt = conn.prepareCall(call)) {
 
-                try (PreparedStatement ps = conn.prepareStatement(insert)) {
-                    ps.setInt(1, newId);
-                    ps.setDate(2, Date.valueOf(date));
-                    ps.setInt(3, originEndpointId);
-                    ps.setInt(4, destinationEndpointId);
-                    ps.executeUpdate();
-                }
+                stmt.registerOutParameter(1, Types.INTEGER);
+                stmt.setDate(2, Date.valueOf(date));
+                stmt.setInt(3, originEndpointId);
+                stmt.setInt(4, destinationEndpointId);
+
+                stmt.execute();
+                int newId = stmt.getInt(1);
 
                 conn.commit();
                 return newId;
+
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
@@ -862,56 +790,57 @@ public class RailwayRepository {
     // ==================== LOCOMOTIVE-TRAIN ASSIGNMENTS (NEW FOR USLP09) ====================
 
     public void assignLocomotiveToTrain(int locomotiveId, int trainId, int position) throws SQLException {
-        String sql = "INSERT INTO Locomotive_Train (locomotive, train, position) VALUES (?, ?, ?)";
+        String call = "{ call RAILWAY_API.p_assignLocomotiveToTrain(?, ?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
             stmt.setInt(1, locomotiveId);
             stmt.setInt(2, trainId);
             stmt.setInt(3, position);
-            stmt.executeUpdate();
+            stmt.execute();
         }
     }
 
     public void removeLocomotiveFromTrain(int locomotiveId, int trainId) throws SQLException {
-        String sql = "DELETE FROM Locomotive_Train WHERE locomotive = ? AND train = ?";
+        String call = "{ call RAILWAY_API.p_removeLocomotiveFromTrain(?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
             stmt.setInt(1, locomotiveId);
             stmt.setInt(2, trainId);
-            stmt.executeUpdate();
+            stmt.execute();
         }
     }
 
     public void removeAllLocomotivesFromTrain(int trainId) throws SQLException {
-        String sql = "DELETE FROM Locomotive_Train WHERE train = ?";
+        String call = "{ call RAILWAY_API.p_removeAllLocomotivesFromTrain(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
             stmt.setInt(1, trainId);
-            stmt.executeUpdate();
+            stmt.execute();
         }
     }
 
     public int getLocomotiveCountForTrain(int trainId) throws SQLException {
-        String sql = "SELECT COUNT(*) as cnt FROM Locomotive_Train WHERE train = ?";
+        String call = "{ ? = call RAILWAY_API.f_getLocomotiveCountForTrain(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            stmt.setInt(1, trainId);
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, trainId);
+            stmt.execute();
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 if (rs.next()) {
                     return rs.getInt("cnt");
                 }
             }
         }
-
         return 0;
     }
 
@@ -921,36 +850,23 @@ public class RailwayRepository {
                            int pathId, int startEndpointId, int endEndpointId,
                            int maxLength) throws SQLException {
 
-        int newId;
+        String call = "{ ? = call RAILWAY_API.f_createTrain(?, ?, ?, ?, ?, ?, ?) }";
 
-        String getMaxId = "SELECT NVL(MAX(id), 0) AS max_id FROM Train";
-        String insertTrain = """
-            INSERT INTO Train (id, operator, time, "date", path, "start", "end", max_length)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """;
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-        try (Connection conn = DatabaseConnectionPool.getConnection()) {
+            stmt.registerOutParameter(1, Types.INTEGER);
+            stmt.setString(2, operatorVat);
+            stmt.setTime(3, Time.valueOf(time));
+            stmt.setDate(4, Date.valueOf(date));
+            stmt.setInt(5, pathId);
+            stmt.setInt(6, startEndpointId);
+            stmt.setInt(7, endEndpointId);
+            stmt.setInt(8, maxLength);
 
-            try (PreparedStatement ps = conn.prepareStatement(getMaxId);
-                 ResultSet rs = ps.executeQuery()) {
-                rs.next();
-                newId = rs.getInt("max_id") + 1;
-            }
-
-            try (PreparedStatement ps = conn.prepareStatement(insertTrain)) {
-                ps.setInt(1, newId);
-                ps.setString(2, operatorVat);
-                ps.setTime(3, Time.valueOf(time));
-                ps.setDate(4, Date.valueOf(date));
-                ps.setInt(5, pathId);
-                ps.setInt(6, startEndpointId);
-                ps.setInt(7, endEndpointId);
-                ps.setInt(8, maxLength);
-                ps.executeUpdate();
-            }
+            stmt.execute();
+            return stmt.getInt(1);
         }
-
-        return newId;
     }
 
 
@@ -961,40 +877,29 @@ public class RailwayRepository {
      * before USLP08 generates the real path, we use Path('UNASSIGNED') as placeholder.
      */
     public int ensureUnassignedPath() throws SQLException {
-        String select = "SELECT id FROM Path WHERE name = 'UNASSIGNED'";
-        String getMax = "SELECT NVL(MAX(id), 0) AS max_id FROM Path";
-        String insert = "INSERT INTO Path (id, name) VALUES (?, 'UNASSIGNED')";
+        String call = "{ ? = call RAILWAY_API.f_ensureUnassignedPath() }";
 
-        try (Connection conn = DatabaseConnectionPool.getConnection()) {
+        try (Connection conn = DatabaseConnectionPool.getConnection();
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            try (PreparedStatement ps = conn.prepareStatement(select);
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt("id");
-            }
-
-            int newId;
-            try (PreparedStatement ps = conn.prepareStatement(getMax);
-                 ResultSet rs = ps.executeQuery()) {
-                rs.next();
-                newId = rs.getInt("max_id") + 1;
-            }
-
-            try (PreparedStatement ps = conn.prepareStatement(insert)) {
-                ps.setInt(1, newId);
-                ps.executeUpdate();
-            }
-
-            return newId;
+            stmt.registerOutParameter(1, Types.INTEGER);
+            stmt.execute();
+            return stmt.getInt(1);
         }
     }
 
     /** Returns true if a Train with the given id already exists. */
     public boolean trainExists(int trainId) throws SQLException {
-        String sql = "SELECT 1 FROM Train WHERE id = ?";
+        String call = "{ ? = call RAILWAY_API.f_trainExists(?) }";
+
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, trainId);
-            try (ResultSet rs = ps.executeQuery()) {
+             CallableStatement stmt = conn.prepareCall(call)) {
+
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, trainId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 return rs.next();
             }
         }
@@ -1013,20 +918,19 @@ public class RailwayRepository {
                                   int pathId,
                                   int maxLength) throws SQLException {
 
-        String sql = """
-        INSERT INTO Train (id, operator, time, path, "date", max_length)
-        VALUES (?, ?, TO_TIMESTAMP(?, 'HH24:MI:SS'), ?, ?, ?)
-    """;
+        String call = "{ call RAILWAY_API.p_createTrainWithId(?, ?, ?, ?, ?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             CallableStatement ps = conn.prepareCall(call)) {
+
             ps.setInt(1, id);
             ps.setString(2, operatorVat);
             ps.setString(3, time.toString());
             ps.setInt(4, pathId);
             ps.setDate(5, Date.valueOf(date));
             ps.setInt(6, maxLength);
-            ps.executeUpdate();
+
+            ps.execute();
         }
     }
 
@@ -1034,45 +938,39 @@ public class RailwayRepository {
     public void updateTrainDeparture(int trainId, LocalDate newDate, LocalTime newTime)
             throws SQLException {
 
-        String sql = """
-            UPDATE Train
-            SET "date" = ?, time = ?
-            WHERE id = ?
-        """;
+        String call = "{ call RAILWAY_API.p_updateTrainDeparture(?, ?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
             stmt.setDate(1, Date.valueOf(newDate));
             stmt.setTime(2, Time.valueOf(newTime));
             stmt.setInt(3, trainId);
-            stmt.executeUpdate();
+            stmt.execute();
         }
     }
 
     public void assignWagonToFreight(int wagonId, int freightId) throws SQLException {
-        String sql = "INSERT INTO Wagon_Freight (wagon, freight) VALUES (?, ?)";
+        String call = "{ call RAILWAY_API.p_assignWagonToFreight(?, ?) }";
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, wagonId);
-            ps.setInt(2, freightId);
-            ps.executeUpdate();
+             CallableStatement stmt = conn.prepareCall(call)) {
+            stmt.setInt(1, wagonId);
+            stmt.setInt(2, freightId);
+            stmt.execute();
         }
     }
 
     public boolean isWagonAssignedToAnyFreight(int wagonId) throws SQLException {
-        String sql = """
-        SELECT 1
-        FROM Wagon_Freight
-        WHERE wagon = ?
-        FETCH FIRST 1 ROW ONLY
-    """;
+        String call = "{ ? = call RAILWAY_API.f_isWagonAssignedToAnyFreight(?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall(call)) {
 
-            ps.setInt(1, wagonId);
-            try (ResultSet rs = ps.executeQuery()) {
+            stmt.registerOutParameter(1, Types.REF_CURSOR);
+            stmt.setInt(2, wagonId);
+            stmt.execute();
+
+            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
                 return rs.next();
             }
         }
@@ -1080,42 +978,39 @@ public class RailwayRepository {
 
 
     public List<Train> getTrainsWithUnassignedPath() throws SQLException {
-        String sql = """
-        SELECT t.id, t.operator, t.time, t."date",
-               p.id AS path_id, p.name AS path_name
-        FROM Train t
-        JOIN Path p ON p.id = t.path
-        WHERE p.name = 'UNASSIGNED'
-        ORDER BY t."date", t.time
-    """;
+        String call = "{ ? = call RAILWAY_API.f_getTrainsWithUnassignedPath() }";
 
         List<Train> res = new ArrayList<>();
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             CallableStatement ps = conn.prepareCall(call)) {
 
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String operatorVat = rs.getString("operator");
+            ps.registerOutParameter(1, Types.REF_CURSOR);
+            ps.execute();
 
-                LocalTime departureTime = rs.getTimestamp("time").toLocalDateTime().toLocalTime();
-                LocalDate date = rs.getDate("date").toLocalDate();
+            try (ResultSet rs = (ResultSet) ps.getObject(1)) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String operatorVat = rs.getString("operator");
 
-                // Criar Path mínimo (ajusta se o teu Path tiver outro construtor)
-                Path path = new Path(rs.getInt("path_id"), rs.getString("path_name"));
+                    LocalTime departureTime = rs.getTimestamp("time").toLocalDateTime().toLocalTime();
+                    LocalDate date = rs.getDate("date").toLocalDate();
 
-                Train tr = new Train(
-                        id,
-                        operatorVat,
-                        departureTime,
-                        date,
-                        path,
-                        null,
-                        null
-                );
+                    // Criar Path mínimo (ajusta se o teu Path tiver outro construtor)
+                    Path path = new Path(rs.getInt("path_id"), rs.getString("path_name"));
 
-                res.add(tr);
+                    Train tr = new Train(
+                            id,
+                            operatorVat,
+                            departureTime,
+                            date,
+                            path,
+                            null,
+                            null
+                    );
+
+                    res.add(tr);
+                }
             }
         }
 
@@ -1124,22 +1019,18 @@ public class RailwayRepository {
 
 
     public List<Freight> getFreightsByTrain(int trainId) throws SQLException {
-        String sql = """
-        SELECT f.id, f."date", f.origin, f.destination
-        FROM Freight f
-        JOIN Freight_Train ft ON ft.freight = f.id
-        WHERE ft.train = ?
-        ORDER BY f.id
-    """;
+        String call = "{ ? = call RAILWAY_API.f_getFreightsByTrain(?) }";
 
         List<Freight> res = new ArrayList<>();
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             CallableStatement ps = conn.prepareCall(call)) {
 
-            ps.setInt(1, trainId);
+            ps.registerOutParameter(1, Types.REF_CURSOR);
+            ps.setInt(2, trainId);
+            ps.execute();
 
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = (ResultSet) ps.getObject(1)) {
                 while (rs.next()) {
                     int freightId = rs.getInt("id");
                     LocalDate date = rs.getDate("date").toLocalDate();
@@ -1161,15 +1052,18 @@ public class RailwayRepository {
 
 
     public void updateTrainPath(int trainId, int pathId) throws SQLException {
-        String sql = "UPDATE Train SET path = ? WHERE id = ?";
+        String call = "{ ? = call RAILWAY_API.f_updateTrainPath(?, ?) }";
 
         try (Connection conn = DatabaseConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             CallableStatement ps = conn.prepareCall(call)) {
 
-            ps.setInt(1, pathId);
-            ps.setInt(2, trainId);
+            ps.registerOutParameter(1, Types.INTEGER);
+            ps.setInt(2, pathId);
+            ps.setInt(3, trainId);
 
-            int n = ps.executeUpdate();
+            ps.execute();
+            int n = ps.getInt(1);
+
             if (n != 1) {
                 throw new SQLException("Train not found or not updated: id=" + trainId);
             }
