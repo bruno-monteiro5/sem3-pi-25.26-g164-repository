@@ -63,9 +63,6 @@ public class MovementRecorder {
 
         System.out.println("✅ Schedule recorded for Train " + trainId);
         System.out.println("   • Movements recorded: " + schedule.getPassages().size());
-        System.out.println("   • Locomotives tracked: " + train.getLocomotives().size());
-        System.out.println("   • Wagons tracked: " + countWagons(train));
-        System.out.println("   • Final status: All rolling stock updated to FREE at destination");
     }
 
     /**

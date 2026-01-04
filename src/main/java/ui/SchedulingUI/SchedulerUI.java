@@ -216,12 +216,15 @@ public class SchedulerUI implements Runnable {
             System.out.println("\n📋 Available trains:");
             for (int i = 0; i < allTrains.size(); i++) {
                 Train t = allTrains.get(i);
+                String startName = (t.getStartEndpoint() != null) ? t.getStartEndpoint().getName() : "No Path";
+                String endName = (t.getEndEndpoint() != null) ? t.getEndEndpoint().getName() : "No Path";
+
                 System.out.printf(
                         "%d. Train %d: %s → %s (Departure: %s on %s)\n",
                         i + 1,
                         t.getId(),
-                        t.getStartEndpoint().getName(),
-                        t.getEndEndpoint().getName(),
+                        startName,
+                        endName,
                         t.getDepartureTime(),
                         t.getDate()
                 );
@@ -236,7 +239,12 @@ public class SchedulerUI implements Runnable {
                 try {
                     int index = Integer.parseInt(part.trim()) - 1;
                     if (index >= 0 && index < allTrains.size()) {
-                        selectedTrains.add(allTrains.get(index));
+                        Train selected = allTrains.get(index);
+                        if (selected.getStartEndpoint() != null && selected.getEndEndpoint() != null) {
+                            selectedTrains.add(selected);
+                        } else {
+                            System.out.println("⚠️  Ignoring train " + selected.getId() + ": No path assigned.");
+                        }
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("⚠️  Ignoring invalid number: " + part);
