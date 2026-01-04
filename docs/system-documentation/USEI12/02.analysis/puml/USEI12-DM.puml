@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+
+class Station {
+  country
+  timeZone
+  timeZoneGroup
+  isCity
+  isMainStation
+  isAirport
+}
+
+class RailLine {
+  id
+  name
+}
+
+class Location {
+  latitude
+  longitude
+}
+
+Station "1" --> "1" Location : has >
+RailLine "1" --> "1" Station : from >
+RailLine "1" --> "1" Station : to   >
+
+note right of RailLine
+Treat as undirected.
+Minimize total length.
+end note
+
+@enduml

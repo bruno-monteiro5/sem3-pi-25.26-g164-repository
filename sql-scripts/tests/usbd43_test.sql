@@ -35,10 +35,10 @@ BEGIN
             50,
             2
     );
-    DBMS_OUTPUT.PUT_LINE('TEST 2 ERROR: should fail (duplicate id)');
+    DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (duplicate id)');
 EXCEPTION
     WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('TEST 2 OK: duplicate id validation works');
+        DBMS_OUTPUT.PUT_LINE('TEST OK: duplicate id validation works');
 END;
 /
 
@@ -60,10 +60,10 @@ BEGIN
             50,
             999999
     );
-    DBMS_OUTPUT.PUT_LINE('TEST 3 ERROR: should fail (invalid gauge)');
+    DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (invalid gauge)');
 EXCEPTION
     WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('TEST 3 OK: gauge validation works');
+        DBMS_OUTPUT.PUT_LINE('TEST OK: gauge validation works');
 END;
 /
 
@@ -85,10 +85,10 @@ BEGIN
             50,
             2
     );
-    DBMS_OUTPUT.PUT_LINE('TEST 4 ERROR: should fail (empty name)');
+    DBMS_OUTPUT.PUT_LINE('TEST ERROR: should fail (empty name)');
 EXCEPTION
     WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('TEST 4 OK: name validation works');
+        DBMS_OUTPUT.PUT_LINE('TEST OK: name validation works');
 END;
 /
 

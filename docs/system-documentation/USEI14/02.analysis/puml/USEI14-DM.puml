@@ -1,0 +1,30 @@
+@startuml
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+
+class Station {
+  country
+  timeZone
+  timeZoneGroup
+  isCity
+  isMainStation
+  isAirport
+}
+
+class RailLine {
+  id
+  name
+}
+
+RailLine "1" --> "1" Station : from >
+RailLine "1" --> "1" Station : to   >
+
+note bottom
+Compute maximum flow between two selected Stations, using per-RailLine capacities.
+end note
+
+@enduml
