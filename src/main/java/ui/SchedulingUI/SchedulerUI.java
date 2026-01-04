@@ -157,12 +157,15 @@ public class SchedulerUI implements Runnable {
             System.out.println("\n📋 Available trains:");
             for (int i = 0; i < trains.size(); i++) {
                 Train t = trains.get(i);
+                String startName = (t.getStartEndpoint() != null) ? t.getStartEndpoint().getName() : "Unknown Start";
+                String endName = (t.getEndEndpoint() != null) ? t.getEndEndpoint().getName() : "Unknown End";
+                
                 System.out.printf(
                         "%d. Train %d: %s → %s (Departure: %s on %s)\n",
                         i + 1,
                         t.getId(),
-                        t.getStartEndpoint().getName(),
-                        t.getEndEndpoint().getName(),
+                        startName,
+                        endName,
                         t.getDepartureTime(),
                         t.getDate()
                 );
@@ -177,6 +180,11 @@ public class SchedulerUI implements Runnable {
             }
 
             Train selected = trains.get(choice);
+
+            if (selected.getStartEndpoint() == null || selected.getEndEndpoint() == null) {
+                System.out.println(RED + "❌ Cannot schedule this train: Start or End endpoint is missing (check if path is assigned)." + RESET);
+                return;
+            }
 
             System.out.println("\n⏳ Calculating schedule for train " + selected.getId() + "...\n");
 

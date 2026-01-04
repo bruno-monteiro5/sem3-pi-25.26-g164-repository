@@ -151,28 +151,28 @@ INSERT INTO Line (id, name, owner, endpoint_a, endpoint_b, gauge) VALUES (24, 'R
 
 -- Tabela Line_Segment e depois os tracktypes
 
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (1, 'Y', 0, 8000, 2618, 1);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (3, 'Y', 0, 8000, 2443, 2);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (10, 'Y', 0, 8000, 26560, 3);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (11, 'Y', 0, 8000, 10000, 3);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (12, 'Y', 0, 8000, 12000, 5);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (13, 'Y', 0, 8000, 3100, 5);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (14, 'Y', 0, 8000, 10387, 5);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (15, 'Y', 0, 8000, 5286, 4);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (16, 'Y', 0, 8000, 6000, 4);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (18, 'Y', 0, 8000, 6000, 7);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (20, 'Y', 0, 6400, 4890, 6);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (21, 'Y', 0, 8000, 5000, 7);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (22, 'Y', 0, 8000, 12000, 7);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (25, 'Y', 0, 8000, 20829, 8);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (26, 'Y', 0, 8000, 4264, 9);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (30, 'Y', 0, 8000, 3883, 21);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (31, 'Y', 0, 8000, 1174, 22);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (32, 'Y', 0, 8000, 2534, 22);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (33, 'Y', 0, 8000, 1566, 23);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (34, 'Y', 0, 8000, 1453, 23);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (35, 'Y', 0, 8000, 3597, 24);
-INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (36, 'Y', 0, 8000, 4334, 24);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (1, 'Y', 120, 8000, 2618, 1);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (3, 'Y', 120, 8000, 2443, 2);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (10, 'Y', 120, 8000, 26560, 3);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (11, 'Y', 120, 8000, 10000, 3);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (12, 'Y', 120, 8000, 12000, 5);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (13, 'Y', 120, 8000, 3100, 5);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (14, 'Y', 120, 8000, 10387, 5);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (15, 'Y', 120, 8000, 5286, 4);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (16, 'Y', 120, 8000, 6000, 4);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (18, 'Y', 120, 8000, 6000, 7);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (20, 'Y', 120, 6400, 4890, 6);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (21, 'Y', 120, 8000, 5000, 7);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (22, 'Y', 120, 8000, 12000, 7);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (25, 'Y', 120, 8000, 20829, 8);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (26, 'Y', 120, 8000, 4264, 9);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (30, 'Y', 120, 8000, 3883, 21);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (31, 'Y', 120, 8000, 1174, 22);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (32, 'Y', 120, 8000, 2534, 22);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (33, 'Y', 120, 8000, 1566, 23);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (34, 'Y', 120, 8000, 1453, 23);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (35, 'Y', 120, 8000, 3597, 24);
+INSERT INTO Line_Segment (id, is_electrified, speed_limit, max_weight, length, line) VALUES (36, 'Y', 120, 8000, 4334, 24);
 
 -- Tabela Multiple_Tracks
 INSERT INTO Multiple_Tracks (segment, number_tracks) VALUES (1, 4);
