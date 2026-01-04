@@ -64,10 +64,10 @@ public class TrainAssemblyUI implements Runnable {
         System.out.println("\n" + CYAN + line(72));
         System.out.println("                    TRAIN ASSEMBLY - USLP09");
         System.out.println(line(72) + RESET);
-        System.out.println("║ 1. Create & assemble a train (USLP09)                        ║");
-        System.out.println("║ 2. View all available locomotives                            ║");
-        System.out.println("║ 3. View all available wagons                                 ║");
-        System.out.println("║ 0. " + RED + "Return to main menu" + RESET + "                                       ║");
+        System.out.println("1. Create & assemble a train (USLP09)                        ");
+        System.out.println("2. View all available locomotives                            ");
+        System.out.println("3. View all available wagons                                 ");
+        System.out.println("0. " + RED + "Return to main menu" + RESET + "                                       ");
         System.out.println(CYAN + line(72) + RESET);
         System.out.print("➤ Select option: ");
     }
