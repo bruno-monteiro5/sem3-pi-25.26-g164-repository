@@ -26,6 +26,9 @@ int send_led_command(Manager* mgr, int track_id, char* led_cmd);
 // Assign train to track (returns 1 on success, 0 if no tracks available)
 int assign_train_to_track(Manager* mgr, int train_id, int* assigned_track_id);
 
+// Confirm train arrival on a reserved track (RESERVED -> OCCUPIED)
+int confirm_train_arrival(Manager* mgr, int track_id);
+
 // Free track
 int free_track(Manager* mgr, int track_id);
 

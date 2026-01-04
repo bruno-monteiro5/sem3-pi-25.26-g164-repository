@@ -33,12 +33,19 @@ void display_tracks(Manager* mgr) {
             case TRACK_FREE:
                 printf("[FREE]        ( Ready for trains )         |\n");
                 break;
+            case TRACK_RESERVED:
+                printf("[RESERVED]    ( Train #%d arriving )       |\n",
+                       t->train ? t->train->id : 0);
+                break;
             case TRACK_OCCUPIED:
-                printf("[OCCUPIED]    < Train #%d in station >     |\n", 
+                printf("[OCCUPIED]    < Train #%d in station >     |\n",
                        t->train ? t->train->id : 0);
                 break;
             case TRACK_NON_OPERATIONAL:
-                printf("[MAINTENANCE] ! Under repair !             |\n");
+                printf("[INOPERATIVE] ! Under repair !             |\n");
+                break;
+            default:
+                printf("[UNKNOWN]                                   |\n");
                 break;
         }
     }

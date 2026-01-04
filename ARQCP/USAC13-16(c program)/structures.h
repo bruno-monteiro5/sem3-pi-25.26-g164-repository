@@ -3,12 +3,19 @@
 
 #include <time.h>
 
+// User roles (Sprint 3)
+typedef enum {
+    ROLE_ADMIN,
+    ROLE_OPERATOR
+} UserRole;
+
 // User structure
 typedef struct {
     char name[64];
     char username[32];
     char password[64];  // Encrypted
     int cipher_key;
+    UserRole role;
 } User;
 
 // Train structure
@@ -19,6 +26,7 @@ typedef struct {
 // Possible track states
 typedef enum {
     TRACK_FREE,
+    TRACK_RESERVED,
     TRACK_OCCUPIED,
     TRACK_NON_OPERATIONAL
 } TrackState;
