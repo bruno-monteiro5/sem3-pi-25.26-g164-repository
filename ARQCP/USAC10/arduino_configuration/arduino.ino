@@ -20,6 +20,7 @@
 #define ATMOSPHERIC_HUMIDITY_PERIOD 2000
 #define LIGHTSHOW_PERIOD 7000
 #define ATMOSPHERIC_TEMPERATURE_PERIOD 2000
+#define BLINK_INTERVAL 500
 
 char sensor_types[][TYPE_NAME_LENGTH] = {
   "soil_humidity",
@@ -46,6 +47,13 @@ enum sensor_unit {
 DHT dht(DHTPIN, DHTTYPE);
 auto timer = timer_create_default();
 
+bool track1_blinking = false;
+bool track2_blinking = false;
+unsigned long last_blink_time_track1 = 0;
+unsigned long last_blink_time_track2 = 0;
+bool blink_state_track1 = false;
+bool blink_state_track2 = false;
+
 bool toggle_led(void *) {
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   return true;
@@ -56,16 +64,37 @@ int get_sensor_id(int min, int max){
   return id;
 }
 
-// Turn off all LEDs for a specific track
 void turn_off_all_leds_track(int track) {
   if (track == 1) {
     digitalWrite(RED1PIN, LOW);
     digitalWrite(YLL1PIN, LOW);
     digitalWrite(GRN1PIN, LOW);
+    track1_blinking = false;
   } else if (track == 2) {
     digitalWrite(RED2PIN, LOW);
     digitalWrite(YLL2PIN, LOW);
     digitalWrite(GRN2PIN, LOW);
+    track2_blinking = false;
+  }
+}
+
+void handle_blinking() {
+  unsigned long current_time = millis();
+
+  if (track1_blinking) {
+    if (current_time - last_blink_time_track1 >= BLINK_INTERVAL) {
+      blink_state_track1 = !blink_state_track1;
+      digitalWrite(RED1PIN, blink_state_track1 ? HIGH : LOW);
+      last_blink_time_track1 = current_time;
+    }
+  }
+
+  if (track2_blinking) {
+    if (current_time - last_blink_time_track2 >= BLINK_INTERVAL) {
+      blink_state_track2 = !blink_state_track2;
+      digitalWrite(RED2PIN, blink_state_track2 ? HIGH : LOW);
+      last_blink_time_track2 = current_time;
+    }
   }
 }
 
@@ -93,17 +122,17 @@ void setup() {
 
 void loop() {
   timer.tick();
+
+  handle_blinking();
   
   String cmd = Serial.readStringUntil('\n');
   cmd.trim();
   
   if (cmd == "GTH") {
-    // Read all sensors
     int min, max, id;
     float r;
-    String output = ""; // Single output string
-    
-    // Temperature
+    String output = "";
+
     min = NR_SOIL_HUMIDITY_SENSORS + NR_ATMOSPHERIC_HUMIDITY_SENSORS + 1;
     max = min + NR_ATMOSPHERIC_TEMPERATURE_SENSORS;
     id = get_sensor_id(min, max);
@@ -114,8 +143,7 @@ void loop() {
                id, sensor_types[ATMOSPHERIC_TEMPERATURE], r, sensor_units[CELSIUS], millis());
       output += String(buffer) + "#";
     }
-    
-    // Atmospheric Humidity
+
     min = NR_SOIL_HUMIDITY_SENSORS + 1;
     max = min + NR_ATMOSPHERIC_HUMIDITY_SENSORS;
     id = get_sensor_id(min, max);
@@ -126,8 +154,7 @@ void loop() {
                id, sensor_types[ATMOSPHERIC_HUMIDITY], r, sensor_units[PERCENTAGE], millis());
       output += String(buffer) + "#";
     }
-    
-    // Soil Humidity
+
     min = 1;
     max = min + NR_SOIL_HUMIDITY_SENSORS;
     id = get_sensor_id(min, max);
@@ -138,8 +165,7 @@ void loop() {
                id, sensor_types[SOIL_HUMIDITY], r, sensor_units[PERCENTAGE], millis());
       output += String(buffer) + "#";
     }
-    
-    // Send all as one line
+
     Serial.println(output);
     
   } else if (cmd.length() >= 5 && cmd[0] == 'R' && cmd[1] == 'E') {
@@ -191,23 +217,31 @@ void loop() {
     int track = (cmd[3] == '0' && cmd[4] == '1') ? 1 : ((cmd[3] == '0' && cmd[4] == '2') ? 2 : 0);
     
     if (track == 1) {
-      turn_off_all_leds_track(1);
-      for (int i = 0; i < 5; i++) {
+      track1_blinking = !track1_blinking;
+      if (track1_blinking) {
+        turn_off_all_leds_track(1);
+        track1_blinking = true;
+        last_blink_time_track1 = millis();
+        blink_state_track1 = true;
         digitalWrite(RED1PIN, HIGH);
-        delay(300);
+        Serial.println("Track 1: Red LED Blinking STARTED");
+      } else {
         digitalWrite(RED1PIN, LOW);
-        delay(300);
+        Serial.println("Track 1: Red LED Blinking STOPPED");
       }
-      Serial.println("Track 1: Red LED Blinked");
     } else if (track == 2) {
-      turn_off_all_leds_track(2);
-      for (int i = 0; i < 5; i++) {
+      track2_blinking = !track2_blinking;
+      if (track2_blinking) {
+        turn_off_all_leds_track(2);
+        track2_blinking = true;
+        last_blink_time_track2 = millis();
+        blink_state_track2 = true;
         digitalWrite(RED2PIN, HIGH);
-        delay(300);
+        Serial.println("Track 2: Red LED Blinking STARTED");
+      } else {
         digitalWrite(RED2PIN, LOW);
-        delay(300);
+        Serial.println("Track 2: Red LED Blinking STOPPED");
       }
-      Serial.println("Track 2: Red LED Blinked");
     } else {
       Serial.println("Invalid track number");
     }
