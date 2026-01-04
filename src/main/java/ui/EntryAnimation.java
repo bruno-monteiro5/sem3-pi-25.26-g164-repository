@@ -25,7 +25,7 @@ public class EntryAnimation {
 
 
     private static final String GROUND =
-            "#########################################################################################################################################################################################################################################";
+            "############################################################################################################################################################";
 
     private static final String[] BANNER = {
             " /$$                           /$$             /$$     /$$                            /$$$$$$                  /$$$$$$$            /$$ /$$                 ",
@@ -43,8 +43,8 @@ public class EntryAnimation {
 
     private static void animateTrain() {
 
-        int maxOffset = 150;   // onde começa
-        int sleepMs   = 50;   // velocidade
+        int maxOffset = 75;   // starting position
+        int sleepMs   = 50;   // speed of animation
         clear();
 
         for (int offset = maxOffset; offset >= 0; offset--) {
